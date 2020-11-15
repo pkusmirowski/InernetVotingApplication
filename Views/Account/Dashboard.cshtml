@@ -1,0 +1,26 @@
+﻿@model InernetVotingApplication.ViewModels.DataWyborowViewModel
+@{
+    ViewData["Title"] = "Panel głosowania";
+}
+<center>
+    <h2>Panel głosowania</h2>
+    <table border="1">
+        <tr>
+            <th>Numer</th>
+            <th>Data rozpoczęcia</th>
+            <th>Data zakończenia</th>
+            <th>Opis</th>
+            <th>Link:</th>
+        </tr>
+        @foreach (var election in Model.ElectionDates)
+        {
+            <tr>
+                <td>@election.Id</td>
+                <td>@election.DataRozpoczecia</td>
+                <td>@election.DataZakonczenia</td>
+                <td>@election.Opis</td>
+                <td><a asp-controller="Account" asp-action="Voting" id="@election.Id">Przejdź do głosowania</a></td>
+            </tr>
+        }
+    </table>
+</center>

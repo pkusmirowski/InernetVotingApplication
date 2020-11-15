@@ -1,0 +1,34 @@
+﻿@model InernetVotingApplication.Models.Logowanie
+
+@{
+    ViewData["Title"] = "Logowanie";
+}
+
+<h1>Logowanie użytkownika</h1>
+
+<hr />
+<div class="row">
+    <div class="col-md-12">
+        <form method="post">
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="NumerDowodu"></label>
+                <input asp-for="NumerDowodu" class="form-control" />
+                <span asp-validation-for="NumerDowodu" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Haslo"></label>
+                <input asp-for="Haslo" class="form-control" />
+                <span asp-validation-for="Haslo" class="text-danger"></span>
+            </div>
+            <button type="submit" class="btn btn-primary">Zaloguj</button>
+        </form>
+    </div>
+</div>
+
+@if (ViewBag.Error == false)
+{
+    <div class="alert alert-danger" role="alert">
+        <b>Wprowadzono niepoprawne dane!</b>
+    </div>
+}
