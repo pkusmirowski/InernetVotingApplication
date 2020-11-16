@@ -36,7 +36,7 @@ namespace InernetVotingApplication.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Register(Uzytkownik user)
+        public async Task<IActionResult> RegisterAsync(Uzytkownik user)
         {
             if (HttpContext.Session.GetString("Username") != null)
             {
@@ -45,7 +45,7 @@ namespace InernetVotingApplication.Controllers
 
             if (ModelState.IsValid)
             {
-                if (_userService.Register(user))
+                if (await _userService.Register(user))
                 {
                     ViewBag.registrationSuccessful = "Uzytkownik " + user.Imie + " " + user.Nazwisko + " został zarejestrowany poprawnie!";
                     return View();
@@ -56,7 +56,7 @@ namespace InernetVotingApplication.Controllers
             return View();
         }
 
-        public IActionResult Login(Logowanie user)
+        public async Task<IActionResult> LoginAsync(Logowanie user)
         {
             if (HttpContext.Session.GetString("Username") != null)
             {
@@ -65,11 +65,11 @@ namespace InernetVotingApplication.Controllers
 
             if (ModelState.IsValid)
             {
-                string userName = "";
-                if (_userService.Login(user, ref userName))
+                if (await _userService.LoginAsync(user))
                 {
                     //Zapisanie użytkownika w sesji
-
+                    string userName = "";
+                    userName = await _userService.GetLoggedUserName(user, userName);
                     HttpContext.Session.SetString("Username", userName);
                     string test = "test";
                     HttpContext.Session.SetString("Role", test);
@@ -95,7 +95,7 @@ namespace InernetVotingApplication.Controllers
                 return RedirectToAction("Login");
             }
 
-            var vm = _userService.GetAll();
+            var vm = _userService.GetAllElections();
             //ViewBag.Username = HttpContext.Session.GetString("Username");
             //ViewBag.Role = HttpContext.Session.GetString("Role");
             return View(vm);

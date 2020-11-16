@@ -1,6 +1,7 @@
 ﻿using InernetVotingApplication.Models;
 using InernetVotingApplication.ViewModels;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,11 +20,10 @@ namespace InernetVotingApplication.Services
             _context = context;
         }
 
-
-        public bool Register(Uzytkownik user)
+        public async Task<bool> Register(Uzytkownik user)
         {
-            var idnumber = _context.Uzytkowniks.SingleOrDefault(x => x.NumerDowodu == user.NumerDowodu);
-            var pesel = _context.Uzytkowniks.SingleOrDefault(x => x.Pesel == user.Pesel);
+            var idnumber = await _context.Uzytkowniks.SingleOrDefaultAsync(x => x.NumerDowodu == user.NumerDowodu);
+            var pesel = await _context.Uzytkowniks.SingleOrDefaultAsync(x => x.Pesel == user.Pesel);
 
             if(idnumber != null)
             {
@@ -39,28 +39,22 @@ namespace InernetVotingApplication.Services
             user.Haslo = BC.HashPassword(user.Haslo);
             user.JestAktywne = true;
             _context.Add(user);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             return true;
         }
 
-        public bool Login(Logowanie user, ref string userName)
+        public async Task<bool> LoginAsync(Logowanie user)
         {
+            var queryActive = from Uzytkownik in _context.Uzytkowniks
+                              where Uzytkownik.NumerDowodu == user.NumerDowodu
+                              select Uzytkownik.JestAktywne;
+
             if (user.NumerDowodu != null && user.Haslo != null)
             {
-                var queryActive = from Uzytkownik in _context.Uzytkowniks
-                            where Uzytkownik.NumerDowodu == user.NumerDowodu
-                            select Uzytkownik.JestAktywne;
-                
-                if (queryActive.FirstOrDefault() ?? false)
+                if (await queryActive.FirstOrDefaultAsync() ?? false)
                 {
-                    if (Authenticate(user))
+                    if (await AuthenticateUser(user))
                     {
-                        var queryName = from Uzytkownik in _context.Uzytkowniks
-                                        where Uzytkownik.NumerDowodu == user.NumerDowodu
-                                        select Uzytkownik.Imie;
-
-                        userName = queryName.First();
-
                         return true;
                     }
                 }
@@ -69,9 +63,18 @@ namespace InernetVotingApplication.Services
             return false;
         }
 
-        public bool Authenticate(Logowanie user)
+        public async Task<string> GetLoggedUserName(Logowanie user, string userName)
         {
-            var account = _context.Uzytkowniks.SingleOrDefault(x => x.NumerDowodu == user.NumerDowodu);
+            var queryName = from Uzytkownik in _context.Uzytkowniks
+                            where Uzytkownik.NumerDowodu == user.NumerDowodu
+                            select Uzytkownik.Imie;
+
+            return userName = await queryName.FirstAsync();
+        }
+
+        public async Task<bool>AuthenticateUser(Logowanie user)
+        {
+            var account = await _context.Uzytkowniks.SingleOrDefaultAsync(x => x.NumerDowodu == user.NumerDowodu);
 
             if(BC.Verify(user.Haslo, account.Haslo))
             {
@@ -83,16 +86,16 @@ namespace InernetVotingApplication.Services
             }
         }
 
-        public DataWyborowViewModel GetAll()
+        public async Task<DataWyborowViewModel> GetAllElections()
         {
-            var electionDates = _context.DataWyborows.Select(x => new DataWyborowItemViewModel
+            var electionDates = await _context.DataWyborows.Select(x => new DataWyborowItemViewModel
             {
                 Id = x.Id,
                 DataRozpoczecia = x.DataRozpoczecia,
                 DataZakonczenia = x.DataZakonczenia,
                 Opis = x.Opis
                 
-            });
+            }).ToListAsync();
 
             var vm = new DataWyborowViewModel
             {
