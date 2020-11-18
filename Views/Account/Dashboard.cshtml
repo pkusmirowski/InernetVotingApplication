@@ -6,11 +6,11 @@
     <h2>Panel głosowania</h2>
     <table border="1">
         <tr>
-            <th>Numer</th>
+            <th>Numer głosowania</th>
             <th>Data rozpoczęcia</th>
             <th>Data zakończenia</th>
-            <th>Opis</th>
-            <th>Link:</th>
+            <th>Opis głosowania</th>
+            <th>Link</th>
         </tr>
         @foreach (var election in Model.ElectionDates)
         {
@@ -19,7 +19,7 @@
                 <td>@election.DataRozpoczecia</td>
                 <td>@election.DataZakonczenia</td>
                 <td>@election.Opis</td>
-                <td><a asp-controller="Account" asp-action="Voting" id="@election.Id">Przejdź do głosowania</a></td>
+                <td><a asp-controller="Account" asp-action="Voting" asp-route-id="@election.Id">Przejdź do głosowania</a></td>
             </tr>
         }
     </table>

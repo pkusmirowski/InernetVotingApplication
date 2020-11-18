@@ -1,6 +1,24 @@
-﻿@{
+﻿@model InernetVotingApplication.ViewModels.KandydatViewModel
+@{
     ViewData["Title"] = "Głosowanie";
 }
-
-<h1>Głosowanie</h1>
-
+<center>
+    <h2>Głosowanie</h2>
+    <table border="1">
+        <tr>
+            <th>Numer kandydata</th>
+            <th>Imię</th>
+            <th>Nazwisko</th>
+            <th>cos tam</th>
+        </tr>
+        @foreach (var election in Model.ElectionCandidates)
+        {
+            <tr>
+                <td>@election.Id</td>
+                <td>@election.Imie</td>
+                <td>@election.Nazwisko</td>
+                <td>checkbox</td>
+            </tr>
+        }
+    </table>
+</center>

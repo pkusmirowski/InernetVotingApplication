@@ -12,7 +12,7 @@ namespace InernetVotingApplication.Controllers
 {
     public class AccountController : Controller
     {
-        private UserService _userService;
+        private readonly UserService _userService;
 
         public AccountController(UserService userService)
         {
@@ -36,7 +36,7 @@ namespace InernetVotingApplication.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> RegisterAsync(Uzytkownik user)
+        public async Task<IActionResult> Register(Uzytkownik user)
         {
             if (HttpContext.Session.GetString("Username") != null)
             {
@@ -56,7 +56,7 @@ namespace InernetVotingApplication.Controllers
             return View();
         }
 
-        public async Task<IActionResult> LoginAsync(Logowanie user)
+        public async Task<IActionResult> Login(Logowanie user)
         {
             if (HttpContext.Session.GetString("Username") != null)
             {
@@ -88,6 +88,7 @@ namespace InernetVotingApplication.Controllers
             return RedirectToAction("Login");
         }
 
+
         public IActionResult Dashboard()
         {
             if (string.IsNullOrEmpty(HttpContext.Session.GetString("Username")))
@@ -101,14 +102,17 @@ namespace InernetVotingApplication.Controllers
             return View(vm);
         }
 
-        public IActionResult Voting()
+        [HttpGet]
+        public IActionResult Voting(int id)
         {
             if (string.IsNullOrEmpty(HttpContext.Session.GetString("Username")))
             {
                 return RedirectToAction("Login");
             }
 
-            return View();
+            var vm = _userService.GetAllCandidates(id);
+
+            return View(vm);
         }
     }
 }

@@ -86,20 +86,39 @@ namespace InernetVotingApplication.Services
             }
         }
 
-        public async Task<DataWyborowViewModel> GetAllElections()
+        public DataWyborowViewModel GetAllElections()
         {
-            var electionDates = await _context.DataWyborows.Select(x => new DataWyborowItemViewModel
+            var electionDates = _context.DataWyborows.Select(x => new DataWyborowItemViewModel
             {
                 Id = x.Id,
                 DataRozpoczecia = x.DataRozpoczecia,
                 DataZakonczenia = x.DataZakonczenia,
                 Opis = x.Opis
                 
-            }).ToListAsync();
+            });
 
             var vm = new DataWyborowViewModel
             {
                 ElectionDates = electionDates
+            };
+
+            return vm;
+        }
+
+        public KandydatViewModel GetAllCandidates(int id)
+        {
+
+            var electionCandidates = _context.Kandydats.Select(x => new KandydatItemViewModel
+            {
+                Id = x.Id,
+                Imie = x.Imie,
+                Nazwisko = x.Nazwisko,
+                IdWybory = x.IdWybory
+            }).Where(x=> x.IdWybory == id);
+
+            var vm = new KandydatViewModel
+            {
+                ElectionCandidates = electionCandidates
             };
 
             return vm;
