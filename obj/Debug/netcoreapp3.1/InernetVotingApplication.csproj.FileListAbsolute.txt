@@ -135,6 +135,10 @@ C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\ob
 C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\InernetVotingApplication.TagHelpers.input.cache
 C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\InernetVotingApplication.TagHelpers.output.cache
 C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\InernetVotingApplication.RazorCoreGenerate.cache
+C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\Razor\Views\Account\Dashboard.cshtml.g.cs
+C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\Razor\Views\Account\Login.cshtml.g.cs
+C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\Razor\Views\Account\Register.cshtml.g.cs
+C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\Razor\Views\Account\Voting.cshtml.g.cs
 C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\Razor\Views\Home\Index.cshtml.g.cs
 C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\Razor\Views\Home\Privacy.cshtml.g.cs
 C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\Razor\Views\Shared\_Layout.cshtml.g.cs
@@ -148,8 +152,4 @@ C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\ob
 C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\InernetVotingApplication.dll
 C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\InernetVotingApplication.pdb
 C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\InernetVotingApplication.genruntimeconfig.cache
-C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\Razor\Views\Account\Login.cshtml.g.cs
-C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\Razor\Views\Account\Register.cshtml.g.cs
-C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\Razor\Views\Account\Dashboard.cshtml.g.cs
-C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\Razor\Views\Account\Voting.cshtml.g.cs
 C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\InernetVotingApplication.csprojAssemblyReference.cache

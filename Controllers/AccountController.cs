@@ -1,5 +1,6 @@
 ﻿using InernetVotingApplication.Models;
 using InernetVotingApplication.Services;
+using InernetVotingApplication.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -109,10 +110,24 @@ namespace InernetVotingApplication.Controllers
             {
                 return RedirectToAction("Login");
             }
-
             var vm = _userService.GetAllCandidates(id);
-
+            @ViewBag.ID = id;
             return View(vm);
+        }
+
+        [HttpPost]
+        public IActionResult VotingAdd(int[] items, int[] hiddenValue)
+        {
+            
+            var test = 1;
+
+            // if (_userService.AddVote(HttpContext.Session.GetString("Username"), 1, name, value))
+            // {
+            //      return RedirectToAction("Dashboard");
+            //  }
+            //ModelState.Remove("hiddenValue");
+            ModelState.Clear();
+            return RedirectToAction("Voting");
         }
     }
 }

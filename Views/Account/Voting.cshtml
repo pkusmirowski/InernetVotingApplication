@@ -4,21 +4,37 @@
 }
 <center>
     <h2>Głosowanie</h2>
-    <table border="1">
-        <tr>
-            <th>Numer kandydata</th>
-            <th>Imię</th>
-            <th>Nazwisko</th>
-            <th>cos tam</th>
-        </tr>
-        @foreach (var election in Model.ElectionCandidates)
-        {
+    <form asp-action="VotingAdd" method="post">
+        <table border="1">
             <tr>
-                <td>@election.Id</td>
-                <td>@election.Imie</td>
-                <td>@election.Nazwisko</td>
-                <td>checkbox</td>
+                <th>Numer kandydata</th>
+                <th>Imię</th>
+                <th>Nazwisko</th>
+                <th>cos tam</th>
             </tr>
+            @foreach (var election in Model.ElectionCandidates)
+            {
+        <tr>
+            <td>@election.Id</td>
+            <td>@election.Imie</td>
+            <td>@election.Nazwisko</td>
+            <td><input type="checkbox" name="items" value="@ViewBag.ID" onclick="MutExChkList(this);" /></td>
+            <input type="hidden" name="hiddenValue" value="@election.Id" />
+        </tr>
         }
-    </table>
+        </table>
+        <input type="submit" value="submit" />
+    </form>
 </center>
+
+<script type="text/javascript">
+    function MutExChkList(chk) {
+        var chkList = chk.parentNode.parentNode.parentNode;
+        var chks = chkList.getElementsByTagName("input");
+        for (var i = 0; i < chks.length; i++) {
+            if (chks[i] != chk && chk.checked) {
+                chks[i].checked = false;
+            }
+        }
+    }
+</script>

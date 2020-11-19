@@ -15,6 +15,7 @@ namespace InernetVotingApplication.Services
     {
         private readonly InternetVotingContext _context;
 
+
         public UserService(InternetVotingContext context)
         {
             _context = context;
@@ -122,6 +123,24 @@ namespace InernetVotingApplication.Services
             };
 
             return vm;
+        }
+
+        public bool AddVote(string user, int id, string name, string value)
+        {
+
+            var test = new GlosowanieWyborcze()
+            {
+                IdKandydat = 1,
+                IdWybory = id,
+                Glos = true,
+                Hash = "aaa",
+                JestPoprawny = true
+
+            };
+
+            _context.Add(test);
+            _context.SaveChanges();
+            return true;
         }
     }
 }
