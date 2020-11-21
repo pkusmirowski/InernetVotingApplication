@@ -18,8 +18,8 @@
             <td>@election.Id</td>
             <td>@election.Imie</td>
             <td>@election.Nazwisko</td>
-            <td><input type="checkbox" name="items" value="@ViewBag.ID" onclick="MutExChkList(this);" /></td>
-            <input type="hidden" name="hiddenValue" value="@election.Id" />
+            <td><input type="checkbox" name="candidate" value="@election.Id" onclick="MutExChkList(this);" /></td>
+            <input type="hidden" name="election" value="@ViewBag.ID" />
         </tr>
         }
         </table>

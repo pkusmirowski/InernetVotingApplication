@@ -64,13 +64,13 @@ namespace InernetVotingApplication.Services
             return false;
         }
 
-        public async Task<string> GetLoggedUserName(Logowanie user, string userName)
+        public async Task<string> GetLoggedIdNumber(Logowanie user, string IdNumber)
         {
             var queryName = from Uzytkownik in _context.Uzytkowniks
                             where Uzytkownik.NumerDowodu == user.NumerDowodu
-                            select Uzytkownik.Imie;
+                            select Uzytkownik.NumerDowodu;
 
-            return userName = await queryName.FirstAsync();
+            return IdNumber = await queryName.FirstAsync();
         }
 
         public async Task<bool>AuthenticateUser(Logowanie user)
@@ -125,22 +125,57 @@ namespace InernetVotingApplication.Services
             return vm;
         }
 
-        public bool AddVote(string user, int id, string name, string value)
+        public bool AddVote(string user, int candidate, int election)
         {
 
             var test = new GlosowanieWyborcze()
             {
-                IdKandydat = 1,
-                IdWybory = id,
+                IdKandydat = candidate,
+                IdWybory = election,
                 Glos = true,
                 Hash = "aaa",
                 JestPoprawny = true
 
             };
 
+            var queryName = (from Uzytkownik in _context.Uzytkowniks
+                            where Uzytkownik.NumerDowodu == user
+                            select Uzytkownik.Id).FirstOrDefault();
+
+            var test2 = new GlosUzytkownika
+            {
+                IdUzytkownik = queryName,
+                IdWybory = election,
+                Glos = true
+            };
+
             _context.Add(test);
+            _context.Add(test2);
             _context.SaveChanges();
             return true;
+        }
+
+
+        public bool CheckIfVoted(string user, int election)
+        {
+            var queryName = (from Uzytkownik in _context.Uzytkowniks
+                             where Uzytkownik.NumerDowodu == user
+                             select Uzytkownik.Id).FirstOrDefault();
+
+            var queryName2 = (from GlosUzytkownika in _context.GlosUzytkownikas
+                             where GlosUzytkownika.IdUzytkownik == queryName && GlosUzytkownika.IdWybory == election 
+                              select GlosUzytkownika.Glos).FirstOrDefault();
+
+            //var queryName3 = (from GlosUzytkownika in _context.GlosUzytkownikas
+             //                 where GlosUzytkownika.IdWybory == election
+            //                  select GlosUzytkownika.IdWybory).FirstOrDefault();
+
+            if (queryName2 )//&& queryName3 == election)
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 }
