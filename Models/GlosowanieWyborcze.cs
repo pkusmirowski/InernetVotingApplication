@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 #nullable disable
 
@@ -18,13 +15,13 @@ namespace InernetVotingApplication.Models
         public int IdKandydat { get; set; }
         [Column("id_wybory")]
         public int IdWybory { get; set; }
+        [Column("id_poprzednie")]
+        public int? IdPoprzednie { get; set; }
         [Column("glos")]
         public bool Glos { get; set; }
         [Required]
         [Column("hash")]
         public string Hash { get; set; }
-        [Column("jestPoprawny")]
-        public bool JestPoprawny { get; set; }
 
         [ForeignKey(nameof(IdKandydat))]
         [InverseProperty(nameof(Kandydat.GlosowanieWyborczes))]
@@ -32,5 +29,9 @@ namespace InernetVotingApplication.Models
         [ForeignKey(nameof(IdWybory))]
         [InverseProperty(nameof(DataWyborow.GlosowanieWyborczes))]
         public virtual DataWyborow IdWyboryNavigation { get; set; }
+
+        [NotMapped]
+        public bool JestPoprawny { get; set; }
+        //public virtual int PreviousId { get; set; }
     }
 }

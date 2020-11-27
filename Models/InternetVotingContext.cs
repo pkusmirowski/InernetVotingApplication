@@ -1,6 +1,4 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
+﻿using Microsoft.EntityFrameworkCore;
 
 #nullable disable
 
@@ -23,7 +21,6 @@ namespace InernetVotingApplication.Models
         public virtual DbSet<GlosowanieWyborcze> GlosowanieWyborczes { get; set; }
         public virtual DbSet<Kandydat> Kandydats { get; set; }
         public virtual DbSet<Uzytkownik> Uzytkowniks { get; set; }
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Administrator>(entity =>
@@ -63,13 +60,13 @@ namespace InernetVotingApplication.Models
                     .WithMany(p => p.GlosowanieWyborczes)
                     .HasForeignKey(d => d.IdKandydat)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_GlosNaKandydata_Kandydat");
+                    .HasConstraintName("FK_GlosowanieWyborcze_Kandydat");
 
                 entity.HasOne(d => d.IdWyboryNavigation)
                     .WithMany(p => p.GlosowanieWyborczes)
                     .HasForeignKey(d => d.IdWybory)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_GlosNaKandydata_Wybory");
+                    .HasConstraintName("FK_GlosowanieWyborcze_DataWyborow");
             });
 
             modelBuilder.Entity<Kandydat>(entity =>

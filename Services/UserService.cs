@@ -1,11 +1,9 @@
-﻿using InernetVotingApplication.Models;
+﻿using InernetVotingApplication.Blockchain;
+using InernetVotingApplication.Models;
 using InernetVotingApplication.ViewModels;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using BC = BCrypt.Net.BCrypt;
 
@@ -14,7 +12,6 @@ namespace InernetVotingApplication.Services
     public class UserService
     {
         private readonly InternetVotingContext _context;
-
 
         public UserService(InternetVotingContext context)
         {
@@ -26,9 +23,9 @@ namespace InernetVotingApplication.Services
             var idnumber = await _context.Uzytkowniks.SingleOrDefaultAsync(x => x.NumerDowodu == user.NumerDowodu);
             var pesel = await _context.Uzytkowniks.SingleOrDefaultAsync(x => x.Pesel == user.Pesel);
 
-            if(idnumber != null)
+            if (idnumber != null)
             {
-                if(pesel != null)
+                if (pesel != null)
                 {
                     if (idnumber.NumerDowodu == user.NumerDowodu || idnumber.Pesel == user.Pesel)
                     {
@@ -64,27 +61,20 @@ namespace InernetVotingApplication.Services
             return false;
         }
 
-        public async Task<string> GetLoggedIdNumber(Logowanie user, string IdNumber)
+        public async Task<string> GetLoggedIdNumber(Logowanie user, string idNumber)
         {
             var queryName = from Uzytkownik in _context.Uzytkowniks
                             where Uzytkownik.NumerDowodu == user.NumerDowodu
                             select Uzytkownik.NumerDowodu;
 
-            return IdNumber = await queryName.FirstAsync();
+            return idNumber = await queryName.FirstAsync();
         }
 
-        public async Task<bool>AuthenticateUser(Logowanie user)
+        public async Task<bool> AuthenticateUser(Logowanie user)
         {
             var account = await _context.Uzytkowniks.SingleOrDefaultAsync(x => x.NumerDowodu == user.NumerDowodu);
 
-            if(BC.Verify(user.Haslo, account.Haslo))
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+            return BC.Verify(user.Haslo, account.Haslo);
         }
 
         public DataWyborowViewModel GetAllElections()
@@ -95,7 +85,7 @@ namespace InernetVotingApplication.Services
                 DataRozpoczecia = x.DataRozpoczecia,
                 DataZakonczenia = x.DataZakonczenia,
                 Opis = x.Opis
-                
+
             });
 
             var vm = new DataWyborowViewModel
@@ -115,7 +105,7 @@ namespace InernetVotingApplication.Services
                 Imie = x.Imie,
                 Nazwisko = x.Nazwisko,
                 IdWybory = x.IdWybory
-            }).Where(x=> x.IdWybory == id);
+            }).Where(x => x.IdWybory == id);
 
             var vm = new KandydatViewModel
             {
@@ -125,57 +115,70 @@ namespace InernetVotingApplication.Services
             return vm;
         }
 
-        public bool AddVote(string user, int candidate, int election)
+        public bool AddVote(string user, int candidateId, int electionId)
         {
+            ;
 
-            var test = new GlosowanieWyborcze()
+            var electionVoteDB = new GlosowanieWyborcze()
             {
-                IdKandydat = candidate,
-                IdWybory = election,
-                Glos = true,
-                Hash = "aaa",
-                JestPoprawny = true
-
-            };
-
-            var queryName = (from Uzytkownik in _context.Uzytkowniks
-                            where Uzytkownik.NumerDowodu == user
-                            select Uzytkownik.Id).FirstOrDefault();
-
-            var test2 = new GlosUzytkownika
-            {
-                IdUzytkownik = queryName,
-                IdWybory = election,
+                IdKandydat = candidateId,
+                IdWybory = electionId,
                 Glos = true
             };
 
-            _context.Add(test);
-            _context.Add(test2);
+            var listOfRoleId = _context.GlosowanieWyborczes.Select(r => r.Id);
+            var listOfPreviousElectionVotes = _context.GlosowanieWyborczes.Where(r => listOfRoleId.Contains(r.Id)).Where(r => r.IdWybory == electionId).ToList();
+
+            var queryActive = from GlosowanieWyborcze in _context.GlosowanieWyborczes
+                              where GlosowanieWyborcze.IdWybory == electionId
+                              orderby GlosowanieWyborcze.Id descending
+                              select GlosowanieWyborcze.Id;
+
+            BlockChainHelper.VerifyBlockChain(listOfPreviousElectionVotes);
+
+            if (listOfPreviousElectionVotes.Any(c => !c.JestPoprawny))
+            {
+                throw new InvalidOperationException("Block Chain was invalid");
+            }
+
+            string previousBlockHash = null;
+            if (listOfPreviousElectionVotes.Any())
+            {
+                var previousVote = listOfPreviousElectionVotes.Last();
+                electionVoteDB.IdPoprzednie = previousVote.Id;
+                previousBlockHash = previousVote.Hash;
+            }
+
+            var blockText = BlockHelper.VoteData(electionVoteDB.IdKandydat, electionVoteDB.IdWybory, electionVoteDB.Glos, previousBlockHash);
+            electionVoteDB.Hash = HashHelper.Hash(blockText);
+
+            var userId = (from Uzytkownik in _context.Uzytkowniks
+                          where Uzytkownik.NumerDowodu == user
+                          select Uzytkownik.Id).FirstOrDefault();
+
+            var userVoiceDB = new GlosUzytkownika
+            {
+                IdUzytkownik = userId,
+                IdWybory = electionId,
+                Glos = true
+            };
+
+            _context.Add(electionVoteDB);
+            _context.Add(userVoiceDB);
             _context.SaveChanges();
             return true;
         }
 
-
         public bool CheckIfVoted(string user, int election)
         {
-            var queryName = (from Uzytkownik in _context.Uzytkowniks
-                             where Uzytkownik.NumerDowodu == user
-                             select Uzytkownik.Id).FirstOrDefault();
+            int userId = (from Uzytkownik in _context.Uzytkowniks
+                          where Uzytkownik.NumerDowodu == user
+                          select Uzytkownik.Id).FirstOrDefault();
 
-            var queryName2 = (from GlosUzytkownika in _context.GlosUzytkownikas
-                             where GlosUzytkownika.IdUzytkownik == queryName && GlosUzytkownika.IdWybory == election 
-                              select GlosUzytkownika.Glos).FirstOrDefault();
-
-            //var queryName3 = (from GlosUzytkownika in _context.GlosUzytkownikas
-             //                 where GlosUzytkownika.IdWybory == election
-            //                  select GlosUzytkownika.IdWybory).FirstOrDefault();
-
-            if (queryName2 )//&& queryName3 == election)
-            {
-                return true;
-            }
-
-            return false;
+            bool ifVoted = (from GlosUzytkownika in _context.GlosUzytkownikas
+                            where GlosUzytkownika.IdUzytkownik == userId && GlosUzytkownika.IdWybory == election
+                            select GlosUzytkownika.Glos).FirstOrDefault();
+            return ifVoted;
         }
     }
 }

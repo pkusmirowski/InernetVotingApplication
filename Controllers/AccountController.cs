@@ -1,12 +1,7 @@
 ﻿using InernetVotingApplication.Models;
 using InernetVotingApplication.Services;
-using InernetVotingApplication.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Array = InernetVotingApplication.ExtensionMethods.Extensions;
 
@@ -141,7 +136,7 @@ namespace InernetVotingApplication.Controllers
 
             if (_userService.AddVote(HttpContext.Session.GetString("IdNumber"), candidateId, electionId))
             {
-                 return RedirectToAction("Dashboard");
+                return RedirectToAction("Dashboard");
             }
             //ModelState.Remove("hiddenValue");
             ModelState.Clear();

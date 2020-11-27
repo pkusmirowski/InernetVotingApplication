@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace InernetVotingApplication.ExtensionMethods
 {
@@ -14,5 +11,6 @@ namespace InernetVotingApplication.ExtensionMethods
         {
             return (array == null || array.Length == 0);
         }
+        
     }
 }
