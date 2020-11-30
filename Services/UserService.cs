@@ -1,4 +1,5 @@
 ﻿using InernetVotingApplication.Blockchain;
+using InernetVotingApplication.ExtensionMethods;
 using InernetVotingApplication.Models;
 using InernetVotingApplication.ViewModels;
 using Microsoft.EntityFrameworkCore;
@@ -25,13 +26,23 @@ namespace InernetVotingApplication.Services
 
             if (idnumber != null)
             {
-                if (pesel != null)
+                if (idnumber.NumerDowodu == user.NumerDowodu)
                 {
-                    if (idnumber.NumerDowodu == user.NumerDowodu || idnumber.Pesel == user.Pesel)
-                    {
-                        return false;
-                    }
+                    return false;
                 }
+            }
+
+            if (pesel != null)
+            {
+                if (pesel.Pesel == user.Pesel)
+                {
+                    return false;
+                }
+            }
+
+            if (PESELValidation.IsValidPESEL(user.Pesel) == false || IDNumberValidation.ValidateIdNumber(user.NumerDowodu) == false)
+            {
+                return false;
             }
 
             user.Haslo = BC.HashPassword(user.Haslo);
@@ -117,7 +128,6 @@ namespace InernetVotingApplication.Services
 
         public bool AddVote(string user, int candidateId, int electionId)
         {
-            ;
 
             var electionVoteDB = new GlosowanieWyborcze()
             {
@@ -129,16 +139,11 @@ namespace InernetVotingApplication.Services
             var listOfRoleId = _context.GlosowanieWyborczes.Select(r => r.Id);
             var listOfPreviousElectionVotes = _context.GlosowanieWyborczes.Where(r => listOfRoleId.Contains(r.Id)).Where(r => r.IdWybory == electionId).ToList();
 
-            var queryActive = from GlosowanieWyborcze in _context.GlosowanieWyborczes
-                              where GlosowanieWyborcze.IdWybory == electionId
-                              orderby GlosowanieWyborcze.Id descending
-                              select GlosowanieWyborcze.Id;
-
             BlockChainHelper.VerifyBlockChain(listOfPreviousElectionVotes);
 
             if (listOfPreviousElectionVotes.Any(c => !c.JestPoprawny))
             {
-                throw new InvalidOperationException("Block Chain was invalid");
+                return false;
             }
 
             string previousBlockHash = null;

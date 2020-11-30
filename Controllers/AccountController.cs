@@ -3,7 +3,7 @@ using InernetVotingApplication.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
-using Array = InernetVotingApplication.ExtensionMethods.Extensions;
+using Array = InernetVotingApplication.ExtensionMethods.VariableExtensions;
 
 namespace InernetVotingApplication.Controllers
 {
@@ -138,9 +138,20 @@ namespace InernetVotingApplication.Controllers
             {
                 return RedirectToAction("Dashboard");
             }
+
             //ModelState.Remove("hiddenValue");
             ModelState.Clear();
-            return RedirectToAction("Voting");
+            return RedirectToAction("ElectionError");
+        }
+
+        public IActionResult ElectionError()
+        {
+            if (string.IsNullOrEmpty(HttpContext.Session.GetString("IdNumber")))
+            {
+                return RedirectToAction("Login");
+            }
+
+            return View();
         }
     }
 }

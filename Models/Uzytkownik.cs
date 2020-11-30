@@ -1,4 +1,5 @@
-﻿using System;
+﻿using InernetVotingApplication.ExtensionMethods;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -36,25 +37,27 @@ namespace InernetVotingApplication.Models
         public string Pesel { get; set; }
         [Required(ErrorMessage = "Wpisz swój numer dowodu osobistego")]
         [Column("numerDowodu")]
-        [StringLength(6)]
+        [StringLength(9)]
         [Display(Name = "Nr dowodu osobistego")]
         public string NumerDowodu { get; set; }
-        [Required(ErrorMessage = "Wpisz swoją date urodzenia")]
+        [Required(ErrorMessage = "Wpisz swoją datę urodzenia")]
         [Column("dataUrodzenia", TypeName = "date")]
         [Display(Name = "Data urodzenia")]
         [DataType(DataType.Date)]
+        [AgeValidation(18, ErrorMessage = "Musisz być pełnoletni!")]
         public DateTime DataUrodzenia { get; set; }
         [Required(ErrorMessage = "Podaj hasło")]
         [Column("haslo")]
         [DataType(DataType.Password)]
         [Display(Name = "Hasło")]
+        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[#$^+=!*()@%&]).{8,}$",
+         ErrorMessage = "Hasło musi zawierać: małą i dużą litere, cyfre, specjalny symbol, 8 znaków")]
         public string Haslo { get; set; }
         [NotMapped]
-        [Compare("Haslo", ErrorMessage = "Haslo sie nie zgadza!")]
+        [Compare("Haslo", ErrorMessage = "Hasła się nie zgadzają!")]
         [DataType(DataType.Password)]
         [Display(Name = "Potwierdź hasło")]
         public string ConfirmPassword { get; set; }
-        //[Required]
         [Column("jestAktywne")]
         public bool? JestAktywne { get; set; }
 

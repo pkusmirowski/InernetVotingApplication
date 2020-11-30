@@ -5,7 +5,7 @@ namespace InernetVotingApplication.Models
     public class Logowanie
     {
         [Required(ErrorMessage = "Wpisz swój numer dowodu osobistego")]
-        [StringLength(6)]
+        [StringLength(9)]
         [Display(Name = "Nr dowodu osobistego")]
         public string NumerDowodu { get; set; }
 
