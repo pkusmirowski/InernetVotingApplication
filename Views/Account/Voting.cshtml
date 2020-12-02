@@ -10,7 +10,8 @@
                 <th>Numer kandydata</th>
                 <th>Imię</th>
                 <th>Nazwisko</th>
-                <th>cos tam</th>
+                <th>Zaznacz kandydata</th>
+                <th></th>
             </tr>
             @foreach (var election in Model.ElectionCandidates)
             {
@@ -19,11 +20,11 @@
             <td>@election.Imie</td>
             <td>@election.Nazwisko</td>
             <td><input type="checkbox" name="candidate" value="@election.Id" onclick="MutExChkList(this);" /></td>
-            <input type="hidden" name="election" value="@ViewBag.ID" />
+            <td><input type="hidden" name="election" value="@ViewBag.ID" /></td>
         </tr>
         }
         </table>
-        <input type="submit" value="submit" />
+        <input type="submit" value="Zagłosuj" />
     </form>
 </center>
 

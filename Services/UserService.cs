@@ -4,6 +4,7 @@ using InernetVotingApplication.Models;
 using InernetVotingApplication.ViewModels;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using BC = BCrypt.Net.BCrypt;
@@ -126,8 +127,14 @@ namespace InernetVotingApplication.Services
             return vm;
         }
 
-        public bool AddVote(string user, int candidateId, int electionId)
+        public string AddVote(string user, int candidateId, int electionId)
         {
+
+            List<GlosowanieWyborcze> listOfPreviousElectionVotes = VerifyElectionBlockchain(electionId);
+            if (listOfPreviousElectionVotes.Any(c => !c.JestPoprawny))
+            {
+                return "0";
+            }
 
             var electionVoteDB = new GlosowanieWyborcze()
             {
@@ -135,16 +142,6 @@ namespace InernetVotingApplication.Services
                 IdWybory = electionId,
                 Glos = true
             };
-
-            var listOfRoleId = _context.GlosowanieWyborczes.Select(r => r.Id);
-            var listOfPreviousElectionVotes = _context.GlosowanieWyborczes.Where(r => listOfRoleId.Contains(r.Id)).Where(r => r.IdWybory == electionId).ToList();
-
-            BlockChainHelper.VerifyBlockChain(listOfPreviousElectionVotes);
-
-            if (listOfPreviousElectionVotes.Any(c => !c.JestPoprawny))
-            {
-                return false;
-            }
 
             string previousBlockHash = null;
             if (listOfPreviousElectionVotes.Any())
@@ -171,18 +168,47 @@ namespace InernetVotingApplication.Services
             _context.Add(electionVoteDB);
             _context.Add(userVoiceDB);
             _context.SaveChanges();
+            return electionVoteDB.Hash;
+        }
+
+        public bool CheckElectionDate(int electionId)
+        {
+            var electionDateQuery = from DataWyborow in _context.DataWyborows
+                                    where electionId == DataWyborow.Id
+                                    select DataWyborow.DataZakonczenia;
+            DateTime electionDate = electionDateQuery.AsEnumerable().First();
+
+            if (electionDate < DateTime.Now)
+            {
+                return false;
+            }
+
             return true;
         }
 
-        public bool CheckIfVoted(string user, int election)
+        public bool CheckElectionBlockchain(int electionId)
         {
-            int userId = (from Uzytkownik in _context.Uzytkowniks
-                          where Uzytkownik.NumerDowodu == user
-                          select Uzytkownik.Id).FirstOrDefault();
+            return !VerifyElectionBlockchain(electionId).Any(c => !c.JestPoprawny);
+        }
 
-            bool ifVoted = (from GlosUzytkownika in _context.GlosUzytkownikas
+        private List<GlosowanieWyborcze> VerifyElectionBlockchain(int electionId)
+        {
+            var listOfRoleId = _context.GlosowanieWyborczes.Select(r => r.Id);
+            var listOfPreviousElectionVotes = _context.GlosowanieWyborczes.Where(r => listOfRoleId.Contains(r.Id)).Where(r => r.IdWybory == electionId).ToList();
+
+            BlockChainHelper.VerifyBlockChain(listOfPreviousElectionVotes);
+            return listOfPreviousElectionVotes;
+        }
+
+        public async Task<bool> CheckIfVoted(string user, int election)
+        {
+            int userId = await (from Uzytkownik in _context.Uzytkowniks
+                          where Uzytkownik.NumerDowodu == user
+                          select Uzytkownik.Id).FirstOrDefaultAsync();
+
+            bool ifVoted = await (from GlosUzytkownika in _context.GlosUzytkownikas
                             where GlosUzytkownika.IdUzytkownik == userId && GlosUzytkownika.IdWybory == election
-                            select GlosUzytkownika.Glos).FirstOrDefault();
+                            select GlosUzytkownika.Glos).FirstOrDefaultAsync();
             return ifVoted;
         }
     }

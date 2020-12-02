@@ -2,6 +2,7 @@
 using InernetVotingApplication.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Threading.Tasks;
 using Array = InernetVotingApplication.ExtensionMethods.VariableExtensions;
 
@@ -33,7 +34,7 @@ namespace InernetVotingApplication.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Register(Uzytkownik user)
+        public async Task<IActionResult> RegisterAsync(Uzytkownik user)
         {
             if (HttpContext.Session.GetString("IdNumber") != null)
             {
@@ -53,7 +54,7 @@ namespace InernetVotingApplication.Controllers
             return View();
         }
 
-        public async Task<IActionResult> Login(Logowanie user)
+        public async Task<IActionResult> LoginAsync(Logowanie user)
         {
             if (HttpContext.Session.GetString("IdNumber") != null)
             {
@@ -68,8 +69,8 @@ namespace InernetVotingApplication.Controllers
                     string IdNumber = "";
                     IdNumber = await _userService.GetLoggedIdNumber(user, IdNumber);
                     HttpContext.Session.SetString("IdNumber", IdNumber);
-                    string test = "test";
-                    HttpContext.Session.SetString("Role", test);
+                    //string test = "test";
+                    //HttpContext.Session.SetString("Role", test);
                     return RedirectToAction("Dashboard");
                 }
                 ViewBag.Error = false;
@@ -85,7 +86,6 @@ namespace InernetVotingApplication.Controllers
             return RedirectToAction("Login");
         }
 
-
         public IActionResult Dashboard()
         {
             if (string.IsNullOrEmpty(HttpContext.Session.GetString("IdNumber")))
@@ -100,26 +100,41 @@ namespace InernetVotingApplication.Controllers
         }
 
         [HttpGet]
-        public IActionResult Voting(int id)
+        public async Task<IActionResult> VotingAsync(int id)
         {
+
             if (string.IsNullOrEmpty(HttpContext.Session.GetString("IdNumber")))
             {
                 return RedirectToAction("Login");
             }
 
-            if (_userService.CheckIfVoted(HttpContext.Session.GetString("IdNumber"), id))
+            if (_userService.CheckElectionBlockchain(id) != false)
             {
-                return RedirectToAction("Dashboard");
-            }
+                if (_userService.CheckElectionDate(id) == false)
+                {
+                    return RedirectToAction("ElectionResult");
+                }
 
-            @ViewBag.ID = id;
-            var vm = _userService.GetAllCandidates(id);
-            return View(vm);
+                if (await _userService.CheckIfVoted(HttpContext.Session.GetString("IdNumber"), id))
+                {
+                    return RedirectToAction("ElectionResult");
+                }
+
+                @ViewBag.ID = id;
+
+                var vm = _userService.GetAllCandidates(id);
+                return View(vm);
+            }
+            return RedirectToAction("ElectionError");
         }
 
         [HttpPost]
-        public IActionResult VotingAdd(int[] candidate, int[] election)
+        public async Task<IActionResult> VotingAddAsync(int[] candidate, int[] election)
         {
+            if (string.IsNullOrEmpty(HttpContext.Session.GetString("IdNumber")))
+            {
+                return RedirectToAction("Login");
+            }
 
             if (Array.IsNullOrEmpty(candidate) || Array.IsNullOrEmpty(election))
             {
@@ -129,19 +144,30 @@ namespace InernetVotingApplication.Controllers
             int candidateId = candidate[0];
             int electionId = election[0];
 
-            if (_userService.CheckIfVoted(HttpContext.Session.GetString("IdNumber"), electionId))
+            if (await _userService.CheckIfVoted(HttpContext.Session.GetString("IdNumber"), electionId))
             {
-                return RedirectToAction("Dashboard");
+                return RedirectToAction("ElectionResult");
             }
 
-            if (_userService.AddVote(HttpContext.Session.GetString("IdNumber"), candidateId, electionId))
+            string ifAdded = _userService.AddVote(HttpContext.Session.GetString("IdNumber"), candidateId, electionId);
+            string userHash = ifAdded;
+            if(ifAdded.Length > 3)
             {
-                return RedirectToAction("Dashboard");
+                ifAdded = "True";
             }
-
-            //ModelState.Remove("hiddenValue");
-            ModelState.Clear();
-            return RedirectToAction("ElectionError");
+            else
+            {
+                ifAdded = "False";
+            }
+            
+            if (Convert.ToBoolean(ifAdded))
+            {
+                return RedirectToAction("Voted", new { hash = userHash });
+            }
+            else
+            {
+                return RedirectToAction("ElectionError");
+            }
         }
 
         public IActionResult ElectionError()
@@ -153,5 +179,27 @@ namespace InernetVotingApplication.Controllers
 
             return View();
         }
+
+        public IActionResult Voted(string hash)
+        {
+            if (string.IsNullOrEmpty(HttpContext.Session.GetString("IdNumber")))
+            {
+                return RedirectToAction("Login");
+            }
+
+            @ViewBag.ID = hash;
+            return View();
+        }
+
+        public IActionResult ElectionResult()
+        {
+            if (string.IsNullOrEmpty(HttpContext.Session.GetString("IdNumber")))
+            {
+                return RedirectToAction("Login");
+            }
+
+            return View();
+        }
+
     }
 }

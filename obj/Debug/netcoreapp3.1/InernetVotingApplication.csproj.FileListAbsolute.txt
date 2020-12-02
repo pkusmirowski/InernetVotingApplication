@@ -154,3 +154,5 @@ C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\ob
 C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\InernetVotingApplication.dll
 C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\InernetVotingApplication.pdb
 C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\InernetVotingApplication.genruntimeconfig.cache
+C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\Razor\Views\Account\Voted.cshtml.g.cs
+C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\Razor\Views\Account\ElectionResult.cshtml.g.cs
