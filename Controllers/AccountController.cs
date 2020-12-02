@@ -151,7 +151,7 @@ namespace InernetVotingApplication.Controllers
 
             string ifAdded = _userService.AddVote(HttpContext.Session.GetString("IdNumber"), candidateId, electionId);
             string userHash = ifAdded;
-            if(ifAdded.Length > 3)
+            if (ifAdded.Length > 3)
             {
                 ifAdded = "True";
             }
@@ -159,7 +159,7 @@ namespace InernetVotingApplication.Controllers
             {
                 ifAdded = "False";
             }
-            
+
             if (Convert.ToBoolean(ifAdded))
             {
                 return RedirectToAction("Voted", new { hash = userHash });
@@ -199,6 +199,24 @@ namespace InernetVotingApplication.Controllers
             }
 
             return View();
+        }
+
+        //  public IActionResult Search()
+        // {
+        //      var vm = _userService.SearchVote("1");
+        //      return View(vm);
+        //   }
+
+        //  [HttpPost]
+        public IActionResult Search(string Text)
+        {
+            if (string.IsNullOrEmpty(Text))
+            {
+                Text = "1";
+            }
+            var vm = _userService.SearchVote(Text);
+
+            return View(vm);
         }
 
     }

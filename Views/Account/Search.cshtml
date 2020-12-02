@@ -1,0 +1,35 @@
+﻿@model InernetVotingApplication.ViewModels.GlosowanieWyborczeViewModel
+
+@{
+    ViewData["Title"] = "Wyszukiwarka";
+}
+
+<center>
+    <form method="get">
+        <div class="input-group">
+            <input class="form-control" asp-for="Text" />
+            <div class="input-group-append">
+                <button type="submit" class="btn btn-primary">Szukaj</button>
+            </div>
+        </div>
+    </form>
+
+    <h2>Sprawdź swój głos</h2>
+    <table border="1">
+        <tr>
+            <th>Imię kandydata</th>
+            <th>Nazwisko kandydata</th>
+            <th>Opis wyborów</th>
+            <th>Hash</th>
+        </tr>
+        <tr>
+            @if (@Model.SearchCandidate.IdKandydat != 0 && @Model.SearchCandidate.IdWybory != 0)
+            {
+                <td>@Model.SearchCandidate.CandidateName</td>
+                <td>@Model.SearchCandidate.CandidateSurname</td>
+                <td>@Model.SearchCandidate.ElectionDesc</td>
+                <td>@Model.SearchCandidate.Hash</td>
+            }
+        </tr>
+    </table>
+</center>

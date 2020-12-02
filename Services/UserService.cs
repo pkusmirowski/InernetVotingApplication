@@ -203,13 +203,75 @@ namespace InernetVotingApplication.Services
         public async Task<bool> CheckIfVoted(string user, int election)
         {
             int userId = await (from Uzytkownik in _context.Uzytkowniks
-                          where Uzytkownik.NumerDowodu == user
-                          select Uzytkownik.Id).FirstOrDefaultAsync();
+                                where Uzytkownik.NumerDowodu == user
+                                select Uzytkownik.Id).FirstOrDefaultAsync();
 
             bool ifVoted = await (from GlosUzytkownika in _context.GlosUzytkownikas
-                            where GlosUzytkownika.IdUzytkownik == userId && GlosUzytkownika.IdWybory == election
-                            select GlosUzytkownika.Glos).FirstOrDefaultAsync();
+                                  where GlosUzytkownika.IdUzytkownik == userId && GlosUzytkownika.IdWybory == election
+                                  select GlosUzytkownika.Glos).FirstOrDefaultAsync();
             return ifVoted;
+        }
+
+
+        public GlosowanieWyborczeViewModel SearchVote(string Text)
+        {
+            if (Text == "1")
+            {
+                var electionCandidates1 = _context.GlosowanieWyborczes.Select(x => new GlosowanieWyborczeItemViewModel
+                {
+                    IdKandydat = 0,
+                    IdWybory = 0,
+                    Hash = "0"
+                }).FirstOrDefault();
+
+                var vm1 = new GlosowanieWyborczeViewModel
+                {
+                    SearchCandidate = electionCandidates1
+                };
+                return vm1;
+            }
+
+            var electionCandidates = _context.GlosowanieWyborczes.Select(x => new GlosowanieWyborczeItemViewModel
+            {
+                IdKandydat = x.IdKandydat,
+                IdWybory = x.IdWybory,
+                Hash = x.Hash
+            }).Where(x => x.Hash == Text);
+
+            var candidate = GetCandidateInfo(electionCandidates);
+
+            var vm = new GlosowanieWyborczeViewModel
+            {
+                SearchCandidate = candidate
+            };
+
+            return vm;
+
+        }
+
+        private GlosowanieWyborczeItemViewModel GetCandidateInfo(IQueryable<GlosowanieWyborczeItemViewModel> electionCandidates)
+        {
+            var candidate = electionCandidates.FirstOrDefault();
+
+            int idKandydat = candidate.IdKandydat;
+            int idWybory = candidate.IdWybory;
+
+            string candidateName = (from Kandydat in _context.Kandydats
+                                    where Kandydat.Id == idKandydat
+                                    select Kandydat.Imie).FirstOrDefault();
+
+            string candidateSurname = (from Kandydat in _context.Kandydats
+                                       where Kandydat.Id == idKandydat
+                                       select Kandydat.Nazwisko).FirstOrDefault();
+
+            string electionDesc = (from DataWyborow in _context.DataWyborows
+                                   where DataWyborow.Id == idWybory
+                                   select DataWyborow.Opis).FirstOrDefault();
+
+            candidate.CandidateName = candidateName;
+            candidate.CandidateSurname = candidateSurname;
+            candidate.ElectionDesc = electionDesc;
+            return candidate;
         }
     }
 }

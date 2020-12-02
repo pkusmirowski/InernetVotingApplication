@@ -32,6 +32,6 @@ namespace InernetVotingApplication.Models
 
         [NotMapped]
         public bool JestPoprawny { get; set; }
-        //public virtual int PreviousId { get; set; }
+
     }
 }
