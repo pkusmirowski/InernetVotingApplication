@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
-using Array = InernetVotingApplication.ExtensionMethods.VariableExtensions;
+using Array = InernetVotingApplication.ExtensionMethods.ArrayExtensions;
 
 namespace InernetVotingApplication.Controllers
 {
@@ -111,17 +111,17 @@ namespace InernetVotingApplication.Controllers
 
                 if (_userService.CheckIfElectionEnded(id) == false)
                 {
-                    return RedirectToAction("ElectionResult", new { @flag = 3, @result = id });
+                    return RedirectToAction("ElectionResult", new { @ver = 3, @result = id });
                 }
 
                 if (_userService.CheckIfElectionStarted(id) == false)
                 {
-                    return RedirectToAction("ElectionResult", new { @flag = 1, @result = id });
+                    return RedirectToAction("ElectionResult", new { @ver = 1, @result = id });
                 }
 
                 if (await _userService.CheckIfVoted(HttpContext.Session.GetString("IdNumber"), id))
                 {
-                    return RedirectToAction("ElectionResult", new { @flag = 2, @result = id });
+                    return RedirectToAction("ElectionResult", new { @ver = 2, @result = id });
                 }
 
                 @ViewBag.ID = id;
@@ -195,22 +195,26 @@ namespace InernetVotingApplication.Controllers
             return View();
         }
 
-        public IActionResult ElectionResult(int flag, int result)
+        public IActionResult ElectionResult(int ver, int result)
         {
             if (string.IsNullOrEmpty(HttpContext.Session.GetString("IdNumber")))
             {
                 return RedirectToAction("Login");
             }
 
-            @ViewBag.ID = flag;
-
-            if (flag == 3)
+            if (_userService.CheckElectionBlockchain(result) != false)
             {
-                var vm = _userService.GetElectionResult(result);
-                return View(vm);
-            }
+                @ViewBag.ID = ver;
 
-            return View();
+                if (ver == 3)
+                {
+                    var vm = _userService.GetElectionResult(result);
+                    return View(vm);
+                }
+
+                return View();
+            }
+            return RedirectToAction("ElectionError");
         }
 
         public IActionResult Search(string Text)

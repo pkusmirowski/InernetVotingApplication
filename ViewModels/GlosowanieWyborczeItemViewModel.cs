@@ -14,5 +14,7 @@
         public string ElectionDesc { get; set; }
 
         public int CountedVotes { get; set; }
+
+        public double CountedVotesPercentage { get; set; }
     }
 }

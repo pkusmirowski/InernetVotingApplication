@@ -24,17 +24,26 @@
                 <th>Nazwisko kandydata</th>
                 <th>Opis wyborów</th>
                 <th>Ilość uzyskanych głosów</th>
+                <th>Procent uzyskanych głosów</th>
             </tr>
 
-            @foreach (var result in Model.GetElectionVotes)
-            {
-                <tr>
-                    <td>@result.CandidateName</td>
-                    <td>@result.CandidateSurname</td>
-                    <td>@result.ElectionDesc</td>
-                    <td>@result.CountedVotes</td>
-                </tr>
-            }
+        @foreach (var result in Model.GetElectionVotes)
+        {
+            <tr>
+                <td>@result.CandidateName</td>
+                <td>@result.CandidateSurname</td>
+                <td>@result.ElectionDesc</td>
+                <td>@result.CountedVotes</td>
+                @if (@result.CountedVotesPercentage > 50)
+                {
+                    <td class="bg-success text-white"><b>@result.CountedVotesPercentage</b></td>
+                }
+                else
+                {
+                    <td>@result.CountedVotesPercentage</td>
+                }
+            </tr>
+        }
             </table>
     }
 </center>

@@ -2,7 +2,7 @@
 
 namespace InernetVotingApplication.ExtensionMethods
 {
-    public static class VariableExtensions
+    public static class ArrayExtensions
     {
         /// <summary>Metoda sprawdza czy tablica jest pusta bądź jej długość to 0 elementów</summary>
         /// <param name="array">Tablica do testowania</param>

@@ -172,7 +172,6 @@ namespace InernetVotingApplication.Services
             return electionVoteDB.Hash;
         }
 
-        //
         public bool CheckIfElectionEnded(int electionId)
         {
             var electionDateQuery = from DataWyborow in _context.DataWyborows
@@ -267,7 +266,6 @@ namespace InernetVotingApplication.Services
 
         public GlosowanieWyborczeViewModel GetElectionResult(int id)
         {
-
             var electionResult = _context.GlosowanieWyborczes.Select(x => new GlosowanieWyborczeItemViewModel
             {
                 IdKandydat = x.IdKandydat,
@@ -283,6 +281,12 @@ namespace InernetVotingApplication.Services
 
             electionResult = electionResult.Distinct(new ItemEqualityComparer()).ToList();
 
+            double allElectionVotes = 0;
+
+            allElectionVotes = CountedAllVotes(electionResult, allElectionVotes);
+
+            CountedVotesInPercentage(electionResult, allElectionVotes);
+
             var vm = new GlosowanieWyborczeViewModel
             {
                 GetElectionVotes = electionResult
@@ -291,6 +295,23 @@ namespace InernetVotingApplication.Services
             return vm;
         }
 
+        private static void CountedVotesInPercentage(List<GlosowanieWyborczeItemViewModel> electionResult, double allElectionVotes)
+        {
+            for (int i = 0; i < electionResult.Count(); i++)
+            {
+                electionResult[i].CountedVotesPercentage = (electionResult[i].CountedVotes / allElectionVotes) * 100;
+            }
+        }
+
+        private static double CountedAllVotes(List<GlosowanieWyborczeItemViewModel> electionResult, double allElectionVotes)
+        {
+            for (int i = 0; i < electionResult.Count(); i++)
+            {
+                allElectionVotes += electionResult[i].CountedVotes;
+            }
+
+            return allElectionVotes;
+        }
 
         public int CountVotes(int election, int candidate)
         {
@@ -303,8 +324,6 @@ namespace InernetVotingApplication.Services
 
         private GlosowanieWyborczeItemViewModel GetCandidateInfo(GlosowanieWyborczeItemViewModel candidate)
         {
-            //var candidate = electionCandidates.FirstOrDefault();
-
             int idKandydat = candidate.IdKandydat;
             int idWybory = candidate.IdWybory;
 
