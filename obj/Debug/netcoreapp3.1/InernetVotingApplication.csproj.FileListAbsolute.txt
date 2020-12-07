@@ -123,6 +123,7 @@ C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\bi
 C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\bin\Debug\netcoreapp3.1\runtimes\win-x86\native\Microsoft.Data.SqlClient.SNI.pdb
 C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\bin\Debug\netcoreapp3.1\runtimes\win\lib\netstandard2.0\System.Runtime.Caching.dll
 C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\bin\Debug\netcoreapp3.1\runtimes\win\lib\netstandard2.0\System.Security.Cryptography.ProtectedData.dll
+C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\InernetVotingApplication.csprojAssemblyReference.cache
 C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\InernetVotingApplication.AssemblyInfoInputs.cache
 C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\InernetVotingApplication.AssemblyInfo.cs
 C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\InernetVotingApplication.csproj.CoreCompileInputs.cache
@@ -156,4 +157,3 @@ C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\ob
 C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\InernetVotingApplication.dll
 C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\InernetVotingApplication.pdb
 C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\InernetVotingApplication.genruntimeconfig.cache
-C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\InernetVotingApplication.csprojAssemblyReference.cache

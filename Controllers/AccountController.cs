@@ -94,8 +94,6 @@ namespace InernetVotingApplication.Controllers
             }
 
             var vm = _userService.GetAllElections();
-            //ViewBag.IdNumber = HttpContext.Session.GetString("IdNumber");
-            //ViewBag.Role = HttpContext.Session.GetString("Role");
             return View(vm);
         }
 
@@ -110,14 +108,20 @@ namespace InernetVotingApplication.Controllers
 
             if (_userService.CheckElectionBlockchain(id) != false)
             {
-                if (_userService.CheckElectionDate(id) == false)
+
+                if (_userService.CheckIfElectionEnded(id) == false)
                 {
-                    return RedirectToAction("ElectionResult");
+                    return RedirectToAction("ElectionResult", new { @flag = 3, @result = id });
+                }
+
+                if (_userService.CheckIfElectionStarted(id) == false)
+                {
+                    return RedirectToAction("ElectionResult", new { @flag = 1, @result = id });
                 }
 
                 if (await _userService.CheckIfVoted(HttpContext.Session.GetString("IdNumber"), id))
                 {
-                    return RedirectToAction("ElectionResult");
+                    return RedirectToAction("ElectionResult", new { @flag = 2, @result = id });
                 }
 
                 @ViewBag.ID = id;
@@ -191,23 +195,24 @@ namespace InernetVotingApplication.Controllers
             return View();
         }
 
-        public IActionResult ElectionResult()
+        public IActionResult ElectionResult(int flag, int result)
         {
             if (string.IsNullOrEmpty(HttpContext.Session.GetString("IdNumber")))
             {
                 return RedirectToAction("Login");
             }
 
+            @ViewBag.ID = flag;
+
+            if (flag == 3)
+            {
+                var vm = _userService.GetElectionResult(result);
+                return View(vm);
+            }
+
             return View();
         }
 
-        //  public IActionResult Search()
-        // {
-        //      var vm = _userService.SearchVote("1");
-        //      return View(vm);
-        //   }
-
-        //  [HttpPost]
         public IActionResult Search(string Text)
         {
             if (string.IsNullOrEmpty(Text))
@@ -218,6 +223,5 @@ namespace InernetVotingApplication.Controllers
 
             return View(vm);
         }
-
     }
 }
