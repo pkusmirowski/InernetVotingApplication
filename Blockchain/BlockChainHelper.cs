@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace InernetVotingApplication.Blockchain
 {
-    public class BlockChainHelper
+    public static class BlockChainHelper
     {
         public static void VerifyBlockChain(IList<GlosowanieWyborcze> listOfPreviousElectionVotes)
         {

@@ -30,6 +30,21 @@
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-controller="Account" asp-action="Login">Zaloguj się</a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Account" asp-action="Search">Wyszukiwarka</a>
+                            </li>
+                        }
+                        else if (!(Context.Session.GetString("Admin") == null))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Account" asp-action="AddCandidate">Dodaj kandydata</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Account" asp-action="AddElection">Dodaj wybory</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Account" asp-action="Logout">Wyloguj się</a>
+                            </li>
                         }
                         else
                         {
@@ -39,10 +54,11 @@
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-controller="Account" asp-action="Logout">Wyloguj się</a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Account" asp-action="Search">Wyszukiwarka</a>
+                            </li>
+
                         }
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Account" asp-action="Search">Wyszukiwarka</a>
-                        </li>
                     </ul>
                 </div>
             </div>

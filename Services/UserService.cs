@@ -22,8 +22,8 @@ namespace InernetVotingApplication.Services
 
         public async Task<bool> Register(Uzytkownik user)
         {
-            var idnumber = await _context.Uzytkowniks.SingleOrDefaultAsync(x => x.NumerDowodu == user.NumerDowodu);
-            var pesel = await _context.Uzytkowniks.SingleOrDefaultAsync(x => x.Pesel == user.Pesel);
+            var idnumber = await _context.Uzytkowniks.SingleOrDefaultAsync(x => x.NumerDowodu == user.NumerDowodu).ConfigureAwait(false);
+            var pesel = await _context.Uzytkowniks.SingleOrDefaultAsync(x => x.Pesel == user.Pesel).ConfigureAwait(false);
 
             if (idnumber != null)
             {
@@ -41,7 +41,7 @@ namespace InernetVotingApplication.Services
                 }
             }
 
-            if (PESELValidation.IsValidPESEL(user.Pesel) == false || IDNumberValidation.ValidateIdNumber(user.NumerDowodu) == false)
+            if (!PESELValidation.IsValidPESEL(user.Pesel) || !IDNumberValidation.ValidateIdNumber(user.NumerDowodu))
             {
                 return false;
             }
@@ -49,28 +49,44 @@ namespace InernetVotingApplication.Services
             user.Haslo = BC.HashPassword(user.Haslo);
             user.JestAktywne = true;
             _context.Add(user);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync().ConfigureAwait(false);
             return true;
         }
 
-        public async Task<bool> LoginAsync(Logowanie user)
+        //Zwraca
+        //0 - gdy user jest Adminem
+        //1 - gdu user jest Userem
+        //2 - gdy nie jest ani Adminem ani Userem
+        public async Task<int> LoginAsync(Logowanie user)
         {
             var queryActive = from Uzytkownik in _context.Uzytkowniks
                               where Uzytkownik.NumerDowodu == user.NumerDowodu
                               select Uzytkownik.JestAktywne;
 
+            var getUserId = (from Uzytkownik in _context.Uzytkowniks
+                             where Uzytkownik.NumerDowodu == user.NumerDowodu
+                             select Uzytkownik.Id).FirstOrDefault();
+
+            var checkIfAdmin = (from Administrator in _context.Administrators
+                                where Administrator.IdUzytkownik == getUserId
+                                select Administrator.IdUzytkownik).FirstOrDefault();
+
             if (user.NumerDowodu != null && user.Haslo != null)
             {
-                if (await queryActive.FirstOrDefaultAsync() ?? false)
+                if (await queryActive.FirstOrDefaultAsync().ConfigureAwait(false) ?? false)
                 {
-                    if (await AuthenticateUser(user))
+                    if (await AuthenticateUser(user).ConfigureAwait(false))
                     {
-                        return true;
+                        if (getUserId == checkIfAdmin)
+                        {
+                            return 0;
+                        }
+                        return 1;
                     }
                 }
             }
 
-            return false;
+            return 2;
         }
 
         public async Task<string> GetLoggedIdNumber(Logowanie user, string idNumber)
@@ -79,12 +95,12 @@ namespace InernetVotingApplication.Services
                             where Uzytkownik.NumerDowodu == user.NumerDowodu
                             select Uzytkownik.NumerDowodu;
 
-            return idNumber = await queryName.FirstAsync();
+            return idNumber = await queryName.FirstAsync().ConfigureAwait(false);
         }
 
         public async Task<bool> AuthenticateUser(Logowanie user)
         {
-            var account = await _context.Uzytkowniks.SingleOrDefaultAsync(x => x.NumerDowodu == user.NumerDowodu);
+            var account = await _context.Uzytkowniks.SingleOrDefaultAsync(x => x.NumerDowodu == user.NumerDowodu).ConfigureAwait(false);
 
             return BC.Verify(user.Haslo, account.Haslo);
         }
@@ -97,7 +113,6 @@ namespace InernetVotingApplication.Services
                 DataRozpoczecia = x.DataRozpoczecia,
                 DataZakonczenia = x.DataZakonczenia,
                 Opis = x.Opis
-
             });
 
             var vm = new DataWyborowViewModel
@@ -110,7 +125,6 @@ namespace InernetVotingApplication.Services
 
         public KandydatViewModel GetAllCandidates(int id)
         {
-
             var electionCandidates = _context.Kandydats.Select(x => new KandydatItemViewModel
             {
                 Id = x.Id,
@@ -145,7 +159,7 @@ namespace InernetVotingApplication.Services
             };
 
             string previousBlockHash = null;
-            if (listOfPreviousElectionVotes.Any())
+            if (listOfPreviousElectionVotes.Count > 0)
             {
                 var previousVote = listOfPreviousElectionVotes.Last();
                 electionVoteDB.IdPoprzednie = previousVote.Id;
@@ -179,12 +193,7 @@ namespace InernetVotingApplication.Services
                                     select DataWyborow.DataZakonczenia;
             DateTime electionDate = electionDateQuery.AsEnumerable().First();
 
-            if (electionDate < DateTime.Now)
-            {
-                return false;
-            }
-
-            return true;
+            return electionDate >= DateTime.Now;
         }
 
         public bool CheckIfElectionStarted(int electionId)
@@ -194,17 +203,12 @@ namespace InernetVotingApplication.Services
                                     select DataWyborow.DataRozpoczecia;
             DateTime electionDate = electionDateQuery.AsEnumerable().First();
 
-            if (electionDate > DateTime.Now)
-            {
-                return false;
-            }
-
-            return true;
+            return electionDate <= DateTime.Now;
         }
 
         public bool CheckElectionBlockchain(int electionId)
         {
-            return !VerifyElectionBlockchain(electionId).Any(c => !c.JestPoprawny);
+            return VerifyElectionBlockchain(electionId).All(c => c.JestPoprawny);
         }
 
         private List<GlosowanieWyborcze> VerifyElectionBlockchain(int electionId)
@@ -220,20 +224,19 @@ namespace InernetVotingApplication.Services
         {
             int userId = await (from Uzytkownik in _context.Uzytkowniks
                                 where Uzytkownik.NumerDowodu == user
-                                select Uzytkownik.Id).FirstOrDefaultAsync();
+                                select Uzytkownik.Id).FirstOrDefaultAsync().ConfigureAwait(false);
 
             bool ifVoted = await (from GlosUzytkownika in _context.GlosUzytkownikas
                                   where GlosUzytkownika.IdUzytkownik == userId && GlosUzytkownika.IdWybory == election
-                                  select GlosUzytkownika.Glos).FirstOrDefaultAsync();
+                                  select GlosUzytkownika.Glos).FirstOrDefaultAsync().ConfigureAwait(false);
             return ifVoted;
         }
-
 
         public GlosowanieWyborczeViewModel SearchVote(string Text)
         {
             if (Text == "1")
             {
-                var electionCandidates1 = _context.GlosowanieWyborczes.Select(x => new GlosowanieWyborczeItemViewModel
+                var electionCandidates1 = _context.GlosowanieWyborczes.Select(_ => new GlosowanieWyborczeItemViewModel
                 {
                     IdKandydat = 0,
                     IdWybory = 0,
@@ -272,11 +275,10 @@ namespace InernetVotingApplication.Services
                 IdWybory = x.IdWybory,
             }).Where(x => x.IdWybory == id).ToList();
 
-            for (int i = 0; i < electionResult.Count(); i++)
+            for (int i = 0; i < electionResult.Count; i++)
             {
                 electionResult[i] = GetCandidateInfo(electionResult[i]);
-                var countedVotes = CountVotes(id, electionResult[i].IdKandydat);
-                electionResult[i].CountedVotes = countedVotes;
+                electionResult[i].CountedVotes = CountVotes(id, electionResult[i].IdKandydat);
             }
 
             electionResult = electionResult.Distinct(new ItemEqualityComparer()).ToList();
@@ -297,7 +299,7 @@ namespace InernetVotingApplication.Services
 
         private static void CountedVotesInPercentage(List<GlosowanieWyborczeItemViewModel> electionResult, double allElectionVotes)
         {
-            for (int i = 0; i < electionResult.Count(); i++)
+            for (int i = 0; i < electionResult.Count; i++)
             {
                 electionResult[i].CountedVotesPercentage = (electionResult[i].CountedVotes / allElectionVotes) * 100;
             }
@@ -305,7 +307,7 @@ namespace InernetVotingApplication.Services
 
         private static double CountedAllVotes(List<GlosowanieWyborczeItemViewModel> electionResult, double allElectionVotes)
         {
-            for (int i = 0; i < electionResult.Count(); i++)
+            for (int i = 0; i < electionResult.Count; i++)
             {
                 allElectionVotes += electionResult[i].CountedVotes;
             }
@@ -344,8 +346,6 @@ namespace InernetVotingApplication.Services
             candidate.ElectionDesc = electionDesc;
             return candidate;
         }
-
-
         private GlosowanieWyborczeItemViewModel GetCandidateInfo(IQueryable<GlosowanieWyborczeItemViewModel> electionCandidates)
         {
             var candidate = electionCandidates.FirstOrDefault();

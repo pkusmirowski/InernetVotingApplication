@@ -4,7 +4,7 @@ using System.Text;
 
 namespace InernetVotingApplication.Blockchain
 {
-    public class HashHelper
+    public static class HashHelper
     {
         public static string Hash(string input)
         {

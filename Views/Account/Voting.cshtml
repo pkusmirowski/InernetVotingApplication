@@ -19,7 +19,7 @@
             <td>@election.Imie</td>
             <td>@election.Nazwisko</td>
             <td><input type="checkbox" name="candidate" value="@election.Id" onclick="MutExChkList(this);" /></td>
-            <td><input type="hidden" name="election" value="@ViewBag.ID" /></td>
+            <input type="hidden" name="election" value="@ViewBag.ID" />
         </tr>
         }
         </table>

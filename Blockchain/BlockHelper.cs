@@ -1,6 +1,6 @@
 ﻿namespace InernetVotingApplication.Blockchain
 {
-    public class BlockHelper
+    public static class BlockHelper
     {
         public static string VoteData(int IdKandydat, int IdWybory, bool Glos, string previousBlockHash)
         {

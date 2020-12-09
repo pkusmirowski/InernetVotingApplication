@@ -7,6 +7,5 @@ namespace InernetVotingApplication.ViewModels
         public GlosowanieWyborczeItemViewModel SearchCandidate { get; set; }
         public List<GlosowanieWyborczeItemViewModel> GetElectionVotes { get; set; }
         public string Text { get; set; }
-
     }
 }

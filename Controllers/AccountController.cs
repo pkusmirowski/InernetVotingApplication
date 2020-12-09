@@ -43,7 +43,7 @@ namespace InernetVotingApplication.Controllers
 
             if (ModelState.IsValid)
             {
-                if (await _userService.Register(user))
+                if (await _userService.Register(user).ConfigureAwait(false))
                 {
                     ViewBag.registrationSuccessful = "Uzytkownik " + user.Imie + " " + user.Nazwisko + " został zarejestrowany poprawnie!";
                     return View();
@@ -63,15 +63,28 @@ namespace InernetVotingApplication.Controllers
 
             if (ModelState.IsValid)
             {
-                if (await _userService.LoginAsync(user))
+                var val = await _userService.LoginAsync(user).ConfigureAwait(false);
+                if (val == 0 || val == 1)
                 {
-                    //Zapisanie użytkownika w sesji
-                    string IdNumber = "";
-                    IdNumber = await _userService.GetLoggedIdNumber(user, IdNumber);
-                    HttpContext.Session.SetString("IdNumber", IdNumber);
-                    //string test = "test";
-                    //HttpContext.Session.SetString("Role", test);
-                    return RedirectToAction("Dashboard");
+                    if (val == 0)
+                    {
+                        //Zapisanie admina w sesji
+                        string IdNumber = "";
+                        IdNumber = await _userService.GetLoggedIdNumber(user, IdNumber).ConfigureAwait(false);
+                        HttpContext.Session.SetString("IdNumber", IdNumber);
+
+                        const string admin = "Admin";
+                        HttpContext.Session.SetString("Admin", admin);
+                        return RedirectToAction("Panel");
+                    }
+                    else
+                    {
+                        //Zapisanie użytkownika w sesji
+                        string IdNumber = "";
+                        IdNumber = await _userService.GetLoggedIdNumber(user, IdNumber).ConfigureAwait(false);
+                        HttpContext.Session.SetString("IdNumber", IdNumber);
+                        return RedirectToAction("Dashboard");
+                    }
                 }
                 ViewBag.Error = false;
                 return View();
@@ -100,26 +113,29 @@ namespace InernetVotingApplication.Controllers
         [HttpGet]
         public async Task<IActionResult> VotingAsync(int id)
         {
-
             if (string.IsNullOrEmpty(HttpContext.Session.GetString("IdNumber")))
             {
                 return RedirectToAction("Login");
             }
 
-            if (_userService.CheckElectionBlockchain(id) != false)
+            if (!string.IsNullOrEmpty(HttpContext.Session.GetString("Admin")))
             {
+                return RedirectToAction("Panel");
+            }
 
-                if (_userService.CheckIfElectionEnded(id) == false)
+            if (_userService.CheckElectionBlockchain(id))
+            {
+                if (!_userService.CheckIfElectionEnded(id))
                 {
                     return RedirectToAction("ElectionResult", new { @ver = 3, @result = id });
                 }
 
-                if (_userService.CheckIfElectionStarted(id) == false)
+                if (!_userService.CheckIfElectionStarted(id))
                 {
                     return RedirectToAction("ElectionResult", new { @ver = 1, @result = id });
                 }
 
-                if (await _userService.CheckIfVoted(HttpContext.Session.GetString("IdNumber"), id))
+                if (await _userService.CheckIfVoted(HttpContext.Session.GetString("IdNumber"), id).ConfigureAwait(false))
                 {
                     return RedirectToAction("ElectionResult", new { @ver = 2, @result = id });
                 }
@@ -148,7 +164,7 @@ namespace InernetVotingApplication.Controllers
             int candidateId = candidate[0];
             int electionId = election[0];
 
-            if (await _userService.CheckIfVoted(HttpContext.Session.GetString("IdNumber"), electionId))
+            if (await _userService.CheckIfVoted(HttpContext.Session.GetString("IdNumber"), electionId).ConfigureAwait(false))
             {
                 return RedirectToAction("ElectionResult");
             }
@@ -202,7 +218,7 @@ namespace InernetVotingApplication.Controllers
                 return RedirectToAction("Login");
             }
 
-            if (_userService.CheckElectionBlockchain(result) != false)
+            if (_userService.CheckElectionBlockchain(result))
             {
                 @ViewBag.ID = ver;
 
@@ -226,6 +242,21 @@ namespace InernetVotingApplication.Controllers
             var vm = _userService.SearchVote(Text);
 
             return View(vm);
+        }
+
+        public IActionResult Panel()
+        {
+            if (string.IsNullOrEmpty(HttpContext.Session.GetString("IdNumber")))
+            {
+                return RedirectToAction("Login");
+            }
+
+            if (string.IsNullOrEmpty(HttpContext.Session.GetString("Admin")))
+            {
+                return RedirectToAction("Login");
+            }
+
+            return View();
         }
     }
 }

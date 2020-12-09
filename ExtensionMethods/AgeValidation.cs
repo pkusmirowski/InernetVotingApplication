@@ -5,7 +5,7 @@ namespace InernetVotingApplication.ExtensionMethods
 {
     public class AgeValidation : ValidationAttribute
     {
-        readonly int _age;
+        private readonly int _age;
 
         public AgeValidation(int age)
         {
@@ -16,8 +16,6 @@ namespace InernetVotingApplication.ExtensionMethods
         {
             if (DateTime.TryParse(value.ToString(), out DateTime date))
             {
-
-
                 if (DateTime.Now.Year - date.Year > 120)
                 {
                     return false;

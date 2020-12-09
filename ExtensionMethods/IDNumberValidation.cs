@@ -1,10 +1,8 @@
-﻿using System.Linq;
-
-namespace InernetVotingApplication.ExtensionMethods
+﻿namespace InernetVotingApplication.ExtensionMethods
 {
     public static class IDNumberValidation
     {
-        const string availableChars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        private const string availableChars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
         public static bool ValidateIdNumber(string IDnumber)
         {
@@ -35,7 +33,7 @@ namespace InernetVotingApplication.ExtensionMethods
 
         private static int GetLetterValue(char character)
         {
-            for (int i = 0; i < availableChars.Count(); i++)
+            for (int i = 0; i < availableChars.Length; i++)
             {
                 if (character == availableChars[i])
                 {

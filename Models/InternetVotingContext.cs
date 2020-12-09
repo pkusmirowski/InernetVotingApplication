@@ -32,10 +32,7 @@ namespace InernetVotingApplication.Models
                     .HasConstraintName("FK_Administrator_Uzytkownik");
             });
 
-            modelBuilder.Entity<DataWyborow>(entity =>
-            {
-                entity.Property(e => e.Opis).IsUnicode(false);
-            });
+            modelBuilder.Entity<DataWyborow>(entity => entity.Property(e => e.Opis).IsUnicode(false));
 
             modelBuilder.Entity<GlosUzytkownika>(entity =>
             {

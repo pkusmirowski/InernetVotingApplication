@@ -9,8 +9,7 @@ namespace InernetVotingApplication.ExtensionMethods
         /// <returns>True jeśli tablica spełnia warunki. Fałsz jeśli ich nie spełnia</returns>
         public static bool IsNullOrEmpty(this Array array)
         {
-            return (array == null || array.Length == 0);
+            return array == null || array.Length == 0;
         }
-
     }
 }
