@@ -2,7 +2,11 @@
 using InernetVotingApplication.ExtensionMethods;
 using InernetVotingApplication.Models;
 using InernetVotingApplication.ViewModels;
+using MailKit.Net.Smtp;
+using MailKit.Security;
 using Microsoft.EntityFrameworkCore;
+using MimeKit;
+using MimeKit.Text;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,12 +26,12 @@ namespace InernetVotingApplication.Services
 
         public async Task<bool> Register(Uzytkownik user)
         {
-            var idnumber = await _context.Uzytkowniks.SingleOrDefaultAsync(x => x.NumerDowodu == user.NumerDowodu).ConfigureAwait(false);
+            var email = await _context.Uzytkowniks.SingleOrDefaultAsync(x => x.Email == user.Email).ConfigureAwait(false);
             var pesel = await _context.Uzytkowniks.SingleOrDefaultAsync(x => x.Pesel == user.Pesel).ConfigureAwait(false);
 
-            if (idnumber != null)
+            if (email != null)
             {
-                if (idnumber.NumerDowodu == user.NumerDowodu)
+                if (email.Email == user.Email)
                 {
                     return false;
                 }
@@ -41,7 +45,7 @@ namespace InernetVotingApplication.Services
                 }
             }
 
-            if (!PESELValidation.IsValidPESEL(user.Pesel) || !IDNumberValidation.ValidateIdNumber(user.NumerDowodu))
+            if (!PESELValidation.IsValidPESEL(user.Pesel) || !EmailValidation.IsValidEmail(user.Email))
             {
                 return false;
             }
@@ -50,7 +54,25 @@ namespace InernetVotingApplication.Services
             user.JestAktywne = true;
             _context.Add(user);
             await _context.SaveChangesAsync().ConfigureAwait(false);
+
+            //create email
+            SmtpClient smtp = SendEmailAfterRegistration(user);
             return true;
+        }
+
+        private static SmtpClient SendEmailAfterRegistration(Uzytkownik user)
+        {
+            var sendEmail = new MimeMessage();
+            sendEmail.From.Add(MailboxAddress.Parse("aplikacjadoglosowania@gmail.com"));
+            sendEmail.To.Add(MailboxAddress.Parse(user.Email));
+            sendEmail.Subject = "Pomyślne założenie konta w apllikacji do głosowania";
+            sendEmail.Body = new TextPart(TextFormat.Html) { Text = "<h2>Twoje konto <b>" + user.Imie + " " + user.Nazwisko + "</b> w aplikacji do głosowania zostało założone pomyślnie!</h2>" };
+            var smtp = new SmtpClient();
+            smtp.Connect("smtp.ethereal.email", 587, SecureSocketOptions.StartTls);
+            smtp.Authenticate("cleve.daugherty2@ethereal.email", "96712EmxRGP6ZNWA8V");
+            smtp.Send(sendEmail);
+            smtp.Disconnect(true);
+            return smtp;
         }
 
         //Zwraca
@@ -60,18 +82,18 @@ namespace InernetVotingApplication.Services
         public async Task<int> LoginAsync(Logowanie user)
         {
             var queryActive = from Uzytkownik in _context.Uzytkowniks
-                              where Uzytkownik.NumerDowodu == user.NumerDowodu
+                              where Uzytkownik.Email == user.Email
                               select Uzytkownik.JestAktywne;
 
             var getUserId = (from Uzytkownik in _context.Uzytkowniks
-                             where Uzytkownik.NumerDowodu == user.NumerDowodu
+                             where Uzytkownik.Email == user.Email
                              select Uzytkownik.Id).FirstOrDefault();
 
             var checkIfAdmin = (from Administrator in _context.Administrators
                                 where Administrator.IdUzytkownik == getUserId
                                 select Administrator.IdUzytkownik).FirstOrDefault();
 
-            if (user.NumerDowodu != null && user.Haslo != null)
+            if (user.Email != null && user.Haslo != null)
             {
                 if (await queryActive.FirstOrDefaultAsync().ConfigureAwait(false) ?? false)
                 {
@@ -89,18 +111,18 @@ namespace InernetVotingApplication.Services
             return 2;
         }
 
-        public async Task<string> GetLoggedIdNumber(Logowanie user, string idNumber)
+        public async Task<string> GetLoggedEmail(Logowanie user, string email)
         {
             var queryName = from Uzytkownik in _context.Uzytkowniks
-                            where Uzytkownik.NumerDowodu == user.NumerDowodu
-                            select Uzytkownik.NumerDowodu;
+                            where Uzytkownik.Email == user.Email
+                            select Uzytkownik.Email;
 
-            return idNumber = await queryName.FirstAsync().ConfigureAwait(false);
+            return email = await queryName.FirstAsync().ConfigureAwait(false);
         }
 
         public async Task<bool> AuthenticateUser(Logowanie user)
         {
-            var account = await _context.Uzytkowniks.SingleOrDefaultAsync(x => x.NumerDowodu == user.NumerDowodu).ConfigureAwait(false);
+            var account = await _context.Uzytkowniks.SingleOrDefaultAsync(x => x.Email == user.Email).ConfigureAwait(false);
 
             return BC.Verify(user.Haslo, account.Haslo);
         }
@@ -170,7 +192,7 @@ namespace InernetVotingApplication.Services
             electionVoteDB.Hash = HashHelper.Hash(blockText);
 
             var userId = (from Uzytkownik in _context.Uzytkowniks
-                          where Uzytkownik.NumerDowodu == user
+                          where Uzytkownik.Email == user
                           select Uzytkownik.Id).FirstOrDefault();
 
             var userVoiceDB = new GlosUzytkownika
@@ -223,7 +245,7 @@ namespace InernetVotingApplication.Services
         public async Task<bool> CheckIfVoted(string user, int election)
         {
             int userId = await (from Uzytkownik in _context.Uzytkowniks
-                                where Uzytkownik.NumerDowodu == user
+                                where Uzytkownik.Email == user
                                 select Uzytkownik.Id).FirstOrDefaultAsync().ConfigureAwait(false);
 
             bool ifVoted = await (from GlosUzytkownika in _context.GlosUzytkownikas

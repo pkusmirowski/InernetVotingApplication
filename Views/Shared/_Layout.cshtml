@@ -22,7 +22,7 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-controller="Home" asp-action="Index">Strona główna</a>
                         </li>
-                        @if (Context.Session.GetString("IdNumber") == null)
+                        @if (Context.Session.GetString("email") == null)
                         {
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-controller="Account" asp-action="Register">Rejestracja</a>

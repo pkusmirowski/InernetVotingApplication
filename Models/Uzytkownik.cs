@@ -35,11 +35,11 @@ namespace InernetVotingApplication.Models
         [StringLength(11)]
         [Display(Name = "PESEL")]
         public string Pesel { get; set; }
-        [Required(ErrorMessage = "Wpisz swój numer dowodu osobistego")]
-        [Column("numerDowodu")]
-        [StringLength(9)]
-        [Display(Name = "Nr dowodu osobistego")]
-        public string NumerDowodu { get; set; }
+        [Required(ErrorMessage = "Wpisz swój adres Email")]
+        [Column("email")]
+        [StringLength(89)]
+        [Display(Name = "Adres Email")]
+        public string Email { get; set; }
         [Required(ErrorMessage = "Wpisz swoją datę urodzenia")]
         [Column("dataUrodzenia", TypeName = "date")]
         [Display(Name = "Data urodzenia")]

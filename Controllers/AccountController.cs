@@ -24,7 +24,7 @@ namespace InernetVotingApplication.Controllers
 
         public IActionResult Register()
         {
-            if (HttpContext.Session.GetString("IdNumber") != null)
+            if (HttpContext.Session.GetString("email") != null)
             {
                 return RedirectToAction("Dashboard");
             }
@@ -36,7 +36,7 @@ namespace InernetVotingApplication.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RegisterAsync(Uzytkownik user)
         {
-            if (HttpContext.Session.GetString("IdNumber") != null)
+            if (HttpContext.Session.GetString("email") != null)
             {
                 return RedirectToAction("Dashboard");
             }
@@ -56,7 +56,7 @@ namespace InernetVotingApplication.Controllers
 
         public async Task<IActionResult> LoginAsync(Logowanie user)
         {
-            if (HttpContext.Session.GetString("IdNumber") != null)
+            if (HttpContext.Session.GetString("email") != null)
             {
                 return RedirectToAction("Dashboard");
             }
@@ -69,9 +69,9 @@ namespace InernetVotingApplication.Controllers
                     if (val == 0)
                     {
                         //Zapisanie admina w sesji
-                        string IdNumber = "";
-                        IdNumber = await _userService.GetLoggedIdNumber(user, IdNumber).ConfigureAwait(false);
-                        HttpContext.Session.SetString("IdNumber", IdNumber);
+                        string email = "";
+                        email = await _userService.GetLoggedEmail(user, email).ConfigureAwait(false);
+                        HttpContext.Session.SetString("email", email);
 
                         const string admin = "Admin";
                         HttpContext.Session.SetString("Admin", admin);
@@ -80,9 +80,9 @@ namespace InernetVotingApplication.Controllers
                     else
                     {
                         //Zapisanie użytkownika w sesji
-                        string IdNumber = "";
-                        IdNumber = await _userService.GetLoggedIdNumber(user, IdNumber).ConfigureAwait(false);
-                        HttpContext.Session.SetString("IdNumber", IdNumber);
+                        string email = "";
+                        email = await _userService.GetLoggedEmail(user, email).ConfigureAwait(false);
+                        HttpContext.Session.SetString("email", email);
                         return RedirectToAction("Dashboard");
                     }
                 }
@@ -101,7 +101,7 @@ namespace InernetVotingApplication.Controllers
 
         public IActionResult Dashboard()
         {
-            if (string.IsNullOrEmpty(HttpContext.Session.GetString("IdNumber")))
+            if (string.IsNullOrEmpty(HttpContext.Session.GetString("email")))
             {
                 return RedirectToAction("Login");
             }
@@ -113,7 +113,7 @@ namespace InernetVotingApplication.Controllers
         [HttpGet]
         public async Task<IActionResult> VotingAsync(int id)
         {
-            if (string.IsNullOrEmpty(HttpContext.Session.GetString("IdNumber")))
+            if (string.IsNullOrEmpty(HttpContext.Session.GetString("email")))
             {
                 return RedirectToAction("Login");
             }
@@ -135,7 +135,7 @@ namespace InernetVotingApplication.Controllers
                     return RedirectToAction("ElectionResult", new { @ver = 1, @result = id });
                 }
 
-                if (await _userService.CheckIfVoted(HttpContext.Session.GetString("IdNumber"), id).ConfigureAwait(false))
+                if (await _userService.CheckIfVoted(HttpContext.Session.GetString("email"), id).ConfigureAwait(false))
                 {
                     return RedirectToAction("ElectionResult", new { @ver = 2, @result = id });
                 }
@@ -151,7 +151,7 @@ namespace InernetVotingApplication.Controllers
         [HttpPost]
         public async Task<IActionResult> VotingAddAsync(int[] candidate, int[] election)
         {
-            if (string.IsNullOrEmpty(HttpContext.Session.GetString("IdNumber")))
+            if (string.IsNullOrEmpty(HttpContext.Session.GetString("email")))
             {
                 return RedirectToAction("Login");
             }
@@ -164,12 +164,12 @@ namespace InernetVotingApplication.Controllers
             int candidateId = candidate[0];
             int electionId = election[0];
 
-            if (await _userService.CheckIfVoted(HttpContext.Session.GetString("IdNumber"), electionId).ConfigureAwait(false))
+            if (await _userService.CheckIfVoted(HttpContext.Session.GetString("email"), electionId).ConfigureAwait(false))
             {
                 return RedirectToAction("ElectionResult");
             }
 
-            string ifAdded = _userService.AddVote(HttpContext.Session.GetString("IdNumber"), candidateId, electionId);
+            string ifAdded = _userService.AddVote(HttpContext.Session.GetString("email"), candidateId, electionId);
             string userHash = ifAdded;
             if (ifAdded.Length > 3)
             {
@@ -192,7 +192,7 @@ namespace InernetVotingApplication.Controllers
 
         public IActionResult ElectionError()
         {
-            if (string.IsNullOrEmpty(HttpContext.Session.GetString("IdNumber")))
+            if (string.IsNullOrEmpty(HttpContext.Session.GetString("email")))
             {
                 return RedirectToAction("Login");
             }
@@ -202,7 +202,7 @@ namespace InernetVotingApplication.Controllers
 
         public IActionResult Voted(string hash)
         {
-            if (string.IsNullOrEmpty(HttpContext.Session.GetString("IdNumber")))
+            if (string.IsNullOrEmpty(HttpContext.Session.GetString("email")))
             {
                 return RedirectToAction("Login");
             }
@@ -213,7 +213,7 @@ namespace InernetVotingApplication.Controllers
 
         public IActionResult ElectionResult(int ver, int result)
         {
-            if (string.IsNullOrEmpty(HttpContext.Session.GetString("IdNumber")))
+            if (string.IsNullOrEmpty(HttpContext.Session.GetString("email")))
             {
                 return RedirectToAction("Login");
             }
@@ -246,7 +246,7 @@ namespace InernetVotingApplication.Controllers
 
         public IActionResult Panel()
         {
-            if (string.IsNullOrEmpty(HttpContext.Session.GetString("IdNumber")))
+            if (string.IsNullOrEmpty(HttpContext.Session.GetString("email")))
             {
                 return RedirectToAction("Login");
             }

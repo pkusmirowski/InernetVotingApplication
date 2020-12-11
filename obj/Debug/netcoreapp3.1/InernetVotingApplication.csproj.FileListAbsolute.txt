@@ -1,9 +1,3 @@
-C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\InernetVotingApplication.AssemblyInfoInputs.cache
-C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\InernetVotingApplication.AssemblyInfo.cs
-C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\InernetVotingApplication.csproj.CoreCompileInputs.cache
-C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\InernetVotingApplication.MvcApplicationPartsAssemblyInfo.cache
-C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\InernetVotingApplication.RazorAssemblyInfo.cache
-C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\InernetVotingApplication.RazorAssemblyInfo.cs
 C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\bin\Debug\netcoreapp3.1\appsettings.Development.json
 C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\bin\Debug\netcoreapp3.1\appsettings.json
 C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\bin\Debug\netcoreapp3.1\InernetVotingApplication.exe
@@ -129,6 +123,13 @@ C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\bi
 C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\bin\Debug\netcoreapp3.1\runtimes\win-x86\native\Microsoft.Data.SqlClient.SNI.pdb
 C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\bin\Debug\netcoreapp3.1\runtimes\win\lib\netstandard2.0\System.Runtime.Caching.dll
 C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\bin\Debug\netcoreapp3.1\runtimes\win\lib\netstandard2.0\System.Security.Cryptography.ProtectedData.dll
+C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\InernetVotingApplication.csprojAssemblyReference.cache
+C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\InernetVotingApplication.AssemblyInfoInputs.cache
+C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\InernetVotingApplication.AssemblyInfo.cs
+C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\InernetVotingApplication.csproj.CoreCompileInputs.cache
+C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\InernetVotingApplication.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\InernetVotingApplication.RazorAssemblyInfo.cache
+C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\InernetVotingApplication.RazorAssemblyInfo.cs
 C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\staticwebassets\InernetVotingApplication.StaticWebAssets.Manifest.cache
 C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\staticwebassets\InernetVotingApplication.StaticWebAssets.xml
 C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\scopedcss\bundle\InernetVotingApplication.styles.css
@@ -139,6 +140,7 @@ C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\ob
 C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\Razor\Views\Account\ElectionError.cshtml.g.cs
 C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\Razor\Views\Account\ElectionResult.cshtml.g.cs
 C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\Razor\Views\Account\Login.cshtml.g.cs
+C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\Razor\Views\Account\Panel.cshtml.g.cs
 C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\Razor\Views\Account\Register.cshtml.g.cs
 C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\Razor\Views\Account\Search.cshtml.g.cs
 C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\Razor\Views\Account\Voted.cshtml.g.cs
@@ -156,4 +158,6 @@ C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\ob
 C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\InernetVotingApplication.dll
 C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\InernetVotingApplication.pdb
 C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\InernetVotingApplication.genruntimeconfig.cache
-C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\obj\Debug\netcoreapp3.1\Razor\Views\Account\Panel.cshtml.g.cs
+C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\bin\Debug\netcoreapp3.1\MailKit.dll
+C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\bin\Debug\netcoreapp3.1\MimeKit.dll
+C:\Users\pawel\source\repos\InernetVotingApplication\InernetVotingApplication\bin\Debug\netcoreapp3.1\BouncyCastle.Crypto.dll

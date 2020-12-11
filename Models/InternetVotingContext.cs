@@ -89,7 +89,7 @@ namespace InernetVotingApplication.Models
 
                 entity.Property(e => e.Nazwisko).IsUnicode(false);
 
-                entity.Property(e => e.NumerDowodu).IsUnicode(false);
+                entity.Property(e => e.Email).IsUnicode(false);
 
                 entity.Property(e => e.Pesel).IsFixedLength(true);
             });
