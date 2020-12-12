@@ -55,7 +55,6 @@ namespace InernetVotingApplication.Services
             _context.Add(user);
             await _context.SaveChangesAsync().ConfigureAwait(false);
 
-            //create email
             SmtpClient smtp = SendEmailAfterRegistration(user);
             return true;
         }
@@ -195,6 +194,10 @@ namespace InernetVotingApplication.Services
                           where Uzytkownik.Email == user
                           select Uzytkownik.Id).FirstOrDefault();
 
+            var userEmail = (from Uzytkownik in _context.Uzytkowniks
+                             where Uzytkownik.Email == user
+                             select Uzytkownik.Email).FirstOrDefault();
+
             var userVoiceDB = new GlosUzytkownika
             {
                 IdUzytkownik = userId,
@@ -205,7 +208,24 @@ namespace InernetVotingApplication.Services
             _context.Add(electionVoteDB);
             _context.Add(userVoiceDB);
             _context.SaveChanges();
+
+            SendEmailVoteHash(electionVoteDB, userEmail);
+
             return electionVoteDB.Hash;
+        }
+
+        private static void SendEmailVoteHash(GlosowanieWyborcze electionVoteDB, string userEmail)
+        {
+            var sendEmail = new MimeMessage();
+            sendEmail.From.Add(MailboxAddress.Parse("aplikacjadoglosowania@gmail.com"));
+            sendEmail.To.Add(MailboxAddress.Parse(userEmail));
+            sendEmail.Subject = "Dziękujemy za zagłosowanie w wyborach";
+            sendEmail.Body = new TextPart(TextFormat.Html) { Text = "<h2>Hash twojego głosu: <b>" + electionVoteDB.Hash + "</b></h2></br> <p>Możesz sprawdzić poprawność swojego głosu w wyszukiwarce znajdującej się na stronie</p>" };
+            var smtp = new SmtpClient();
+            smtp.Connect("smtp.ethereal.email", 587, SecureSocketOptions.StartTls);
+            smtp.Authenticate("cleve.daugherty2@ethereal.email", "96712EmxRGP6ZNWA8V");
+            smtp.Send(sendEmail);
+            smtp.Disconnect(true);
         }
 
         public bool CheckIfElectionEnded(int electionId)
