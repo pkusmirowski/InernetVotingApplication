@@ -18,7 +18,6 @@ namespace InernetVotingApplication.Services
     public class UserService
     {
         private readonly InternetVotingContext _context;
-
         public UserService(InternetVotingContext context)
         {
             _context = context;
@@ -164,7 +163,6 @@ namespace InernetVotingApplication.Services
 
         public string AddVote(string user, int candidateId, int electionId)
         {
-            CountVotes(electionId, candidateId);
 
             List<GlosowanieWyborcze> listOfPreviousElectionVotes = VerifyElectionBlockchain(electionId);
             if (listOfPreviousElectionVotes.Any(c => !c.JestPoprawny))
@@ -178,6 +176,7 @@ namespace InernetVotingApplication.Services
                 IdWybory = electionId,
                 Glos = true
             };
+
 
             string previousBlockHash = null;
             if (listOfPreviousElectionVotes.Count > 0)
@@ -205,20 +204,21 @@ namespace InernetVotingApplication.Services
                 Glos = true
             };
 
-            _context.Add(electionVoteDB);
-            _context.Add(userVoiceDB);
+            _context.AddAsync(electionVoteDB);
+            _context.AddAsync(userVoiceDB);
             _context.SaveChanges();
 
             SendEmailVoteHash(electionVoteDB, userEmail);
 
             return electionVoteDB.Hash;
+
         }
 
-        private static void SendEmailVoteHash(GlosowanieWyborcze electionVoteDB, string userEmail)
+        private void SendEmailVoteHash(GlosowanieWyborcze electionVoteDB, string userEmail)
         {
             var sendEmail = new MimeMessage();
             sendEmail.From.Add(MailboxAddress.Parse("aplikacjadoglosowania@gmail.com"));
-            sendEmail.To.Add(MailboxAddress.Parse(userEmail));
+            sendEmail.To.Add(MailboxAddress.Parse(userEmail.ToString()));
             sendEmail.Subject = "Dziękujemy za zagłosowanie w wyborach";
             sendEmail.Body = new TextPart(TextFormat.Html) { Text = "<h2>Hash twojego głosu: <b>" + electionVoteDB.Hash + "</b></h2></br> <p>Możesz sprawdzić poprawność swojego głosu w wyszukiwarce znajdującej się na stronie</p>" };
             var smtp = new SmtpClient();
@@ -359,11 +359,9 @@ namespace InernetVotingApplication.Services
 
         public int CountVotes(int election, int candidate)
         {
-            var count = (from GlosowanieWyborcze in _context.GlosowanieWyborczes
-                         where GlosowanieWyborcze.IdKandydat == candidate && GlosowanieWyborcze.IdWybory == election
-                         select GlosowanieWyborcze.Glos).Count();
-
-            return count;
+            return (from GlosowanieWyborcze in _context.GlosowanieWyborczes
+                    where GlosowanieWyborcze.IdKandydat == candidate && GlosowanieWyborcze.IdWybory == election
+                    select GlosowanieWyborcze.Glos).Count();
         }
 
         private GlosowanieWyborczeItemViewModel GetCandidateInfo(GlosowanieWyborczeItemViewModel candidate)

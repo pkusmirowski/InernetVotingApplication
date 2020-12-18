@@ -11,6 +11,7 @@ namespace InernetVotingApplication.Controllers
     public class AccountController : Controller
     {
         private readonly UserService _userService;
+        private static readonly object obj = new object();
 
         public AccountController(UserService userService)
         {
@@ -169,7 +170,13 @@ namespace InernetVotingApplication.Controllers
                 return RedirectToAction("ElectionResult");
             }
 
-            string ifAdded = _userService.AddVote(HttpContext.Session.GetString("email"), candidateId, electionId);
+            string ifAdded;
+
+            lock (obj)
+            {
+                ifAdded = _userService.AddVote(HttpContext.Session.GetString("email"), candidateId, electionId);
+            }
+
             string userHash = ifAdded;
             if (ifAdded.Length > 3)
             {
