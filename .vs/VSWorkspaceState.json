@@ -1,0 +1,16 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\bin",
+    "\\bin\\Release",
+    "\\bin\\Release\\netcoreapp3.1",
+    "\\obj",
+    "\\Properties",
+    "\\Services",
+    "\\ViewModels",
+    "\\Views",
+    "\\wwwroot"
+  ],
+  "SelectedNode": "\\InernetVotingApplication.csproj",
+  "PreviewInSolutionExplorer": false
+}

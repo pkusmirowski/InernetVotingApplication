@@ -8901,19 +8901,24 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\pawel\\.nuget\\packages\\": {}
+    "C:\\Users\\Paweł\\.nuget\\packages\\": {},
+    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\pawel\\source\\repos\\InernetVotingApplication\\InernetVotingApplication\\InernetVotingApplication.csproj",
+      "projectUniqueName": "C:\\Users\\Paweł\\Documents\\GitHub\\InernetVotingApplication\\InernetVotingApplication.csproj",
       "projectName": "InernetVotingApplication",
-      "projectPath": "C:\\Users\\pawel\\source\\repos\\InernetVotingApplication\\InernetVotingApplication\\InernetVotingApplication.csproj",
-      "packagesPath": "C:\\Users\\pawel\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\pawel\\source\\repos\\InernetVotingApplication\\InernetVotingApplication\\obj\\",
+      "projectPath": "C:\\Users\\Paweł\\Documents\\GitHub\\InernetVotingApplication\\InernetVotingApplication.csproj",
+      "packagesPath": "C:\\Users\\Paweł\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\Paweł\\Documents\\GitHub\\InernetVotingApplication\\obj\\",
       "projectStyle": "PackageReference",
+      "fallbackFolders": [
+        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+      ],
       "configFilePaths": [
-        "C:\\Users\\pawel\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\Paweł\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
@@ -8987,7 +8992,7 @@
         "downloadDependencies": [
           {
             "name": "Microsoft.AspNetCore.App.Ref",
-            "version": "[3.1.2, 3.1.2]"
+            "version": "[3.1.10, 3.1.10]"
           }
         ],
         "frameworkReferences": {
@@ -8998,7 +9003,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.100-rc.2.20479.15\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.200-preview.20601.7\\RuntimeIdentifierGraph.json"
       }
     }
   }

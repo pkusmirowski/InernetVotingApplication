@@ -11,5 +11,6 @@
     <WebStackScaffolding_IsReferencingScriptLibrariesSelected>True</WebStackScaffolding_IsReferencingScriptLibrariesSelected>
     <WebStackScaffolding_LayoutPageFile />
     <WebStackScaffolding_DbContextTypeFullName>InernetVotingApplication.Models.InternetVotingContext</WebStackScaffolding_DbContextTypeFullName>
+    <ShowAllFiles>false</ShowAllFiles>
   </PropertyGroup>
 </Project>
