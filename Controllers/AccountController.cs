@@ -11,7 +11,7 @@ namespace InernetVotingApplication.Controllers
     public class AccountController : Controller
     {
         private readonly UserService _userService;
-        private static readonly object obj = new object();
+        private static readonly object obj = new();
 
         public AccountController(UserService userService)
         {
