@@ -3,9 +3,9 @@
 
 #1
 
-Odbudowa bazy danych z Modeli znajdujących się w projeckie po połączeniu.
+Odbudowa bazy danych z Modeli znajdujących się w projekcie po połączeniu.
 
-W appsettings.js należy ustawić nazwę bazy danych do której ma być podłączona aplikacja.
+W appsettings.js należy ustawić nazwę bazy danych, do której ma być podłączona aplikacja.
 
 Aplikacja oparta jest o SQL Server.
 
