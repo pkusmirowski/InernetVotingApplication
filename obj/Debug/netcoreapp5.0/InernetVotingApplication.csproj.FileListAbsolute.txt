@@ -155,3 +155,4 @@ C:\Users\Paweł\Documents\GitHub\InernetVotingApplication\obj\Debug\netcoreapp5.
 C:\Users\Paweł\Documents\GitHub\InernetVotingApplication\obj\Debug\netcoreapp5.0\ref\InernetVotingApplication.dll
 C:\Users\Paweł\Documents\GitHub\InernetVotingApplication\obj\Debug\netcoreapp5.0\InernetVotingApplication.pdb
 C:\Users\Paweł\Documents\GitHub\InernetVotingApplication\obj\Debug\netcoreapp5.0\InernetVotingApplication.genruntimeconfig.cache
+C:\Users\Paweł\Documents\GitHub\InernetVotingApplication\obj\Debug\netcoreapp5.0\InernetVotingApplication.csprojAssemblyReference.cache

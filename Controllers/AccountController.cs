@@ -70,8 +70,7 @@ namespace InernetVotingApplication.Controllers
                     if (val == 0)
                     {
                         //Zapisanie admina w sesji
-                        string email = "";
-                        email = await _userService.GetLoggedEmail(user, email).ConfigureAwait(false);
+                        string email = await _userService.GetLoggedEmail(user).ConfigureAwait(false);
                         HttpContext.Session.SetString("email", email);
 
                         const string admin = "Admin";
@@ -81,8 +80,7 @@ namespace InernetVotingApplication.Controllers
                     else
                     {
                         //Zapisanie użytkownika w sesji
-                        string email = "";
-                        email = await _userService.GetLoggedEmail(user, email).ConfigureAwait(false);
+                        string email = await _userService.GetLoggedEmail(user).ConfigureAwait(false);
                         HttpContext.Session.SetString("email", email);
                         return RedirectToAction("Dashboard");
                     }

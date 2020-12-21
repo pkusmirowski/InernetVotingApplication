@@ -36,7 +36,7 @@ namespace InernetVotingApplication.Services
                 return false;
             }
 
-            if (!PESELValidation.IsValidPESEL(user.Pesel) || !EmailValidation.IsValidEmail(user.Email))
+            if (!PeselValidation.IsValidPESEL(user.Pesel) || !EmailValidation.IsValidEmail(user.Email))
             {
                 return false;
             }
@@ -80,13 +80,13 @@ namespace InernetVotingApplication.Services
             return 2;
         }
 
-        public async Task<string> GetLoggedEmail(Logowanie user, string email)
+        public async Task<string> GetLoggedEmail(Logowanie user)
         {
             var queryName = from Uzytkownik in _context.Uzytkowniks
                             where Uzytkownik.Email == user.Email
                             select Uzytkownik.Email;
 
-            return email = await queryName.FirstAsync().ConfigureAwait(false);
+            return await queryName.FirstAsync().ConfigureAwait(false);
         }
 
         public async Task<bool> AuthenticateUser(Logowanie user)
@@ -158,9 +158,9 @@ namespace InernetVotingApplication.Services
                           where Uzytkownik.Email == user
                           select Uzytkownik.Id).FirstOrDefault();
 
-            var userEmail = (from Uzytkownik in _context.Uzytkowniks
-                             where Uzytkownik.Email == user
-                             select Uzytkownik.Email).FirstOrDefault();
+            //var userEmail = (from Uzytkownik in _context.Uzytkowniks
+            //                 where Uzytkownik.Email == user
+            //                 select Uzytkownik.Email).FirstOrDefault();
 
             var userVoiceDB = new GlosUzytkownika
             {
@@ -233,6 +233,15 @@ namespace InernetVotingApplication.Services
                     IdWybory = 0,
                     Hash = "0"
                 }).FirstOrDefault();
+
+                if(electionCandidates1 == null)
+                {
+                    electionCandidates1 = new GlosowanieWyborczeItemViewModel
+                    {
+                        IdWybory = -1,
+                        IdKandydat = -1
+                    };
+                }
 
                 return new GlosowanieWyborczeViewModel
                 {

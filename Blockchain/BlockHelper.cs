@@ -2,9 +2,9 @@
 {
     public static class BlockHelper
     {
-        public static string VoteData(int IdKandydat, int IdWybory, bool Glos, string previousBlockHash)
+        public static string VoteData(int idKandydat, int idWybory, bool glos, string previousBlockHash)
         {
-            return $"{IdKandydat}{IdWybory}{Glos}{previousBlockHash}";
+            return $"{idKandydat}{idWybory}{glos}{previousBlockHash}";
         }
     }
 }

@@ -3,11 +3,12 @@ using System.ComponentModel.DataAnnotations;
 
 namespace InernetVotingApplication.ExtensionMethods
 {
-    public class AgeValidation : ValidationAttribute
+    [AttributeUsage(AttributeTargets.All, AllowMultiple = false)]
+    public class AgeAttribute : ValidationAttribute
     {
         private readonly int _age;
 
-        public AgeValidation(int age)
+        public AgeAttribute(int age)
         {
             _age = age;
         }

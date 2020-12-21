@@ -2,7 +2,7 @@
 
 namespace InernetVotingApplication.ExtensionMethods
 {
-    public static class PESELValidation
+    public static class PeselValidation
     {
         public static bool IsValidPESEL(string input)
         {

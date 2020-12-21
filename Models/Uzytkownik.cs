@@ -44,7 +44,7 @@ namespace InernetVotingApplication.Models
         [Column("dataUrodzenia", TypeName = "date")]
         [Display(Name = "Data urodzenia")]
         [DataType(DataType.Date)]
-        [AgeValidation(18, ErrorMessage = "Musisz być pełnoletni!")]
+        [AgeAttribute(18, ErrorMessage = "Musisz być pełnoletni!")]
         public DateTime DataUrodzenia { get; set; }
         [Required(ErrorMessage = "Podaj hasło")]
         [Column("haslo")]
