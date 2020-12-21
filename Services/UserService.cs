@@ -343,6 +343,16 @@ namespace InernetVotingApplication.Services
         {
             var candidate = electionCandidates.FirstOrDefault();
 
+
+            if(candidate == null)
+            {
+                return new GlosowanieWyborczeItemViewModel
+                {
+                    IdWybory = -1,
+                    IdKandydat = -1
+                };
+            }
+
             int idKandydat = candidate.IdKandydat;
             int idWybory = candidate.IdWybory;
 
