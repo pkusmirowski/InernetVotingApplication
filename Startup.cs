@@ -24,6 +24,7 @@ namespace InernetVotingApplication
             services.AddControllersWithViews();
             services.AddDbContext<InternetVotingContext>(options => options.UseSqlServer(Configuration.GetConnectionString("Default")));
             services.AddTransient<UserService>();
+            services.AddTransient<MailService>();
             services.AddDistributedMemoryCache();
             services.AddSession();
         }

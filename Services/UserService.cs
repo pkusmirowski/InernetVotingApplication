@@ -2,11 +2,7 @@
 using InernetVotingApplication.ExtensionMethods;
 using InernetVotingApplication.Models;
 using InernetVotingApplication.ViewModels;
-using MailKit.Net.Smtp;
-using MailKit.Security;
 using Microsoft.EntityFrameworkCore;
-using MimeKit;
-using MimeKit.Text;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,9 +14,11 @@ namespace InernetVotingApplication.Services
     public class UserService
     {
         private readonly InternetVotingContext _context;
-        public UserService(InternetVotingContext context)
+        private readonly MailService _mailService;
+        public UserService(InternetVotingContext context, MailService mailService)
         {
             _context = context;
+            _mailService = mailService;
         }
 
         public async Task<bool> Register(Uzytkownik user)
@@ -28,20 +26,14 @@ namespace InernetVotingApplication.Services
             var email = await _context.Uzytkowniks.SingleOrDefaultAsync(x => x.Email == user.Email).ConfigureAwait(false);
             var pesel = await _context.Uzytkowniks.SingleOrDefaultAsync(x => x.Pesel == user.Pesel).ConfigureAwait(false);
 
-            if (email != null)
+            if (email != null && email.Email == user.Email)
             {
-                if (email.Email == user.Email)
-                {
-                    return false;
-                }
+                return false;
             }
 
-            if (pesel != null)
+            if (pesel != null && pesel.Pesel == user.Pesel)
             {
-                if (pesel.Pesel == user.Pesel)
-                {
-                    return false;
-                }
+                return false;
             }
 
             if (!PESELValidation.IsValidPESEL(user.Pesel) || !EmailValidation.IsValidEmail(user.Email))
@@ -54,23 +46,8 @@ namespace InernetVotingApplication.Services
             _context.Add(user);
             await _context.SaveChangesAsync().ConfigureAwait(false);
 
-            SmtpClient smtp = SendEmailAfterRegistration(user);
+            //_mailService.SendEmailAfterRegistration(user);
             return true;
-        }
-
-        private static SmtpClient SendEmailAfterRegistration(Uzytkownik user)
-        {
-            var sendEmail = new MimeMessage();
-            sendEmail.From.Add(MailboxAddress.Parse("aplikacjadoglosowania@gmail.com"));
-            sendEmail.To.Add(MailboxAddress.Parse(user.Email));
-            sendEmail.Subject = "Pomyślne założenie konta w apllikacji do głosowania";
-            sendEmail.Body = new TextPart(TextFormat.Html) { Text = "<h2>Twoje konto <b>" + user.Imie + " " + user.Nazwisko + "</b> w aplikacji do głosowania zostało założone pomyślnie!</h2>" };
-            var smtp = new SmtpClient();
-            smtp.Connect("smtp.ethereal.email", 587, SecureSocketOptions.StartTls);
-            smtp.Authenticate("cleve.daugherty2@ethereal.email", "96712EmxRGP6ZNWA8V");
-            smtp.Send(sendEmail);
-            smtp.Disconnect(true);
-            return smtp;
         }
 
         //Zwraca
@@ -91,19 +68,13 @@ namespace InernetVotingApplication.Services
                                 where Administrator.IdUzytkownik == getUserId
                                 select Administrator.IdUzytkownik).FirstOrDefault();
 
-            if (user.Email != null && user.Haslo != null)
+            if (user.Email != null && user.Haslo != null && (await queryActive.FirstOrDefaultAsync().ConfigureAwait(false) ?? false) && await AuthenticateUser(user).ConfigureAwait(false))
             {
-                if (await queryActive.FirstOrDefaultAsync().ConfigureAwait(false) ?? false)
+                if (getUserId == checkIfAdmin)
                 {
-                    if (await AuthenticateUser(user).ConfigureAwait(false))
-                    {
-                        if (getUserId == checkIfAdmin)
-                        {
-                            return 0;
-                        }
-                        return 1;
-                    }
+                    return 0;
                 }
+                return 1;
             }
 
             return 2;
@@ -135,12 +106,10 @@ namespace InernetVotingApplication.Services
                 Opis = x.Opis
             });
 
-            var vm = new DataWyborowViewModel
+            return new DataWyborowViewModel
             {
                 ElectionDates = electionDates
             };
-
-            return vm;
         }
 
         public KandydatViewModel GetAllCandidates(int id)
@@ -153,17 +122,14 @@ namespace InernetVotingApplication.Services
                 IdWybory = x.IdWybory
             }).Where(x => x.IdWybory == id);
 
-            var vm = new KandydatViewModel
+            return new KandydatViewModel
             {
                 ElectionCandidates = electionCandidates
             };
-
-            return vm;
         }
 
         public string AddVote(string user, int candidateId, int electionId)
         {
-
             List<GlosowanieWyborcze> listOfPreviousElectionVotes = VerifyElectionBlockchain(electionId);
             if (listOfPreviousElectionVotes.Any(c => !c.JestPoprawny))
             {
@@ -176,7 +142,6 @@ namespace InernetVotingApplication.Services
                 IdWybory = electionId,
                 Glos = true
             };
-
 
             string previousBlockHash = null;
             if (listOfPreviousElectionVotes.Count > 0)
@@ -204,28 +169,13 @@ namespace InernetVotingApplication.Services
                 Glos = true
             };
 
-            _context.AddAsync(electionVoteDB);
-            _context.AddAsync(userVoiceDB);
+            _context.Add(electionVoteDB);
+            _context.Add(userVoiceDB);
             _context.SaveChanges();
 
-            SendEmailVoteHash(electionVoteDB, userEmail);
+            //_mailService.SendEmailVoteHash(electionVoteDB, userEmail);
 
             return electionVoteDB.Hash;
-
-        }
-
-        private void SendEmailVoteHash(GlosowanieWyborcze electionVoteDB, string userEmail)
-        {
-            var sendEmail = new MimeMessage();
-            sendEmail.From.Add(MailboxAddress.Parse("aplikacjadoglosowania@gmail.com"));
-            sendEmail.To.Add(MailboxAddress.Parse(userEmail.ToString()));
-            sendEmail.Subject = "Dziękujemy za zagłosowanie w wyborach";
-            sendEmail.Body = new TextPart(TextFormat.Html) { Text = "<h2>Hash twojego głosu: <b>" + electionVoteDB.Hash + "</b></h2></br> <p>Możesz sprawdzić poprawność swojego głosu w wyszukiwarce znajdującej się na stronie</p>" };
-            var smtp = new SmtpClient();
-            smtp.Connect("smtp.ethereal.email", 587, SecureSocketOptions.StartTls);
-            smtp.Authenticate("cleve.daugherty2@ethereal.email", "96712EmxRGP6ZNWA8V");
-            smtp.Send(sendEmail);
-            smtp.Disconnect(true);
         }
 
         public bool CheckIfElectionEnded(int electionId)
@@ -268,10 +218,9 @@ namespace InernetVotingApplication.Services
                                 where Uzytkownik.Email == user
                                 select Uzytkownik.Id).FirstOrDefaultAsync().ConfigureAwait(false);
 
-            bool ifVoted = await (from GlosUzytkownika in _context.GlosUzytkownikas
-                                  where GlosUzytkownika.IdUzytkownik == userId && GlosUzytkownika.IdWybory == election
-                                  select GlosUzytkownika.Glos).FirstOrDefaultAsync().ConfigureAwait(false);
-            return ifVoted;
+            return await (from GlosUzytkownika in _context.GlosUzytkownikas
+                          where GlosUzytkownika.IdUzytkownik == userId && GlosUzytkownika.IdWybory == election
+                          select GlosUzytkownika.Glos).FirstOrDefaultAsync().ConfigureAwait(false);
         }
 
         public GlosowanieWyborczeViewModel SearchVote(string Text)
@@ -285,11 +234,10 @@ namespace InernetVotingApplication.Services
                     Hash = "0"
                 }).FirstOrDefault();
 
-                var vm1 = new GlosowanieWyborczeViewModel
+                return new GlosowanieWyborczeViewModel
                 {
                     SearchCandidate = electionCandidates1
                 };
-                return vm1;
             }
 
             var electionCandidates = _context.GlosowanieWyborczes.Select(x => new GlosowanieWyborczeItemViewModel
@@ -301,12 +249,10 @@ namespace InernetVotingApplication.Services
 
             var candidate = GetCandidateInfo(electionCandidates);
 
-            var vm = new GlosowanieWyborczeViewModel
+            return new GlosowanieWyborczeViewModel
             {
                 SearchCandidate = candidate
             };
-
-            return vm;
         }
 
         public GlosowanieWyborczeViewModel GetElectionResult(int id)
@@ -331,12 +277,10 @@ namespace InernetVotingApplication.Services
 
             CountedVotesInPercentage(electionResult, allElectionVotes);
 
-            var vm = new GlosowanieWyborczeViewModel
+            return new GlosowanieWyborczeViewModel
             {
                 GetElectionVotes = electionResult
             };
-
-            return vm;
         }
 
         private static void CountedVotesInPercentage(List<GlosowanieWyborczeItemViewModel> electionResult, double allElectionVotes)
@@ -409,6 +353,30 @@ namespace InernetVotingApplication.Services
             candidate.CandidateSurname = candidateSurname;
             candidate.ElectionDesc = electionDesc;
             return candidate;
+        }
+
+        public bool ChagePassword(ChangePassword password, string userEmail)
+        {
+            var account = _context.Uzytkowniks.SingleOrDefault(x => x.Email == userEmail);
+            var verifyPassword = BC.Verify(password.Password, account.Haslo);
+
+            if (password.NewPassword != password.ConfirmNewPassword)
+            {
+                return false;
+            }
+
+            if (!verifyPassword)
+            {
+                return false;
+            }
+
+            account.Haslo = BC.HashPassword(password.NewPassword);
+            _context.Update(account);
+            _context.SaveChanges();
+
+            _mailService.SendEmailChangePassword(userEmail);
+
+            return true;
         }
     }
 }

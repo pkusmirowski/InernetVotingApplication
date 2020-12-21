@@ -265,5 +265,38 @@ namespace InernetVotingApplication.Controllers
 
             return View();
         }
+
+        public IActionResult ChangePassword()
+        {
+            if (string.IsNullOrEmpty(HttpContext.Session.GetString("email")))
+            {
+                return RedirectToAction("Login");
+            }
+
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ChangePassword(ChangePassword user)
+        {
+            if (string.IsNullOrEmpty(HttpContext.Session.GetString("email")))
+            {
+                return RedirectToAction("Login");
+            }
+
+            var userEmail = HttpContext.Session.GetString("email");
+            if (ModelState.IsValid)
+            {
+                if (_userService.ChagePassword(user, userEmail))
+                {
+                    ViewBag.changePasswordSuccessful = "Hasło zostało zmienione poprawnie!";
+                    return View();
+                }
+                ViewBag.Error = false;
+                return View();
+            }
+            return View();
+        }
     }
 }
