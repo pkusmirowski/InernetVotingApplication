@@ -43,8 +43,8 @@ namespace InernetVotingApplication.Services
 
             user.Haslo = BC.HashPassword(user.Haslo);
             user.JestAktywne = true;
-            _context.Add(user);
-            await _context.SaveChangesAsync().ConfigureAwait(false);
+            await _context.AddAsync(user).ConfigureAwait(false);
+            _context.SaveChanges();
 
             //_mailService.SendEmailAfterRegistration(user);
             return true;
@@ -234,7 +234,7 @@ namespace InernetVotingApplication.Services
                     Hash = "0"
                 }).FirstOrDefault();
 
-                if(electionCandidates1 == null)
+                if (electionCandidates1 == null)
                 {
                     electionCandidates1 = new GlosowanieWyborczeItemViewModel
                     {
@@ -343,8 +343,7 @@ namespace InernetVotingApplication.Services
         {
             var candidate = electionCandidates.FirstOrDefault();
 
-
-            if(candidate == null)
+            if (candidate == null)
             {
                 return new GlosowanieWyborczeItemViewModel
                 {
@@ -393,8 +392,43 @@ namespace InernetVotingApplication.Services
             _context.Update(account);
             _context.SaveChanges();
 
-            _mailService.SendEmailChangePassword(userEmail);
+            //_mailService.SendEmailChangePassword(userEmail);
 
+            return true;
+        }
+
+        public List<DataWyborow> ShowElectionByName()
+        {
+            var listOfElectionId = _context.DataWyborows.Select(r => r.Id);
+            return _context.DataWyborows.Where(r => listOfElectionId.Contains(r.Id)).ToList();
+        }
+
+        public async Task<bool> AddCandidate(Kandydat candidate)
+        {
+            string candidateId = await (from Kandydat in _context.Kandydats
+                                        where Kandydat.Imie == candidate.Imie
+                                        select Kandydat.Imie).FirstOrDefaultAsync().ConfigureAwait(false);
+
+            string candidateId2 = await (from Kandydat in _context.Kandydats
+                                         where Kandydat.Nazwisko == candidate.Nazwisko
+                                         select Kandydat.Nazwisko).FirstOrDefaultAsync().ConfigureAwait(false);
+
+            //Sprawdzenie po imieniu i nazwisku
+            //Powinien być np. PESEL kandydata aby dwóch kandydatów o
+            //jendakowym imieniu i nazwisku mogło wziąć udział w wyborach
+            //--> Sytuacja ekstremalna!!!! <--
+            if (candidateId == candidate.Imie && candidateId2 == candidate.Nazwisko)
+            {
+                return false;
+            }
+
+            if (CheckIfElectionStarted(candidate.IdWybory) || CheckIfElectionEnded(candidate.IdWybory))
+            {
+                return false;
+            }
+
+            await _context.AddAsync(candidate).ConfigureAwait(false);
+            _context.SaveChanges();
             return true;
         }
     }

@@ -2,7 +2,9 @@
 using InernetVotingApplication.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Array = InernetVotingApplication.ExtensionMethods.ArrayExtensions;
 
@@ -294,6 +296,71 @@ namespace InernetVotingApplication.Controllers
                 ViewBag.Error = false;
                 return View();
             }
+            return View();
+        }
+
+        public IActionResult AddCandidate()
+        {
+            if (string.IsNullOrEmpty(HttpContext.Session.GetString("Admin")))
+            {
+                return RedirectToAction("Login");
+            }
+
+            List<DataWyborow> electionIdList = new();
+            electionIdList = _userService.ShowElectionByName();
+
+            ViewBag.IdWybory = (List<SelectListItem>)electionIdList.ConvertAll(a =>
+            {
+                return new SelectListItem()
+                {
+                    Text = a.Opis,
+                    Value = a.Id.ToString(),
+                    Selected = false
+                };
+            });
+
+            return View();
+
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddCandidateAsync(Kandydat kandydat)
+        {
+            if (ModelState.IsValid)
+            {
+                if (await _userService.AddCandidate(kandydat).ConfigureAwait(false))
+                {
+                    ViewBag.addCandidateSuccessful = "Kandydat " + kandydat.Imie + " " + kandydat.Nazwisko + " został dodany do głosowania wyborczego!";
+                }
+                else
+                {
+                    ViewBag.Error = false;
+                }
+            }
+
+            List<DataWyborow> electionIdList = new();
+            electionIdList = _userService.ShowElectionByName();
+
+            ViewBag.IdWybory = (List<SelectListItem>)electionIdList.ConvertAll(a =>
+            {
+                return new SelectListItem()
+                {
+                    Text = a.Opis,
+                    Value = a.Id.ToString(),
+                    Selected = false
+                };
+            });
+
+            return View();
+        }
+
+        public IActionResult CreateElection(DataWyborow dataWyborow)
+        {
+            if (string.IsNullOrEmpty(HttpContext.Session.GetString("Admin")))
+            {
+                return RedirectToAction("Login");
+            }
+
             return View();
         }
     }
