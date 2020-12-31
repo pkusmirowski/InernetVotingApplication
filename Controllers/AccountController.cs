@@ -320,7 +320,6 @@ namespace InernetVotingApplication.Controllers
             });
 
             return View();
-
         }
 
         [HttpPost]

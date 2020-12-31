@@ -413,16 +413,26 @@ namespace InernetVotingApplication.Services
                                          where Kandydat.Nazwisko == candidate.Nazwisko
                                          select Kandydat.Nazwisko).FirstOrDefaultAsync().ConfigureAwait(false);
 
+            int candidateId4 = await (from Kandydat in _context.Kandydats
+                                         where Kandydat.Nazwisko == candidate.Nazwisko
+                                         select Kandydat.Id).FirstOrDefaultAsync().ConfigureAwait(false);
+
+            int candidateId3 = await (from Kandydat in _context.Kandydats
+                                      where Kandydat.IdWybory == candidate.IdWybory && Kandydat.Imie == candidateId && Kandydat.Nazwisko == candidateId2
+                                      select Kandydat.IdWybory).FirstOrDefaultAsync().ConfigureAwait(false);
+
             //Sprawdzenie po imieniu i nazwisku
             //Powinien być np. PESEL kandydata aby dwóch kandydatów o
             //jendakowym imieniu i nazwisku mogło wziąć udział w wyborach
-            //--> Sytuacja ekstremalna!!!! <--
-            if (candidateId == candidate.Imie && candidateId2 == candidate.Nazwisko)
+            //--> Sytuacja ekstremalna!!!! - to do
+            if (candidateId == candidate.Imie && candidateId2 == candidate.Nazwisko && candidateId3 == candidate.IdWybory)
             {
                 return false;
             }
 
-            if (CheckIfElectionStarted(candidate.IdWybory) || CheckIfElectionEnded(candidate.IdWybory))
+            //Wybory się nie skończyły - done
+            //Dodać sprawdzenie czy nie trwają - to do
+            if (CheckIfElectionStarted(candidate.IdWybory) || !CheckIfElectionEnded(candidate.IdWybory))
             {
                 return false;
             }
