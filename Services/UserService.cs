@@ -441,5 +441,21 @@ namespace InernetVotingApplication.Services
             _context.SaveChanges();
             return true;
         }
+
+        public bool AddElection(DataWyborow dataWyborow)
+        {
+            string electionDescriptions = (from DataWyborow in _context.DataWyborows
+                                  where DataWyborow.Opis == dataWyborow.Opis
+                                  select DataWyborow.Opis).FirstOrDefault();
+
+            if(electionDescriptions == dataWyborow.Opis)
+            {
+                return false;
+            }
+            _context.AddAsync(dataWyborow);
+            _context.SaveChanges();
+            return true;
+        }
+
     }
 }

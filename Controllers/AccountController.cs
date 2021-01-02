@@ -353,11 +353,34 @@ namespace InernetVotingApplication.Controllers
             return View();
         }
 
+        public IActionResult CreateElection()
+        {
+            if (string.IsNullOrEmpty(HttpContext.Session.GetString("Admin")))
+            {
+                return RedirectToAction("Login");
+            }
+
+            return View();
+        }
+
+        [HttpPost]
         public IActionResult CreateElection(DataWyborow dataWyborow)
         {
             if (string.IsNullOrEmpty(HttpContext.Session.GetString("Admin")))
             {
                 return RedirectToAction("Login");
+            }
+
+            if (ModelState.IsValid)
+            {
+                if (_userService.AddElection(dataWyborow))
+                {
+                    ViewBag.addElectionSuccessful = "Wybory zostały dodane!";
+                }
+                else
+                {
+                    ViewBag.Error = false;
+                }
             }
 
             return View();
