@@ -364,7 +364,7 @@ namespace InernetVotingApplication.Controllers
         }
 
         [HttpPost]
-        public IActionResult CreateElection(DataWyborow dataWyborow)
+        public async Task<IActionResult> CreateElectionAsync(DataWyborow dataWyborow)
         {
             if (string.IsNullOrEmpty(HttpContext.Session.GetString("Admin")))
             {
@@ -373,7 +373,7 @@ namespace InernetVotingApplication.Controllers
 
             if (ModelState.IsValid)
             {
-                if (_userService.AddElection(dataWyborow))
+                if (await _userService.AddElectionAsync(dataWyborow).ConfigureAwait(false))
                 {
                     ViewBag.addElectionSuccessful = "Wybory zostały dodane!";
                 }

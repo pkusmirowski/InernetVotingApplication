@@ -6,12 +6,12 @@ namespace InernetVotingApplication.Models
     {
         [Required(ErrorMessage = "Podaj hasło")]
         [DataType(DataType.Password)]
-        [Display(Name = "Hasło")]
+        [Display(Name = "Obecne hasło")]
         public string Password { get; set; }
 
         [Required(ErrorMessage = "Podaj nowe hasło")]
         [DataType(DataType.Password)]
-        [Display(Name = "Hasło")]
+        [Display(Name = "Nowe hasło")]
         [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[#$^+=!*()@%&]).{8,}$", ErrorMessage = "Hasło musi zawierać: małą i dużą litere, cyfre, specjalny symbol, 8 znaków")]
         public string NewPassword { get; set; }
 

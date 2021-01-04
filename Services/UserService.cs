@@ -104,7 +104,23 @@ namespace InernetVotingApplication.Services
                 DataRozpoczecia = x.DataRozpoczecia,
                 DataZakonczenia = x.DataZakonczenia,
                 Opis = x.Opis
-            });
+            }).ToList();
+
+            foreach (var x in electionDates)
+            {
+                if (!CheckIfElectionEnded(x.Id))
+                {
+                    x.Type = 1;
+                }
+                else if (!CheckIfElectionStarted(x.Id))
+                {
+                    x.Type = 2;
+                }
+                else
+                {
+                    x.Type = 3;
+                }
+            }
 
             return new DataWyborowViewModel
             {
@@ -405,27 +421,27 @@ namespace InernetVotingApplication.Services
 
         public async Task<bool> AddCandidate(Kandydat candidate)
         {
-            string candidateId = await (from Kandydat in _context.Kandydats
-                                        where Kandydat.Imie == candidate.Imie
-                                        select Kandydat.Imie).FirstOrDefaultAsync().ConfigureAwait(false);
+            string candidateName = await (from Kandydat in _context.Kandydats
+                                          where Kandydat.Imie == candidate.Imie
+                                          select Kandydat.Imie).FirstOrDefaultAsync().ConfigureAwait(false);
 
-            string candidateId2 = await (from Kandydat in _context.Kandydats
-                                         where Kandydat.Nazwisko == candidate.Nazwisko
-                                         select Kandydat.Nazwisko).FirstOrDefaultAsync().ConfigureAwait(false);
+            string candidateSurname = await (from Kandydat in _context.Kandydats
+                                             where Kandydat.Nazwisko == candidate.Nazwisko
+                                             select Kandydat.Nazwisko).FirstOrDefaultAsync().ConfigureAwait(false);
 
-            int candidateId4 = await (from Kandydat in _context.Kandydats
-                                         where Kandydat.Nazwisko == candidate.Nazwisko
-                                         select Kandydat.Id).FirstOrDefaultAsync().ConfigureAwait(false);
+            int candidateId = await (from Kandydat in _context.Kandydats
+                                     where Kandydat.Nazwisko == candidate.Nazwisko
+                                     select Kandydat.Id).FirstOrDefaultAsync().ConfigureAwait(false);
 
-            int candidateId3 = await (from Kandydat in _context.Kandydats
-                                      where Kandydat.IdWybory == candidate.IdWybory && Kandydat.Imie == candidateId && Kandydat.Nazwisko == candidateId2
-                                      select Kandydat.IdWybory).FirstOrDefaultAsync().ConfigureAwait(false);
+            int candidateElectionId = await (from Kandydat in _context.Kandydats
+                                             where Kandydat.IdWybory == candidate.IdWybory && Kandydat.Imie == candidateName && Kandydat.Nazwisko == candidateSurname
+                                             select Kandydat.IdWybory).FirstOrDefaultAsync().ConfigureAwait(false);
 
             //Sprawdzenie po imieniu i nazwisku
             //Powinien być np. PESEL kandydata aby dwóch kandydatów o
             //jendakowym imieniu i nazwisku mogło wziąć udział w wyborach
             //--> Sytuacja ekstremalna!!!! - to do
-            if (candidateId == candidate.Imie && candidateId2 == candidate.Nazwisko && candidateId3 == candidate.IdWybory)
+            if (candidateName == candidate.Imie && candidateSurname == candidate.Nazwisko && candidateElectionId == candidate.IdWybory)
             {
                 return false;
             }
@@ -442,20 +458,19 @@ namespace InernetVotingApplication.Services
             return true;
         }
 
-        public bool AddElection(DataWyborow dataWyborow)
+        public async Task<bool> AddElectionAsync(DataWyborow dataWyborow)
         {
             string electionDescriptions = (from DataWyborow in _context.DataWyborows
-                                  where DataWyborow.Opis == dataWyborow.Opis
-                                  select DataWyborow.Opis).FirstOrDefault();
+                                           where DataWyborow.Opis == dataWyborow.Opis
+                                           select DataWyborow.Opis).FirstOrDefault();
 
-            if(electionDescriptions == dataWyborow.Opis)
+            if (electionDescriptions == dataWyborow.Opis)
             {
                 return false;
             }
-            _context.AddAsync(dataWyborow);
+            await _context.AddAsync(dataWyborow).ConfigureAwait(false);
             _context.SaveChanges();
             return true;
         }
-
     }
 }

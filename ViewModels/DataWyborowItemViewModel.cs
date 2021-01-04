@@ -8,5 +8,6 @@ namespace InernetVotingApplication.Models
         public DateTime DataRozpoczecia { get; set; }
         public DateTime DataZakonczenia { get; set; }
         public string Opis { get; set; }
+        public int Type { get; set; }
     }
 }
