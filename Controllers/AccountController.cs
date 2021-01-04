@@ -170,11 +170,21 @@ namespace InernetVotingApplication.Controllers
                 return RedirectToAction("ElectionResult");
             }
 
-            string ifAdded;
+            string ifAdded = "";
 
             lock (obj)
             {
+                //Testowanie czasu wykonania kodu
+                // Stopwatch stopwatch = new Stopwatch();
+                // stopwatch.Start();
+
+                // for (int i = 0; i < 1000; i++)
+                //  {
                 ifAdded = _userService.AddVote(HttpContext.Session.GetString("email"), candidateId, electionId);
+                //  }
+                //  stopwatch.Stop();
+                //  Console.WriteLine("Elapsed Time is {0} ms", stopwatch.ElapsedMilliseconds);
+
             }
 
             string userHash = ifAdded;

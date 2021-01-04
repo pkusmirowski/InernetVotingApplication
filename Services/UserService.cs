@@ -146,6 +146,10 @@ namespace InernetVotingApplication.Services
 
         public string AddVote(string user, int candidateId, int electionId)
         {
+            //Testowanie czasu wykonania kodu
+            //Stopwatch stopwatch = new Stopwatch();
+            //stopwatch.Start();
+
             List<GlosowanieWyborcze> listOfPreviousElectionVotes = VerifyElectionBlockchain(electionId);
             if (listOfPreviousElectionVotes.Any(c => !c.JestPoprawny))
             {
@@ -190,6 +194,8 @@ namespace InernetVotingApplication.Services
             _context.SaveChanges();
 
             //_mailService.SendEmailVoteHash(electionVoteDB, userEmail);
+            //stopwatch.Stop();
+            //Console.WriteLine("Elapsed Time is {0} ms", stopwatch.ElapsedMilliseconds);
 
             return electionVoteDB.Hash;
         }
