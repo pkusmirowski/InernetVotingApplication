@@ -3,6 +3,7 @@ using InernetVotingApplication.ExtensionMethods;
 using InernetVotingApplication.Models;
 using InernetVotingApplication.ViewModels;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting.Internal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -40,13 +41,14 @@ namespace InernetVotingApplication.Services
             {
                 return false;
             }
-
+            Guid activationCode = Guid.NewGuid();
+            user.KodAktywacyjny = activationCode;
             user.Haslo = BC.HashPassword(user.Haslo);
-            user.JestAktywne = true;
+            user.JestAktywne = false;
             await _context.AddAsync(user).ConfigureAwait(false);
             _context.SaveChanges();
 
-            //_mailService.SendEmailAfterRegistration(user);
+            _mailService.SendEmailAfterRegistration(user);
             return true;
         }
 
@@ -64,11 +66,15 @@ namespace InernetVotingApplication.Services
                              where Uzytkownik.Email == user.Email
                              select Uzytkownik.Id).FirstOrDefault();
 
+            var getUserStatus = (from Uzytkownik in _context.Uzytkowniks
+                                 where Uzytkownik.JestAktywne
+                                 select Uzytkownik.JestAktywne).FirstOrDefault();
+
             var checkIfAdmin = (from Administrator in _context.Administrators
                                 where Administrator.IdUzytkownik == getUserId
                                 select Administrator.IdUzytkownik).FirstOrDefault();
 
-            if (user.Email != null && user.Haslo != null && (await queryActive.FirstOrDefaultAsync().ConfigureAwait(false) ?? false) && await AuthenticateUser(user).ConfigureAwait(false))
+            if (getUserStatus && user.Email != null && user.Haslo != null && (await queryActive.FirstOrDefaultAsync().ConfigureAwait(false)) && await AuthenticateUser(user).ConfigureAwait(false))
             {
                 if (getUserId == checkIfAdmin)
                 {
@@ -106,19 +112,19 @@ namespace InernetVotingApplication.Services
                 Opis = x.Opis
             }).ToList();
 
-            foreach (var x in electionDates)
+            foreach (var electionDate in electionDates)
             {
-                if (!CheckIfElectionEnded(x.Id))
+                if (!CheckIfElectionEnded(electionDate.Id))
                 {
-                    x.Type = 1;
+                    electionDate.Type = 1;
                 }
-                else if (!CheckIfElectionStarted(x.Id))
+                else if (!CheckIfElectionStarted(electionDate.Id))
                 {
-                    x.Type = 2;
+                    electionDate.Type = 2;
                 }
                 else
                 {
-                    x.Type = 3;
+                    electionDate.Type = 3;
                 }
             }
 
@@ -478,5 +484,22 @@ namespace InernetVotingApplication.Services
             _context.SaveChanges();
             return true;
         }
+
+        public bool GetUserByAcitvationCode(Guid activationCode)
+        {
+            var user = (from Uzytkownik in _context.Uzytkowniks
+                                           where Uzytkownik.KodAktywacyjny == activationCode
+                                           select Uzytkownik).FirstOrDefault();
+            if (user != null)
+            {
+                user.JestAktywne = true;
+                user.KodAktywacyjny = Guid.Empty;
+                _context.Update(user);
+                _context.SaveChanges();
+                return true;
+            }
+            return false;
+        }
+
     }
 }

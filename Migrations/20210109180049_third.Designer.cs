@@ -4,14 +4,16 @@ using InernetVotingApplication.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace InernetVotingApplication.Migrations
 {
     [DbContext(typeof(InternetVotingContext))]
-    partial class InternetVotingContextModelSnapshot : ModelSnapshot
+    [Migration("20210109180049_third")]
+    partial class third
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -198,7 +200,7 @@ namespace InernetVotingApplication.Migrations
                         .HasColumnType("varchar(50)")
                         .HasColumnName("imie");
 
-                    b.Property<bool>("JestAktywne")
+                    b.Property<bool?>("JestAktywne")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
                         .HasColumnName("jestAktywne")

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace InernetVotingApplication.ExtensionMethods
+﻿namespace InernetVotingApplication.ExtensionMethods
 {
     public static class PeselValidation
     {
@@ -19,7 +17,7 @@ namespace InernetVotingApplication.ExtensionMethods
                     controlNumber = 0;
                 }
 
-                int lastDigit = Int32.Parse(input[^1].ToString());
+                int lastDigit = int.Parse(input[^1].ToString());
                 result = controlNumber == lastDigit;
             }
             return result;
@@ -30,7 +28,7 @@ namespace InernetVotingApplication.ExtensionMethods
             int controlSum = 0;
             for (int i = 0; i < input.Length - 1; i++)
             {
-                controlSum += weights[i + offset] * Int32.Parse(input[i].ToString());
+                controlSum += weights[i + offset] * int.Parse(input[i].ToString());
             }
             return controlSum;
         }

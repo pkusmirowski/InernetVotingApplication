@@ -7,16 +7,21 @@ namespace InernetVotingApplication.Services
 {
     public class MailService
     {
+
         public void SendEmailAfterRegistration(Uzytkownik user)
         {
             var sendEmail = new MimeMessage();
             sendEmail.From.Add(MailboxAddress.Parse("aplikacjadoglosowania@gmail.com"));
             sendEmail.To.Add(MailboxAddress.Parse(user.Email));
-            sendEmail.Subject = "Pomyślne założenie konta w apllikacji do głosowania";
-            sendEmail.Body = new TextPart(TextFormat.Html) { Text = "<h2>Twoje konto <b>" + user.Imie + " " + user.Nazwisko + "</b> w aplikacji do głosowania zostało założone pomyślnie!</h2>" };
+            sendEmail.Subject = "Link aktywacyjny do konta w aplikacji do głosowania";
+            sendEmail.Body = new TextPart(TextFormat.Html)
+            {
+                Text = "<h2>Twoje konto <b>" + user.Imie + " " + user.Nazwisko + "</b> w aplikacji do głosowania zostało założone pomyślnie!</h2><br /><br />Naciśnij ten link aby aktywować konto<br /><a href = https://localhost/Account/Activation/" + user.KodAktywacyjny + "> Naciśnij aby aktywować konto.</a><br />"
+            };
+
             var smtp = new SmtpClient();
             smtp.Connect("smtp.ethereal.email", 587, SecureSocketOptions.StartTls);
-            smtp.Authenticate("cleve.daugherty2@ethereal.email", "96712EmxRGP6ZNWA8V");
+            smtp.Authenticate("yoshiko.streich@ethereal.email", "vZg9ASg5Vf9VWeGUQn");
             smtp.Send(sendEmail);
             smtp.Disconnect(true);
         }
@@ -30,7 +35,7 @@ namespace InernetVotingApplication.Services
             sendEmail.Body = new TextPart(TextFormat.Html) { Text = "<h2>Hash twojego głosu: <b>" + electionVoteDB.Hash + "</b></h2></br> <p>Możesz sprawdzić poprawność swojego głosu w wyszukiwarce znajdującej się na stronie</p>" };
             var smtp = new SmtpClient();
             smtp.Connect("smtp.ethereal.email", 587, SecureSocketOptions.StartTls);
-            smtp.Authenticate("cleve.daugherty2@ethereal.email", "96712EmxRGP6ZNWA8V");
+            smtp.Authenticate("yoshiko.streich@ethereal.email", "vZg9ASg5Vf9VWeGUQn");
             smtp.Send(sendEmail);
             smtp.Disconnect(true);
         }
@@ -44,7 +49,7 @@ namespace InernetVotingApplication.Services
             sendEmail.Body = new TextPart(TextFormat.Html) { Text = "<h2>Twoje hasło zostało zmienione!</h2></br> <p>Jeśli otrzymałeś tą wiadomość a to nie ty dokonałeś zmiany hasła skontaktuj się z administratorem.</p>" };
             var smtp = new SmtpClient();
             smtp.Connect("smtp.ethereal.email", 587, SecureSocketOptions.StartTls);
-            smtp.Authenticate("cleve.daugherty2@ethereal.email", "96712EmxRGP6ZNWA8V");
+            smtp.Authenticate("yoshiko.streich@ethereal.email", "vZg9ASg5Vf9VWeGUQn");
             smtp.Send(sendEmail);
             smtp.Disconnect(true);
         }

@@ -59,8 +59,9 @@ namespace InernetVotingApplication.Models
         [Display(Name = "Potwierdź hasło")]
         public string ConfirmPassword { get; set; }
         [Column("jestAktywne")]
-        public bool? JestAktywne { get; set; }
-
+        public bool JestAktywne { get; set; }
+        [Column("kodAktywacyjny")]
+        public Guid KodAktywacyjny { get; set; }
         [InverseProperty(nameof(Administrator.IdUzytkownikNavigation))]
         public virtual ICollection<Administrator> Administrators { get; set; }
         [InverseProperty(nameof(GlosUzytkownika.IdUzytkownikNavigation))]

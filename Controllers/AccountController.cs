@@ -3,6 +3,7 @@ using InernetVotingApplication.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -15,7 +16,7 @@ namespace InernetVotingApplication.Controllers
         private readonly UserService _userService;
         private static readonly object obj = new();
 
-        public AccountController(UserService userService)
+        public AccountController(UserService userService, ILogger<AccountController> logger)
         {
             _userService = userService;
         }
@@ -48,6 +49,7 @@ namespace InernetVotingApplication.Controllers
             {
                 if (await _userService.Register(user).ConfigureAwait(false))
                 {
+
                     ViewBag.registrationSuccessful = "Uzytkownik " + user.Imie + " " + user.Nazwisko + " został zarejestrowany poprawnie!";
                     return View();
                 }
@@ -390,6 +392,21 @@ namespace InernetVotingApplication.Controllers
                 else
                 {
                     ViewBag.Error = false;
+                }
+            }
+
+            return View();
+        }
+
+        public ActionResult Activation()
+        {
+            ViewBag.Message = "Zły kod aktywacyjny.";
+            if (RouteData.Values["id"] != null)
+            {
+                Guid activationCode = new Guid(RouteData.Values["id"].ToString());
+                if (_userService.GetUserByAcitvationCode(activationCode))
+                {
+                    ViewBag.Message = "Aktywacja powiodła się.";
                 }
             }
 
