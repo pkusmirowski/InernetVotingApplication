@@ -33,10 +33,12 @@
 </div>
 @if (ViewBag.Error == false)
 {
-<div class="alert alert-danger" role="alert">
-    <b>Błąd. Kandydat nie został dodany! Możliwe, że już bierze udział w wyborach.</b>
-</div>
+    <br />
+    <div class="alert alert-danger" role="alert">
+        <b>Błąd. Kandydat nie został dodany! Możliwe, że już bierze udział w wyborach.</b>
+    </div>
 }
+<br />
 <p class="text-success"><b>@ViewBag.addCandidateSuccessful</b></p>
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
