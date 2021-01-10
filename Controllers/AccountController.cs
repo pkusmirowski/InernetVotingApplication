@@ -3,7 +3,6 @@ using InernetVotingApplication.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -16,7 +15,7 @@ namespace InernetVotingApplication.Controllers
         private readonly UserService _userService;
         private static readonly object obj = new();
 
-        public AccountController(UserService userService, ILogger<AccountController> logger)
+        public AccountController(UserService userService)
         {
             _userService = userService;
         }
@@ -49,7 +48,6 @@ namespace InernetVotingApplication.Controllers
             {
                 if (await _userService.Register(user).ConfigureAwait(false))
                 {
-
                     ViewBag.registrationSuccessful = "Uzytkownik " + user.Imie + " " + user.Nazwisko + " został zarejestrowany poprawnie!";
                     return View();
                 }
@@ -403,13 +401,36 @@ namespace InernetVotingApplication.Controllers
             ViewBag.Message = "Zły kod aktywacyjny.";
             if (RouteData.Values["id"] != null)
             {
-                Guid activationCode = new Guid(RouteData.Values["id"].ToString());
+                Guid activationCode = new(RouteData.Values["id"].ToString());
                 if (_userService.GetUserByAcitvationCode(activationCode))
                 {
                     ViewBag.Message = "Aktywacja powiodła się.";
                 }
             }
 
+            return View();
+        }
+
+        public IActionResult PasswordRecovery()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> PasswordRecoveryAsync(PasswordRecovery password)
+        {
+            if (ModelState.IsValid)
+            {
+                if (await _userService.RecoverPassword(password).ConfigureAwait(false))
+                {
+                    ViewBag.Success = true;
+                    return View();
+                }
+                else
+                {
+                    ViewBag.Error = false;
+                }
+            }
             return View();
         }
     }

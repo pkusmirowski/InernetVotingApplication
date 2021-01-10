@@ -3,7 +3,6 @@ using InernetVotingApplication.ExtensionMethods;
 using InernetVotingApplication.Models;
 using InernetVotingApplication.ViewModels;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Hosting.Internal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -420,7 +419,7 @@ namespace InernetVotingApplication.Services
             _context.Update(account);
             _context.SaveChanges();
 
-            //_mailService.SendEmailChangePassword(userEmail);
+            _mailService.SendEmailChangePassword(userEmail);
 
             return true;
         }
@@ -488,8 +487,8 @@ namespace InernetVotingApplication.Services
         public bool GetUserByAcitvationCode(Guid activationCode)
         {
             var user = (from Uzytkownik in _context.Uzytkowniks
-                                           where Uzytkownik.KodAktywacyjny == activationCode
-                                           select Uzytkownik).FirstOrDefault();
+                        where Uzytkownik.KodAktywacyjny == activationCode
+                        select Uzytkownik).FirstOrDefault();
             if (user != null)
             {
                 user.JestAktywne = true;
@@ -501,5 +500,26 @@ namespace InernetVotingApplication.Services
             return false;
         }
 
+        public async Task<bool> RecoverPassword(PasswordRecovery password)
+        {
+            var userByPesel = await (from Uzytkownik in _context.Uzytkowniks
+                                     where Uzytkownik.Pesel == password.Pesel
+                                     select Uzytkownik).FirstOrDefaultAsync().ConfigureAwait(false);
+
+            var userByEmail = await (from Uzytkownik in _context.Uzytkowniks
+                                     where Uzytkownik.Email == password.Email
+                                     select Uzytkownik).FirstOrDefaultAsync().ConfigureAwait(false);
+
+            if (userByPesel != null && userByEmail != null && userByPesel.Email == userByEmail.Email && userByPesel.Pesel == userByEmail.Pesel)
+            {
+                string newPassword = GeneratePassword.CreateRandomPassword(8);
+                userByPesel.Haslo = BC.HashPassword(newPassword);
+                await _context.SaveChangesAsync().ConfigureAwait(false);
+                _mailService.SendNewPassword(newPassword, userByPesel);
+                return true;
+            }
+
+            return false;
+        }
     }
 }

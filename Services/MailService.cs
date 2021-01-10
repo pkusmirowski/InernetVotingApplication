@@ -7,7 +7,6 @@ namespace InernetVotingApplication.Services
 {
     public class MailService
     {
-
         public void SendEmailAfterRegistration(Uzytkownik user)
         {
             var sendEmail = new MimeMessage();
@@ -47,6 +46,20 @@ namespace InernetVotingApplication.Services
             sendEmail.To.Add(MailboxAddress.Parse(userEmail));
             sendEmail.Subject = "Pomyślna zmiana hasła!";
             sendEmail.Body = new TextPart(TextFormat.Html) { Text = "<h2>Twoje hasło zostało zmienione!</h2></br> <p>Jeśli otrzymałeś tą wiadomość a to nie ty dokonałeś zmiany hasła skontaktuj się z administratorem.</p>" };
+            var smtp = new SmtpClient();
+            smtp.Connect("smtp.ethereal.email", 587, SecureSocketOptions.StartTls);
+            smtp.Authenticate("yoshiko.streich@ethereal.email", "vZg9ASg5Vf9VWeGUQn");
+            smtp.Send(sendEmail);
+            smtp.Disconnect(true);
+        }
+
+        public void SendNewPassword(string password, Uzytkownik user)
+        {
+            var sendEmail = new MimeMessage();
+            sendEmail.From.Add(MailboxAddress.Parse("aplikacjadoglosowania@gmail.com"));
+            sendEmail.To.Add(MailboxAddress.Parse(user.Email));
+            sendEmail.Subject = "Przypomnienie hasła!";
+            sendEmail.Body = new TextPart(TextFormat.Html) { Text = "<h2>Twoje hasło zostało zresetowane i zastąpione nowym.!</h2></br> <p>Nowe hasło: " + password + "</p></br><p>Pamiętaj aby po zalogowaniu się tym hasłem zmienić je na własne nowe!</p>" };
             var smtp = new SmtpClient();
             smtp.Connect("smtp.ethereal.email", 587, SecureSocketOptions.StartTls);
             smtp.Authenticate("yoshiko.streich@ethereal.email", "vZg9ASg5Vf9VWeGUQn");
