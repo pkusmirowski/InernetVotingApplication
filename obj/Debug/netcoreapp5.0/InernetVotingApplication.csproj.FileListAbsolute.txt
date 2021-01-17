@@ -159,3 +159,5 @@ C:\Users\Paweł\Documents\GitHub\InernetVotingApplication\obj\Debug\netcoreapp5.
 C:\Users\Paweł\Documents\GitHub\InernetVotingApplication\obj\Debug\netcoreapp5.0\InernetVotingApplication.genruntimeconfig.cache
 C:\Users\Paweł\Documents\GitHub\InernetVotingApplication\obj\Debug\netcoreapp5.0\Razor\Views\Account\Activation.cshtml.g.cs
 C:\Users\Paweł\Documents\GitHub\InernetVotingApplication\obj\Debug\netcoreapp5.0\Razor\Views\Account\PasswordRecovery.cshtml.g.cs
+C:\Users\Paweł\Documents\GitHub\InernetVotingApplication\obj\Debug\netcoreapp5.0\InernetVotingApplication.csprojAssemblyReference.cache
+C:\Users\Paweł\Documents\GitHub\InernetVotingApplication\obj\Debug\netcoreapp5.0\Razor\Views\Account\DeleteCandidate.cshtml.g.cs

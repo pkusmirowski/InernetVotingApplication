@@ -151,10 +151,6 @@ namespace InernetVotingApplication.Services
 
         public string AddVote(string user, int candidateId, int electionId)
         {
-            //Testowanie czasu wykonania kodu
-            //Stopwatch stopwatch = new Stopwatch();
-            //stopwatch.Start();
-
             List<GlosowanieWyborcze> listOfPreviousElectionVotes = VerifyElectionBlockchain(electionId);
             if (listOfPreviousElectionVotes.Any(c => !c.JestPoprawny))
             {
@@ -183,9 +179,9 @@ namespace InernetVotingApplication.Services
                           where Uzytkownik.Email == user
                           select Uzytkownik.Id).FirstOrDefault();
 
-            //var userEmail = (from Uzytkownik in _context.Uzytkowniks
-            //                 where Uzytkownik.Email == user
-            //                 select Uzytkownik.Email).FirstOrDefault();
+            var userEmail = (from Uzytkownik in _context.Uzytkowniks
+                             where Uzytkownik.Email == user
+                             select Uzytkownik.Email).FirstOrDefault();
 
             var userVoiceDB = new GlosUzytkownika
             {
@@ -197,10 +193,7 @@ namespace InernetVotingApplication.Services
             _context.Add(electionVoteDB);
             _context.Add(userVoiceDB);
             _context.SaveChanges();
-
-            //_mailService.SendEmailVoteHash(electionVoteDB, userEmail);
-            //stopwatch.Stop();
-            //Console.WriteLine("Elapsed Time is {0} ms", stopwatch.ElapsedMilliseconds);
+            _mailService.SendEmailVoteHash(electionVoteDB, userEmail);
 
             return electionVoteDB.Hash;
         }

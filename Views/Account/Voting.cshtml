@@ -5,25 +5,31 @@
 <center>
     <h2>Głosowanie</h2>
     <form asp-action="VotingAdd" method="post">
-        <table border="1">
-            <tr>
-                <th>Numer kandydata</th>
-                <th>Imię</th>
-                <th>Nazwisko</th>
-                <th>Zaznacz kandydata</th>
-            </tr>
-            @foreach (var election in Model.ElectionCandidates)
-            {
-        <tr>
-            <td>@election.Id</td>
-            <td>@election.Imie</td>
-            <td>@election.Nazwisko</td>
-            <td><input type="checkbox" name="candidate" value="@election.Id" onclick="MutExChkList(this);" /></td>
-            <input type="hidden" name="election" value="@ViewBag.ID" />
-        </tr>
-        }
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th scope="col">Numer kandydata</th>
+                    <th scope="col">Imię</th>
+                    <th scope="col">Nazwisko</th>
+                    <th scope="col">Zaznacz kandydata</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var election in Model.ElectionCandidates)
+                {
+                    <tr>
+                        <th scope="row">@election.Id</th>
+                        <td>@election.Imie</td>
+                        <td>@election.Nazwisko</td>
+                        <td><input type="checkbox" name="candidate" value="@election.Id" onclick="MutExChkList(this);" /></td>
+                        <input type="hidden" name="election" value="@ViewBag.ID" />
+                    </tr>
+                }
+            </tbody>
         </table>
-        <input type="submit" value="Zagłosuj" />
+        <div class="form-group">
+            <input type="submit" value="Zagłosuj" class="btn btn-primary" />
+        </div>
     </form>
 </center>
 
