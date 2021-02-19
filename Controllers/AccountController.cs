@@ -48,7 +48,7 @@ namespace InernetVotingApplication.Controllers
             {
                 if (await _userService.Register(user).ConfigureAwait(false))
                 {
-                    ViewBag.registrationSuccessful = "Uzytkownik " + user.Imie + " " + user.Nazwisko + " został zarejestrowany poprawnie!";
+                    ViewBag.registrationSuccessful = "Uzytkownik " + user.Imie + " " + user.Nazwisko + " został zarejestrowany poprawnie! </br> Aktywuj swoje konto potwierdzając adres E-mail";
                     return View();
                 }
                 ViewBag.Error = false;
@@ -404,7 +404,7 @@ namespace InernetVotingApplication.Controllers
                 Guid activationCode = new(RouteData.Values["id"].ToString());
                 if (_userService.GetUserByAcitvationCode(activationCode))
                 {
-                    ViewBag.Message = "Aktywacja powiodła się.";
+                    ViewBag.Message = "Aktywacja konta powiodła się.";
                 }
             }
 
