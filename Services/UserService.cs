@@ -85,13 +85,13 @@ namespace InernetVotingApplication.Services
             return 2;
         }
 
-        public async Task<string> GetLoggedEmail(Logowanie user)
+        public string GetLoggedEmail(Logowanie user)
         {
             var queryName = from Uzytkownik in _context.Uzytkowniks
                             where Uzytkownik.Email == user.Email
                             select Uzytkownik.Email;
 
-            return await queryName.FirstAsync().ConfigureAwait(false);
+            return  queryName.ToString();
         }
 
         public async Task<bool> AuthenticateUser(Logowanie user)
