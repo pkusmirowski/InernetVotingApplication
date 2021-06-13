@@ -2,41 +2,49 @@
 @{
     ViewData["Title"] = "Panel głosowania";
 }
-<center>
-    <h2>Panel głosowania</h2>
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th scope="col">Numer głosowania</th>
-                <th scope="col">Data rozpoczęcia</th>
-                <th scope="col">Data zakończenia</th>
-                <th scope="col">Opis głosowania</th>
-                <th scope="col">Link</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var election in Model.ElectionDates)
-            {
-                <tr>
-                    <th scope="row">@election.Id</th>
-                    <td>@election.DataRozpoczecia</td>
-                    <td>@election.DataZakonczenia</td>
-                    <td>@election.Opis</td>
-                    @if (@election.Type == 1)
+<br />
+<br />
+<br />
+<br />
+<div class="container">
+    <main id="main">
+        <center>
+            <h2>Panel głosowania</h2>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th scope="col">Numer głosowania</th>
+                        <th scope="col">Data rozpoczęcia</th>
+                        <th scope="col">Data zakończenia</th>
+                        <th scope="col">Opis głosowania</th>
+                        <th scope="col">Link</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var election in Model.ElectionDates)
                     {
-                        <td><a asp-controller="Account" asp-action="Voting" asp-route-id="@election.Id">Sprawdź wyniki głosowania</a></td>
-                    }
-                    else if (@election.Type == 2)
-                    {
-                        <td><a asp-controller="Account" asp-action="Voting" asp-route-id="@election.Id">Wybory jeszcze się nie zaczęły</a></td>
-                    }
-                    else
-                    {
-                        <td><a asp-controller="Account" asp-action="Voting" asp-route-id="@election.Id">Przejdź do głosowania</a></td>
-                    }
+                        <tr>
+                            <th scope="row">@election.Id</th>
+                            <td>@election.DataRozpoczecia</td>
+                            <td>@election.DataZakonczenia</td>
+                            <td>@election.Opis</td>
+                            @if (@election.Type == 1)
+                            {
+                                <td><a asp-controller="Account" asp-action="Voting" asp-route-id="@election.Id">Sprawdź wyniki głosowania</a></td>
+                            }
+                            else if (@election.Type == 2)
+                            {
+                                <td><a asp-controller="Account" asp-action="Voting" asp-route-id="@election.Id">Wybory jeszcze się nie zaczęły</a></td>
+                            }
+                            else
+                            {
+                                <td><a asp-controller="Account" asp-action="Voting" asp-route-id="@election.Id">Przejdź do głosowania</a></td>
+                            }
 
-                </tr>
-            }
-        </tbody>
-    </table>
-</center>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </center>
+    </main>
+</div>

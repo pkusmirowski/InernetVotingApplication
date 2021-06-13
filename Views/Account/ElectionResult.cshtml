@@ -3,51 +3,58 @@
 @{
     ViewData["Title"] = "Wyniki wyborów";
 }
-
-<center>
-    @if (@ViewBag.ID == 1)
-    {
-        <p><b>Wybory się nie zaczęły.</b></p>
-        <p>Sprawdź datę i wróć aby oddać głos gdy się zaczną!</p>
-    }
-    else if (@ViewBag.ID == 2)
-    {
-        <p><b>Oddałeś swój głos. Jeśli zgubiłeś hash swojego głosu znajdziesz go na swojej poczcie e-mail.</b></p>
-        <p><b>Wybory jeszcze trwają.</b></p>
-        <p>Wróć gdy się zakończą aby poznać wyniki!</p>
-    }
-    else
-    {
-        <h2>WYNIKI WYBORÓW</h2>
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th scope="col">Imię kandydata</th>
-                    <th scope="col">Nazwisko kandydata</th>
-                    <th scope="col">Opis wyborów</th>
-                    <th scope="col">Ilość uzyskanych głosów</th>
-                    <th scope="col">Procent uzyskanych głosów</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var result in Model.GetElectionVotes)
-                {
-                    <tr>
-                        <th scope="row">@result.CandidateName</th>
-                        <td>@result.CandidateSurname</td>
-                        <td>@result.ElectionDesc</td>
-                        <td>@result.CountedVotes</td>
-                        @if (@result.CountedVotesPercentage > 50)
+<br />
+<br />
+<br />
+<br />
+<div class="container">
+    <main id="main">
+        <center>
+            @if (@ViewBag.ID == 1)
+            {
+                <p><b>Wybory się nie zaczęły.</b></p>
+                <p>Sprawdź datę i wróć aby oddać głos gdy się zaczną!</p>
+            }
+            else if (@ViewBag.ID == 2)
+            {
+                <p><b>Oddałeś swój głos. Jeśli zgubiłeś hash swojego głosu znajdziesz go na swojej poczcie e-mail.</b></p>
+                <p><b>Wybory jeszcze trwają.</b></p>
+                <p>Wróć gdy się zakończą aby poznać wyniki!</p>
+            }
+            else
+            {
+                <h2>WYNIKI WYBORÓW</h2>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th scope="col">Imię kandydata</th>
+                            <th scope="col">Nazwisko kandydata</th>
+                            <th scope="col">Opis wyborów</th>
+                            <th scope="col">Ilość uzyskanych głosów</th>
+                            <th scope="col">Procent uzyskanych głosów</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var result in Model.GetElectionVotes)
                         {
-                            <td class="bg-success text-white"><b>@result.CountedVotesPercentage</b></td>
+                            <tr>
+                                <th scope="row">@result.CandidateName</th>
+                                <td>@result.CandidateSurname</td>
+                                <td>@result.ElectionDesc</td>
+                                <td>@result.CountedVotes</td>
+                                @if (@result.CountedVotesPercentage > 50)
+                                {
+                                    <td class="bg-success text-white"><b>@result.CountedVotesPercentage</b></td>
+                                }
+                                else
+                                {
+                                    <td>@result.CountedVotesPercentage</td>
+                                }
+                            </tr>
                         }
-                        else
-                        {
-                            <td>@result.CountedVotesPercentage</td>
-                        }
-                    </tr>
-                }
-            </tbody>
-        </table>
-    }
-</center>
+                    </tbody>
+                </table>
+            }
+        </center>
+    </main>
+</div>

@@ -3,44 +3,51 @@
 @{
     ViewData["Title"] = "Stwórz wybory";
 }
-
-<h1>Stwórz wybory</h1>
-
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="CreateElection">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="DataRozpoczecia" class="control-label"></label>
-                <input asp-for="DataRozpoczecia" class="form-control" />
-                <span asp-validation-for="DataRozpoczecia" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="DataZakonczenia" class="control-label"></label>
-                <input asp-for="DataZakonczenia" class="form-control" />
-                <span asp-validation-for="DataZakonczenia" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Opis" class="control-label"></label>
-                <input asp-for="Opis" class="form-control" />
-                <span asp-validation-for="Opis" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Stwórz" class="btn btn-primary" />
-            </div>
-        </form>
-    </div>
-</div>
-@if (ViewBag.Error == false)
-{
-    <br />
-    <div class="alert alert-danger" role="alert">
-        <b>Błąd. Wybory nie zostały dodane! Możliwe, że już te wybory już istnieją.</b>
-    </div>
-}
 <br />
-<p class="text-success"><b>@ViewBag.addElectionSuccessful</b></p>
-@section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-}
+<br />
+<br />
+<br />
+<div class="container">
+    <main id="main">
+        <h1>Stwórz wybory</h1>
+
+        <hr />
+        <div class="row">
+            <div class="col-md-4">
+                <form asp-action="CreateElection">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <div class="form-group">
+                        <label asp-for="DataRozpoczecia" class="control-label"></label>
+                        <input asp-for="DataRozpoczecia" class="form-control" />
+                        <span asp-validation-for="DataRozpoczecia" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="DataZakonczenia" class="control-label"></label>
+                        <input asp-for="DataZakonczenia" class="form-control" />
+                        <span asp-validation-for="DataZakonczenia" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Opis" class="control-label"></label>
+                        <input asp-for="Opis" class="form-control" />
+                        <span asp-validation-for="Opis" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <input type="submit" value="Stwórz" class="btn btn-primary" />
+                    </div>
+                </form>
+            </div>
+        </div>
+        @if (ViewBag.Error == false)
+        {
+            <br />
+            <div class="alert alert-danger" role="alert">
+                <b>Błąd. Wybory nie zostały dodane! Możliwe, że już te wybory już istnieją.</b>
+            </div>
+        }
+        <br />
+        <p class="text-success"><b>@ViewBag.addElectionSuccessful</b></p>
+        @section Scripts {
+            @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+        }
+    </main>
+</div>

@@ -88,6 +88,11 @@ build_metadata.AdditionalFiles.TargetPath = Views\Account\Voting.cshtml
 build_metadata.AdditionalFiles.GeneratedOutputFullPath = C:\Users\Paweł\Documents\GitHub\InernetVotingApplication\obj\Debug\net6.0\Razor\Views\Account\Voting.cshtml.g.cs
 build_metadata.AdditionalFiles.CssScope = 
 
+[c:/Users/Paweł/Documents/GitHub/InernetVotingApplication/Views/Home/Contact.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Views\Home\Contact.cshtml
+build_metadata.AdditionalFiles.GeneratedOutputFullPath = C:\Users\Paweł\Documents\GitHub\InernetVotingApplication\obj\Debug\net6.0\Razor\Views\Home\Contact.cshtml.g.cs
+build_metadata.AdditionalFiles.CssScope = 
+
 [c:/Users/Paweł/Documents/GitHub/InernetVotingApplication/Views/Home/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Views\Home\Index.cshtml
 build_metadata.AdditionalFiles.GeneratedOutputFullPath = C:\Users\Paweł\Documents\GitHub\InernetVotingApplication\obj\Debug\net6.0\Razor\Views\Home\Index.cshtml.g.cs

@@ -27,6 +27,7 @@ namespace InernetVotingApplication
             services.AddTransient<MailService>();
             services.AddDistributedMemoryCache();
             services.AddSession();
+            //services.AddControllersWithViews().AddRazorRuntimeCompilation();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

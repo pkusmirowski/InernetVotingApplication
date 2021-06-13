@@ -61,17 +61,17 @@ namespace InernetVotingApplication.Services
                               where Uzytkownik.Email == user.Email
                               select Uzytkownik.JestAktywne;
 
-            var getUserId = (from Uzytkownik in _context.Uzytkowniks
-                             where Uzytkownik.Email == user.Email
-                             select Uzytkownik.Id).FirstOrDefault();
+            var getUserId = await (from Uzytkownik in _context.Uzytkowniks
+                                   where Uzytkownik.Email == user.Email
+                                   select Uzytkownik.Id).FirstOrDefaultAsync().ConfigureAwait(false);
 
-            var getUserStatus = (from Uzytkownik in _context.Uzytkowniks
-                                 where Uzytkownik.JestAktywne
-                                 select Uzytkownik.JestAktywne).FirstOrDefault();
+            var getUserStatus = await (from Uzytkownik in _context.Uzytkowniks
+                                       where Uzytkownik.JestAktywne
+                                       select Uzytkownik.JestAktywne).FirstOrDefaultAsync().ConfigureAwait(false);
 
-            var checkIfAdmin = (from Administrator in _context.Administrators
-                                where Administrator.IdUzytkownik == getUserId
-                                select Administrator.IdUzytkownik).FirstOrDefault();
+            var checkIfAdmin = await (from Administrator in _context.Administrators
+                                      where Administrator.IdUzytkownik == getUserId
+                                      select Administrator.IdUzytkownik).FirstOrDefaultAsync().ConfigureAwait(false);
 
             if (getUserStatus && user.Email != null && user.Haslo != null && (await queryActive.FirstOrDefaultAsync().ConfigureAwait(false)) && await AuthenticateUser(user).ConfigureAwait(false))
             {
@@ -91,7 +91,7 @@ namespace InernetVotingApplication.Services
                             where Uzytkownik.Email == user.Email
                             select Uzytkownik.Email;
 
-            return  queryName.ToString();
+            return queryName.ToString();
         }
 
         public async Task<bool> AuthenticateUser(Logowanie user)
@@ -464,9 +464,9 @@ namespace InernetVotingApplication.Services
 
         public async Task<bool> AddElectionAsync(DataWyborow dataWyborow)
         {
-            string electionDescriptions = (from DataWyborow in _context.DataWyborows
-                                           where DataWyborow.Opis == dataWyborow.Opis
-                                           select DataWyborow.Opis).FirstOrDefault();
+            string electionDescriptions = await (from DataWyborow in _context.DataWyborows
+                                                 where DataWyborow.Opis == dataWyborow.Opis
+                                                 select DataWyborow.Opis).FirstOrDefaultAsync().ConfigureAwait(false);
 
             if (electionDescriptions == dataWyborow.Opis)
             {

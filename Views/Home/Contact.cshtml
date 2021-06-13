@@ -1,0 +1,68 @@
+﻿@{
+    ViewData["Title"] = "Kontakt";
+}
+<br />
+<br />
+<br />
+<br />
+<div class="container">
+    <main id="main">
+        <section id="contact" class="contact">
+            <div class="container">
+                <div class="section-title">
+                    <h2>Kontakt</h2>
+                    <p>Skontaktuj się z nami</p>
+                </div>
+                <div class="row">
+                    <div class="col-lg-5 d-flex align-items-stretch">
+                        <div class="info">
+                            <div class="address">
+                                <i class="bi bi-geo-alt"></i>
+                                <h4>Lokalizacja:</h4>
+                                <p>Lorem ipsum 40/50, Warszawa, Polska 55-555</p>
+                            </div>
+                            <div class="email">
+                                <i class="bi bi-envelope"></i>
+                                <h4>Adres E-mail:</h4>
+                                <p>info@example.com<</p>
+                            </div>
+                            <div class="phone">
+                                <i class="bi bi-phone"></i>
+                                <h4>Numer telefonu:</h4>
+                                <p>+48 000000000</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-7 mt-5 mt-lg-0 d-flex align-items-stretch">
+                        <form action="forms/contact.php" method="post" role="form" class="php-email-form">
+                            <div class="row">
+                                <div class="form-group col-md-6">
+                                    <label for="name">Twoje imię</label>
+                                    <input type="text" name="name" class="form-control" id="name" placeholder="Twoje imię" required>
+                                </div>
+                                <div class="form-group col-md-6 mt-3 mt-md-0">
+                                    <label for="name">Twój adres e-mail</label>
+                                    <input type="email" class="form-control" name="email" id="email" placeholder="Twój adres e-mail" required>
+                                </div>
+                            </div>
+                            <div class="form-group mt-3">
+                                <label for="name">Temat</label>
+                                <input type="text" class="form-control" name="subject" id="subject" placeholder="Temat" required>
+                            </div>
+                            <div class="form-group mt-3">
+                                <label for="name">Wiadomość</label>
+                                <textarea class="form-control" name="message" rows="10" required></textarea>
+                            </div>
+                            <div class="my-3">
+                                <div class="loading">Ładowanie</div>
+                                <div class="error-message"></div>
+                                <div class="sent-message">Twoja wiadomość została wysłana. Dziękujemy!</div>
+                            </div>
+                            <div class="text-center"><button type="submit">Wyślij wiadomość</button></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section><!-- End Contact Us Section -->
+    </main>
+</div>
