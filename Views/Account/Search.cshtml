@@ -9,6 +9,8 @@
 <br />
 <div class="container">
     <main id="main">
+        <h2>Wprowadź hash swojego głosu aby go sprawdzić</h2>
+        <hr />
         <center>
             <form method="get">
                 <div class="input-group">
@@ -18,25 +20,23 @@
                     </div>
                 </div>
             </form>
-
-            <h2>Sprawdź swój głos</h2>
-            <table border="1">
-                <tr>
-                    <th>Imię kandydata</th>
-                    <th>Nazwisko kandydata</th>
-                    <th>Opis wyborów</th>
-                    <th>Hash</th>
-                </tr>
-                <tr>
-                    @if (@Model.SearchCandidate.IdKandydat != 0 && @Model.SearchCandidate.IdWybory != 0)
-                    {
+            @if (@Model.SearchCandidate.IdKandydat != 0 && @Model.SearchCandidate.IdWybory != 0)
+            {
+                <table border="1">
+                    <tr>
+                        <th>Imię kandydata</th>
+                        <th>Nazwisko kandydata</th>
+                        <th>Opis wyborów</th>
+                        <th>Hash</th>
+                    </tr>
+                    <tr>
                         <td>@Model.SearchCandidate.CandidateName</td>
                         <td>@Model.SearchCandidate.CandidateSurname</td>
                         <td>@Model.SearchCandidate.ElectionDesc</td>
                         <td>@Model.SearchCandidate.Hash</td>
-                    }
-                </tr>
-            </table>
+                    </tr>
+                </table>
+            }
         </center>
     </main>
 </div>
