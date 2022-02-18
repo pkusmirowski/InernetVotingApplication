@@ -11,7 +11,7 @@ namespace InernetVotingApplication.Migrations
 {
     [DbContext(typeof(InternetVotingContext))]
     [Migration("20210109180049_third")]
-    partial class third
+    partial class Third
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {

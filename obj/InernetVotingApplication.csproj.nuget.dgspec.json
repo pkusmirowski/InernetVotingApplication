@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Paweł\\Documents\\GitHub\\InernetVotingApplication\\InernetVotingApplication.csproj": {}
+    "C:\\Users\\Paweł\\Documents\\GitHub\\InernetVotingApplication\\InernetVotingApplication\\InernetVotingApplication.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Paweł\\Documents\\GitHub\\InernetVotingApplication\\InernetVotingApplication.csproj": {
+    "C:\\Users\\Paweł\\Documents\\GitHub\\InernetVotingApplication\\InernetVotingApplication\\InernetVotingApplication.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Paweł\\Documents\\GitHub\\InernetVotingApplication\\InernetVotingApplication.csproj",
+        "projectUniqueName": "C:\\Users\\Paweł\\Documents\\GitHub\\InernetVotingApplication\\InernetVotingApplication\\InernetVotingApplication.csproj",
         "projectName": "InernetVotingApplication",
-        "projectPath": "C:\\Users\\Paweł\\Documents\\GitHub\\InernetVotingApplication\\InernetVotingApplication.csproj",
+        "projectPath": "C:\\Users\\Paweł\\Documents\\GitHub\\InernetVotingApplication\\InernetVotingApplication\\InernetVotingApplication.csproj",
         "packagesPath": "C:\\Users\\Paweł\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Paweł\\Documents\\GitHub\\InernetVotingApplication\\obj\\",
+        "outputPath": "C:\\Users\\Paweł\\Documents\\GitHub\\InernetVotingApplication\\InernetVotingApplication\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -56,37 +56,37 @@
             },
             "MailKit": {
               "target": "Package",
-              "version": "[2.12.0, )"
+              "version": "[3.1.1, )"
             },
             "Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation": {
               "target": "Package",
-              "version": "[5.0.7, )"
+              "version": "[6.0.2, )"
             },
             "Microsoft.EntityFrameworkCore.Design": {
               "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
               "suppressParent": "All",
               "target": "Package",
-              "version": "[5.0.7, )"
+              "version": "[6.0.2, )"
             },
             "Microsoft.EntityFrameworkCore.SqlServer": {
               "target": "Package",
-              "version": "[5.0.7, )"
+              "version": "[6.0.2, )"
             },
             "Microsoft.EntityFrameworkCore.Tools": {
               "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
               "suppressParent": "All",
               "target": "Package",
-              "version": "[5.0.7, )"
+              "version": "[6.0.2, )"
             },
             "Microsoft.VisualStudio.Web.CodeGeneration.Design": {
               "target": "Package",
-              "version": "[5.0.2, )"
+              "version": "[6.0.2, )"
             },
             "Roslynator.Analyzers": {
               "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
               "suppressParent": "All",
               "target": "Package",
-              "version": "[3.1.0, )"
+              "version": "[4.0.2, )"
             }
           },
           "imports": [
@@ -107,7 +107,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.100-preview.3.21202.5\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.200\\RuntimeIdentifierGraph.json"
         }
       }
     }
