@@ -23,6 +23,8 @@ namespace InernetVotingApplication
             services.AddControllersWithViews();
             services.AddDbContext<InternetVotingContext>(options => options.UseSqlServer(Configuration.GetConnectionString("Default")));
             services.AddTransient<UserService>();
+            services.AddTransient<AdminService>();
+            services.AddTransient<ElectionService>();
             services.AddTransient<MailService>();
             services.AddDistributedMemoryCache();
             services.AddSession();
@@ -48,7 +50,6 @@ namespace InernetVotingApplication
                 endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");
-                //endpoints.MapRazorPages();
             });
         }
     }

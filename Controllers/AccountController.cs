@@ -13,17 +13,21 @@ namespace InernetVotingApplication.Controllers
     public class AccountController : Controller
     {
         private readonly UserService _userService;
+        private readonly ElectionService _electionService;
+        private readonly AdminService _adminService;
         private static readonly object obj = new();
 
-        public AccountController(UserService userService)
+        public AccountController(UserService userService, ElectionService electionService, AdminService adminService)
         {
             _userService = userService;
+            _electionService = electionService;
+            _adminService = adminService;
         }
 
-        public IActionResult Index()
-        {
-            return View();
-        }
+        //public IActionResult Index()
+        // {
+        //  return View();
+        // }
 
         public IActionResult Register()
         {
@@ -46,7 +50,7 @@ namespace InernetVotingApplication.Controllers
 
             if (ModelState.IsValid)
             {
-                if (await _userService.Register(user).ConfigureAwait(false))
+                if (await _userService.Register(user))
                 {
                     ViewBag.registrationSuccessful = "Uzytkownik " + user.Imie + " " + user.Nazwisko + " został zarejestrowany poprawnie! </br> Aktywuj swoje konto potwierdzając adres E-mail";
                     return View();
@@ -66,7 +70,7 @@ namespace InernetVotingApplication.Controllers
 
             if (ModelState.IsValid)
             {
-                var val = await _userService.LoginAsync(user).ConfigureAwait(false);
+                var val = await _userService.LoginAsync(user);
                 if (val == 0 || val == 1)
                 {
                     if (val == 0)
@@ -100,6 +104,77 @@ namespace InernetVotingApplication.Controllers
             return RedirectToAction("Login");
         }
 
+        public IActionResult ChangePassword()
+        {
+            if (string.IsNullOrEmpty(HttpContext.Session.GetString("email")))
+            {
+                return RedirectToAction("Login");
+            }
+
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ChangePassword(ChangePassword user)
+        {
+            if (string.IsNullOrEmpty(HttpContext.Session.GetString("email")))
+            {
+                return RedirectToAction("Login");
+            }
+
+            var userEmail = HttpContext.Session.GetString("email");
+            if (ModelState.IsValid)
+            {
+                if (_userService.ChangePassword(user, userEmail))
+                {
+                    ViewBag.changePasswordSuccessful = "Hasło zostało zmienione poprawnie!";
+                    return View();
+                }
+                ViewBag.Error = false;
+                return View();
+            }
+            return View();
+        }
+
+        public ActionResult Activation()
+        {
+            ViewBag.Message = "Zły kod aktywacyjny.";
+            if (RouteData.Values["id"] != null)
+            {
+                Guid activationCode = new(RouteData.Values["id"].ToString());
+                if (_userService.GetUserByAcitvationCode(activationCode))
+                {
+                    ViewBag.Message = "Aktywacja konta powiodła się.";
+                }
+            }
+
+            return View();
+        }
+
+        public IActionResult PasswordRecovery()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> PasswordRecoveryAsync(PasswordRecovery password)
+        {
+            if (ModelState.IsValid)
+            {
+                if (await _userService.RecoverPassword(password))
+                {
+                    ViewBag.Success = true;
+                    return View();
+                }
+                else
+                {
+                    ViewBag.Error = false;
+                }
+            }
+            return View();
+        }
+
         public IActionResult Dashboard()
         {
             if (string.IsNullOrEmpty(HttpContext.Session.GetString("email")))
@@ -107,7 +182,7 @@ namespace InernetVotingApplication.Controllers
                 return RedirectToAction("Login");
             }
 
-            var vm = _userService.GetAllElections();
+            var vm = _electionService.GetAllElections();
             return View(vm);
         }
 
@@ -124,26 +199,26 @@ namespace InernetVotingApplication.Controllers
                 return RedirectToAction("Panel");
             }
 
-            if (_userService.CheckElectionBlockchain(id))
+            if (_electionService.CheckElectionBlockchain(id))
             {
-                if (!_userService.CheckIfElectionEnded(id))
+                if (_electionService.CheckIfElectionEnded(id))
                 {
                     return RedirectToAction("ElectionResult", new { @ver = 3, @result = id });
                 }
 
-                if (!_userService.CheckIfElectionStarted(id))
+                if (_electionService.CheckIfElectionStarted(id))
                 {
                     return RedirectToAction("ElectionResult", new { @ver = 1, @result = id });
                 }
 
-                if (await _userService.CheckIfVoted(HttpContext.Session.GetString("email"), id).ConfigureAwait(false))
+                if (await _electionService.CheckIfVoted(HttpContext.Session.GetString("email"), id))
                 {
                     return RedirectToAction("ElectionResult", new { @ver = 2, @result = id });
                 }
 
                 @ViewBag.ID = id;
 
-                var vm = _userService.GetAllCandidates(id);
+                var vm = _electionService.GetAllCandidates(id);
                 return View(vm);
             }
             return RedirectToAction("ElectionError");
@@ -165,7 +240,7 @@ namespace InernetVotingApplication.Controllers
             int candidateId = candidate[0];
             int electionId = election[0];
 
-            if (await _userService.CheckIfVoted(HttpContext.Session.GetString("email"), electionId).ConfigureAwait(false))
+            if (await _electionService.CheckIfVoted(HttpContext.Session.GetString("email"), electionId))
             {
                 return RedirectToAction("ElectionResult");
             }
@@ -174,17 +249,7 @@ namespace InernetVotingApplication.Controllers
 
             lock (obj)
             {
-                //Testowanie czasu wykonania kodu
-                // Stopwatch stopwatch = new Stopwatch();
-                // stopwatch.Start();
-
-                // for (int i = 0; i < 1000; i++)
-                //  {
-                ifAdded = _userService.AddVote(HttpContext.Session.GetString("email"), candidateId, electionId);
-                //  }
-                //  stopwatch.Stop();
-                //  Console.WriteLine("Elapsed Time is {0} ms", stopwatch.ElapsedMilliseconds);
-
+                ifAdded = _electionService.AddVote(HttpContext.Session.GetString("email"), candidateId, electionId);
             }
 
             string userHash = ifAdded;
@@ -235,13 +300,13 @@ namespace InernetVotingApplication.Controllers
                 return RedirectToAction("Login");
             }
 
-            if (_userService.CheckElectionBlockchain(result))
+            if (_electionService.CheckElectionBlockchain(result))
             {
                 @ViewBag.ID = ver;
 
                 if (ver == 3)
                 {
-                    var vm = _userService.GetElectionResult(result);
+                    var vm = _electionService.GetElectionResult(result);
                     return View(vm);
                 }
 
@@ -256,7 +321,7 @@ namespace InernetVotingApplication.Controllers
             {
                 Text = "1";
             }
-            var vm = _userService.SearchVote(Text);
+            var vm = _electionService.SearchVote(Text);
 
             return View(vm);
         }
@@ -276,39 +341,6 @@ namespace InernetVotingApplication.Controllers
             return View();
         }
 
-        public IActionResult ChangePassword()
-        {
-            if (string.IsNullOrEmpty(HttpContext.Session.GetString("email")))
-            {
-                return RedirectToAction("Login");
-            }
-
-            return View();
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult ChangePassword(ChangePassword user)
-        {
-            if (string.IsNullOrEmpty(HttpContext.Session.GetString("email")))
-            {
-                return RedirectToAction("Login");
-            }
-
-            var userEmail = HttpContext.Session.GetString("email");
-            if (ModelState.IsValid)
-            {
-                if (_userService.ChagePassword(user, userEmail))
-                {
-                    ViewBag.changePasswordSuccessful = "Hasło zostało zmienione poprawnie!";
-                    return View();
-                }
-                ViewBag.Error = false;
-                return View();
-            }
-            return View();
-        }
-
         public IActionResult AddCandidate()
         {
             if (string.IsNullOrEmpty(HttpContext.Session.GetString("Admin")))
@@ -317,7 +349,7 @@ namespace InernetVotingApplication.Controllers
             }
 
             List<DataWyborow> electionIdList = new();
-            electionIdList = _userService.ShowElectionByName();
+            electionIdList = _electionService.ShowElectionByName();
 
             ViewBag.IdWybory = (List<SelectListItem>)electionIdList.ConvertAll(a =>
             {
@@ -337,7 +369,7 @@ namespace InernetVotingApplication.Controllers
         {
             if (ModelState.IsValid)
             {
-                if (await _userService.AddCandidate(kandydat).ConfigureAwait(false))
+                if (await _adminService.AddCandidate(kandydat))
                 {
                     ViewBag.addCandidateSuccessful = "Kandydat " + kandydat.Imie + " " + kandydat.Nazwisko + " został dodany do głosowania wyborczego!";
                 }
@@ -348,7 +380,7 @@ namespace InernetVotingApplication.Controllers
             }
 
             List<DataWyborow> electionIdList = new();
-            electionIdList = _userService.ShowElectionByName();
+            electionIdList = _electionService.ShowElectionByName();
 
             ViewBag.IdWybory = (List<SelectListItem>)electionIdList.ConvertAll(a =>
             {
@@ -383,7 +415,7 @@ namespace InernetVotingApplication.Controllers
 
             if (ModelState.IsValid)
             {
-                if (await _userService.AddElectionAsync(dataWyborow).ConfigureAwait(false))
+                if (await _adminService.AddElectionAsync(dataWyborow))
                 {
                     ViewBag.addElectionSuccessful = "Wybory zostały dodane!";
                 }
@@ -396,42 +428,5 @@ namespace InernetVotingApplication.Controllers
             return View();
         }
 
-        public ActionResult Activation()
-        {
-            ViewBag.Message = "Zły kod aktywacyjny.";
-            if (RouteData.Values["id"] != null)
-            {
-                Guid activationCode = new(RouteData.Values["id"].ToString());
-                if (_userService.GetUserByAcitvationCode(activationCode))
-                {
-                    ViewBag.Message = "Aktywacja konta powiodła się.";
-                }
-            }
-
-            return View();
-        }
-
-        public IActionResult PasswordRecovery()
-        {
-            return View();
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> PasswordRecoveryAsync(PasswordRecovery password)
-        {
-            if (ModelState.IsValid)
-            {
-                if (await _userService.RecoverPassword(password).ConfigureAwait(false))
-                {
-                    ViewBag.Success = true;
-                    return View();
-                }
-                else
-                {
-                    ViewBag.Error = false;
-                }
-            }
-            return View();
-        }
     }
 }
