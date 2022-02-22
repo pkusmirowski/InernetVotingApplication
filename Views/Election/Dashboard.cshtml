@@ -30,15 +30,15 @@
                             <td>@election.Opis</td>
                             @if (@election.Type == 1)
                             {
-                                <td><a asp-controller="Account" asp-action="Voting" asp-route-id="@election.Id">Sprawdź wyniki głosowania</a></td>
+                                <td><a asp-controller="Election" asp-action="Voting" asp-route-id="@election.Id">Sprawdź wyniki głosowania</a></td>
                             }
                             else if (@election.Type == 2)
                             {
-                                <td><a asp-controller="Account" asp-action="Voting" asp-route-id="@election.Id">Wybory jeszcze się nie zaczęły</a></td>
+                                <td><a asp-controller="Election" asp-action="Voting" asp-route-id="@election.Id">Wybory jeszcze się nie zaczęły</a></td>
                             }
                             else
                             {
-                                <td><a asp-controller="Account" asp-action="Voting" asp-route-id="@election.Id">Przejdź do głosowania</a></td>
+                                <td><a asp-controller="Election" asp-action="Voting" asp-route-id="@election.Id">Przejdź do głosowania</a></td>
                             }
 
                         </tr>

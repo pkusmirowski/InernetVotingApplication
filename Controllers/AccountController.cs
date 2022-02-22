@@ -70,14 +70,14 @@ namespace InernetVotingApplication.Controllers
 
                         const string admin = "Admin";
                         HttpContext.Session.SetString("Admin", admin);
-                        return RedirectToAction("Panel");
+                        return RedirectToAction("Panel", "Admin");
                     }
                     else
                     {
                         //Zapisanie użytkownika w sesji
                         string email = _userService.GetLoggedEmail(user);
                         HttpContext.Session.SetString("email", email);
-                        return RedirectToAction("Dashboard");
+                        return RedirectToAction("Dashboard", "Election");
                     }
                 }
                 ViewBag.Error = false;
@@ -164,5 +164,15 @@ namespace InernetVotingApplication.Controllers
             return View();
         }
 
+        public IActionResult Search(string Text)
+        {
+            if (string.IsNullOrEmpty(Text))
+            {
+                Text = "1";
+            }
+            var vm = _electionService.SearchVote(Text);
+
+            return View(vm);
+        }
     }
 }

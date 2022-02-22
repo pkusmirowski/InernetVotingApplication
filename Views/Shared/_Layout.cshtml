@@ -63,10 +63,10 @@
                     {
 
                         <li>
-                            <a class="nav-link scrollto" asp-controller="Account" asp-action="AddCandidate">Dodaj kandydata</a>
+                            <a class="nav-link scrollto" asp-controller="Admin" asp-action="AddCandidate">Dodaj kandydata</a>
                         </li>
                         <li>
-                            <a class="nav-link scrollto" asp-controller="Account" asp-action="CreateElection">Stwórz wybory</a>
+                            <a class="nav-link scrollto" asp-controller="Admin" asp-action="CreateElection">Stwórz wybory</a>
                         </li>
                         <li>
                             <a class="nav-link scrollto" asp-controller="Account" asp-action="Logout">Wyloguj się</a>
@@ -75,7 +75,7 @@
                     else
                     {
                         <li>
-                            <a class="nav-link scrollto" asp-controller="Account" asp-action="Dashboard">Panel głosowania</a>
+                            <a class="nav-link scrollto" asp-controller="Election" asp-action="Dashboard">Panel głosowania</a>
                         </li>
                         <li>
                             <a class="nav-link scrollto" asp-controller="Account" asp-action="ChangePassword">Zmiana hasła</a>

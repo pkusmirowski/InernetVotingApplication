@@ -9,14 +9,12 @@ namespace InernetVotingApplication.Controllers
 {
     public class ElectionController : Controller
     {
-
         private readonly ElectionService _electionService;
         private static readonly object obj = new();
         public ElectionController(ElectionService electionService)
         {
             _electionService = electionService;
         }
-
         public IActionResult Dashboard()
         {
             if (string.IsNullOrEmpty(HttpContext.Session.GetString("email")))
@@ -155,32 +153,6 @@ namespace InernetVotingApplication.Controllers
                 return View();
             }
             return RedirectToAction("ElectionError");
-        }
-
-        public IActionResult Search(string Text)
-        {
-            if (string.IsNullOrEmpty(Text))
-            {
-                Text = "1";
-            }
-            var vm = _electionService.SearchVote(Text);
-
-            return View(vm);
-        }
-
-        public IActionResult Panel()
-        {
-            if (string.IsNullOrEmpty(HttpContext.Session.GetString("email")))
-            {
-                return RedirectToAction("Login");
-            }
-
-            if (string.IsNullOrEmpty(HttpContext.Session.GetString("Admin")))
-            {
-                return RedirectToAction("Login");
-            }
-
-            return View();
         }
     }
 }

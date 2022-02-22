@@ -19,6 +19,21 @@ namespace InernetVotingApplication.Controllers
             _adminService = adminService;
         }
 
+        public IActionResult Panel()
+        {
+            if (string.IsNullOrEmpty(HttpContext.Session.GetString("email")))
+            {
+                return RedirectToAction("Login");
+            }
+
+            if (string.IsNullOrEmpty(HttpContext.Session.GetString("Admin")))
+            {
+                return RedirectToAction("Login");
+            }
+
+            return View();
+        }
+
         public IActionResult AddCandidate()
         {
             if (string.IsNullOrEmpty(HttpContext.Session.GetString("Admin")))
