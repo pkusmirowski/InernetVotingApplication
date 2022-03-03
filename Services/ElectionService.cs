@@ -1,5 +1,6 @@
 ﻿using InernetVotingApplication.Blockchain;
 using InernetVotingApplication.ExtensionMethods;
+using InernetVotingApplication.IServices;
 using InernetVotingApplication.Models;
 using InernetVotingApplication.ViewModels;
 using Microsoft.EntityFrameworkCore;
@@ -9,15 +10,13 @@ using System.Linq;
 using System.Threading.Tasks;
 namespace InernetVotingApplication.Services
 {
-    public class ElectionService
+    public class ElectionService : IElectionService
     {
         private readonly InternetVotingContext _context;
-        private readonly MailService _mailService;
 
-        public ElectionService(InternetVotingContext context, MailService mailService)
+        public ElectionService(InternetVotingContext context)
         {
             _context = context;
-            _mailService = mailService;
         }
 
         public DataWyborowViewModel GetAllElections()
@@ -112,7 +111,7 @@ namespace InernetVotingApplication.Services
             _context.Add(electionVoteDB);
             _context.Add(userVoiceDB);
             _context.SaveChanges();
-            _mailService.SendEmailVoteHash(electionVoteDB, userEmail);
+            Email.SendEmailVoteHash(electionVoteDB, userEmail);
 
             return electionVoteDB.Hash;
         }

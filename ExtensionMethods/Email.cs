@@ -3,11 +3,11 @@ using MailKit.Net.Smtp;
 using MailKit.Security;
 using MimeKit;
 using MimeKit.Text;
-namespace InernetVotingApplication.Services
+namespace InernetVotingApplication.ExtensionMethods
 {
-    public class MailService
+    public static class Email
     {
-        public void SendEmailAfterRegistration(Uzytkownik user)
+        public static void SendEmailAfterRegistration(Uzytkownik user)
         {
             var sendEmail = new MimeMessage();
             sendEmail.From.Add(MailboxAddress.Parse("aplikacjadoglosowania@gmail.com"));
@@ -20,7 +20,7 @@ namespace InernetVotingApplication.Services
             ConnectToSend(sendEmail);
         }
 
-        public void SendEmailVoteHash(GlosowanieWyborcze electionVoteDB, string userEmail)
+        public static void SendEmailVoteHash(GlosowanieWyborcze electionVoteDB, string userEmail)
         {
             var sendEmail = new MimeMessage();
             sendEmail.From.Add(MailboxAddress.Parse("aplikacjadoglosowania@gmail.com"));
@@ -33,7 +33,7 @@ namespace InernetVotingApplication.Services
             ConnectToSend(sendEmail);
         }
 
-        public void SendEmailChangePassword(string userEmail)
+        public static void SendEmailChangePassword(string userEmail)
         {
             var sendEmail = new MimeMessage();
             sendEmail.From.Add(MailboxAddress.Parse("aplikacjadoglosowania@gmail.com"));
@@ -46,7 +46,7 @@ namespace InernetVotingApplication.Services
             ConnectToSend(sendEmail);
         }
 
-        public void SendNewPassword(string password, Uzytkownik user)
+        public static void SendNewPassword(string password, Uzytkownik user)
         {
             var sendEmail = new MimeMessage();
             sendEmail.From.Add(MailboxAddress.Parse("aplikacjadoglosowania@gmail.com"));

@@ -1,4 +1,5 @@
 ﻿using InernetVotingApplication.ExtensionMethods;
+using InernetVotingApplication.IServices;
 using InernetVotingApplication.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -8,17 +9,16 @@ using BC = BCrypt.Net.BCrypt;
 
 namespace InernetVotingApplication.Services
 {
-    public class UserService
+    public class UserService : IUserService
     {
         private readonly InternetVotingContext _context;
-        private readonly MailService _mailService;
-        public UserService(InternetVotingContext context, MailService mailService)
+
+        public UserService(InternetVotingContext context)
         {
             _context = context;
-            _mailService = mailService;
         }
 
-        public async Task<bool> Register(Uzytkownik user)
+        public async Task<bool> RegisterAsync(Uzytkownik user)
         {
             var email = await _context.Uzytkowniks.SingleOrDefaultAsync(x => x.Email == user.Email);
             var pesel = await _context.Uzytkowniks.SingleOrDefaultAsync(x => x.Pesel == user.Pesel);
@@ -37,14 +37,14 @@ namespace InernetVotingApplication.Services
             {
                 return false;
             }
-            Guid activationCode = Guid.NewGuid();
-            user.KodAktywacyjny = activationCode;
+
+            user.KodAktywacyjny = Guid.NewGuid();
             user.Haslo = BC.HashPassword(user.Haslo);
             user.JestAktywne = false;
             await _context.AddAsync(user);
             _context.SaveChanges();
 
-            _mailService.SendEmailAfterRegistration(user);
+            Email.SendEmailAfterRegistration(user);
             return true;
         }
 
@@ -117,7 +117,7 @@ namespace InernetVotingApplication.Services
             _context.Update(account);
             _context.SaveChanges();
 
-            _mailService.SendEmailChangePassword(userEmail);
+            Email.SendEmailChangePassword(userEmail);
 
             return true;
         }
@@ -153,7 +153,7 @@ namespace InernetVotingApplication.Services
                 string newPassword = GeneratePassword.CreateRandomPassword(8);
                 userByPesel.Haslo = BC.HashPassword(newPassword);
                 await _context.SaveChangesAsync();
-                _mailService.SendNewPassword(newPassword, userByPesel);
+                Email.SendNewPassword(newPassword, userByPesel);
                 return true;
             }
 

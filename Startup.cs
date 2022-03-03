@@ -25,7 +25,6 @@ namespace InernetVotingApplication
             services.AddTransient<UserService>();
             services.AddTransient<AdminService>();
             services.AddTransient<ElectionService>();
-            services.AddTransient<MailService>();
             services.AddDistributedMemoryCache();
             services.AddSession();
             services.AddRazorPages();

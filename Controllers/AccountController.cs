@@ -1,5 +1,5 @@
-﻿using InernetVotingApplication.Models;
-using InernetVotingApplication.Services;
+﻿using InernetVotingApplication.IServices;
+using InernetVotingApplication.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -9,10 +9,10 @@ namespace InernetVotingApplication.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly UserService _userService;
-        private readonly ElectionService _electionService;
-        private readonly AdminService _adminService;
-        public AccountController(UserService userService, ElectionService electionService, AdminService adminService)
+        private readonly IUserService _userService;
+        private readonly IElectionService _electionService;
+        private readonly IAdminService _adminService;
+        public AccountController(IUserService userService, IElectionService electionService, IAdminService adminService)
         {
             _userService = userService;
             _electionService = electionService;
@@ -39,7 +39,7 @@ namespace InernetVotingApplication.Controllers
 
             if (ModelState.IsValid)
             {
-                if (await _userService.Register(user))
+                if (await _userService.RegisterAsync(user))
                 {
                     ViewBag.registrationSuccessful = "Uzytkownik " + user.Imie + " " + user.Nazwisko + " został zarejestrowany poprawnie! </br> Aktywuj swoje konto potwierdzając adres E-mail";
                     return View();

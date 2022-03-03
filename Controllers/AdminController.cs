@@ -1,5 +1,5 @@
-﻿using InernetVotingApplication.Models;
-using InernetVotingApplication.Services;
+﻿using InernetVotingApplication.IServices;
+using InernetVotingApplication.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -10,10 +10,10 @@ namespace InernetVotingApplication.Controllers
 {
     public class AdminController : Controller
     {
-        private readonly ElectionService _electionService;
-        private readonly AdminService _adminService;
+        private readonly IElectionService _electionService;
+        private readonly IAdminService _adminService;
 
-        public AdminController(ElectionService electionService, AdminService adminService)
+        public AdminController(IElectionService electionService, IAdminService adminService)
         {
             _electionService = electionService;
             _adminService = adminService;
