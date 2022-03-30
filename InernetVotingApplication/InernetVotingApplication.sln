@@ -5,7 +5,7 @@ VisualStudioVersion = 17.1.32210.238
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InernetVotingApplication", "InernetVotingApplication.csproj", "{8776EAF6-F649-4AC7-8FE2-E51BCD2EFA68}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InternetVotingApplicationTests", "..\InternetVotingApplicationTests\InternetVotingApplicationTests.csproj", "{00883472-69C6-4656-A0ED-8CC0B0ACFA5C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InternetVotingApplicationTests", "..\..\..\Desktop\InternetVotingApplicationTests\InternetVotingApplicationTests.csproj", "{74B3C737-43F1-4D9D-A3FF-1D16F802909A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,10 @@ Global
 		{8776EAF6-F649-4AC7-8FE2-E51BCD2EFA68}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8776EAF6-F649-4AC7-8FE2-E51BCD2EFA68}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8776EAF6-F649-4AC7-8FE2-E51BCD2EFA68}.Release|Any CPU.Build.0 = Release|Any CPU
-		{00883472-69C6-4656-A0ED-8CC0B0ACFA5C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{00883472-69C6-4656-A0ED-8CC0B0ACFA5C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{00883472-69C6-4656-A0ED-8CC0B0ACFA5C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{00883472-69C6-4656-A0ED-8CC0B0ACFA5C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{74B3C737-43F1-4D9D-A3FF-1D16F802909A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{74B3C737-43F1-4D9D-A3FF-1D16F802909A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{74B3C737-43F1-4D9D-A3FF-1D16F802909A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{74B3C737-43F1-4D9D-A3FF-1D16F802909A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

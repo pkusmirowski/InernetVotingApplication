@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\InernetVotingApplication\InernetVotingApplication.csproj" />
+    <ProjectReference Include="..\..\Documents\GitHub\InernetVotingApplication\InernetVotingApplication.csproj" />
   </ItemGroup>
   
 </Project>
