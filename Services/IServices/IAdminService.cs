@@ -5,7 +5,7 @@ namespace InernetVotingApplication.IServices
 {
     public interface IAdminService
     {
-        Task<bool> AddCandidate(Kandydat candidate);
+        Task<bool> AddCandidateAsync(Kandydat candidate);
 
         Task<bool> AddElectionAsync(DataWyborow dataWyborow);
     }

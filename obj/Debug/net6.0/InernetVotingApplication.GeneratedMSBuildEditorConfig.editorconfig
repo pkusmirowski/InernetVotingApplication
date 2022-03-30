@@ -8,97 +8,97 @@ build_property.PlatformNeutralAssembly =
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = InernetVotingApplication
 build_property.RootNamespace = InernetVotingApplication
-build_property.ProjectDir = C:\Users\Paweł\Documents\GitHub\InernetVotingApplication\InernetVotingApplication\
+build_property.ProjectDir = C:\Users\Paweł\Desktop\InernetVotingApplication\InernetVotingApplication\
 build_property.RazorLangVersion = 6.0
 build_property.SupportLocalizedComponentNames = 
 build_property.GenerateRazorMetadataSourceChecksumAttributes = true
-build_property.MSBuildProjectDirectory = C:\Users\Paweł\Documents\GitHub\InernetVotingApplication\InernetVotingApplication
+build_property.MSBuildProjectDirectory = C:\Users\Paweł\Desktop\InernetVotingApplication\InernetVotingApplication
 build_property._RazorSourceGeneratorDebug = 
 
-[C:/Users/Paweł/Documents/GitHub/InernetVotingApplication/InernetVotingApplication/Views/Account/Activation.cshtml]
+[C:/Users/Paweł/Desktop/InernetVotingApplication/InernetVotingApplication/Views/Account/Activation.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxBY3RpdmF0aW9uLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Paweł/Documents/GitHub/InernetVotingApplication/InernetVotingApplication/Views/Account/ChangePassword.cshtml]
+[C:/Users/Paweł/Desktop/InernetVotingApplication/InernetVotingApplication/Views/Account/ChangePassword.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxDaGFuZ2VQYXNzd29yZC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Paweł/Documents/GitHub/InernetVotingApplication/InernetVotingApplication/Views/Account/Login.cshtml]
+[C:/Users/Paweł/Desktop/InernetVotingApplication/InernetVotingApplication/Views/Account/Login.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxMb2dpbi5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Paweł/Documents/GitHub/InernetVotingApplication/InernetVotingApplication/Views/Account/PasswordRecovery.cshtml]
+[C:/Users/Paweł/Desktop/InernetVotingApplication/InernetVotingApplication/Views/Account/PasswordRecovery.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxQYXNzd29yZFJlY292ZXJ5LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Paweł/Documents/GitHub/InernetVotingApplication/InernetVotingApplication/Views/Account/Register.cshtml]
+[C:/Users/Paweł/Desktop/InernetVotingApplication/InernetVotingApplication/Views/Account/Register.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxSZWdpc3Rlci5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Paweł/Documents/GitHub/InernetVotingApplication/InernetVotingApplication/Views/Account/Search.cshtml]
+[C:/Users/Paweł/Desktop/InernetVotingApplication/InernetVotingApplication/Views/Account/Search.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxTZWFyY2guY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Paweł/Documents/GitHub/InernetVotingApplication/InernetVotingApplication/Views/Admin/AddCandidate.cshtml]
+[C:/Users/Paweł/Desktop/InernetVotingApplication/InernetVotingApplication/Views/Admin/AddCandidate.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cQWRkQ2FuZGlkYXRlLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Paweł/Documents/GitHub/InernetVotingApplication/InernetVotingApplication/Views/Admin/CreateElection.cshtml]
+[C:/Users/Paweł/Desktop/InernetVotingApplication/InernetVotingApplication/Views/Admin/CreateElection.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cQ3JlYXRlRWxlY3Rpb24uY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Paweł/Documents/GitHub/InernetVotingApplication/InernetVotingApplication/Views/Admin/DeleteCandidate.cshtml]
+[C:/Users/Paweł/Desktop/InernetVotingApplication/InernetVotingApplication/Views/Admin/DeleteCandidate.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cRGVsZXRlQ2FuZGlkYXRlLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Paweł/Documents/GitHub/InernetVotingApplication/InernetVotingApplication/Views/Admin/Panel.cshtml]
+[C:/Users/Paweł/Desktop/InernetVotingApplication/InernetVotingApplication/Views/Admin/Panel.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cUGFuZWwuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Paweł/Documents/GitHub/InernetVotingApplication/InernetVotingApplication/Views/Election/Dashboard.cshtml]
+[C:/Users/Paweł/Desktop/InernetVotingApplication/InernetVotingApplication/Views/Election/Dashboard.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRWxlY3Rpb25cRGFzaGJvYXJkLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Paweł/Documents/GitHub/InernetVotingApplication/InernetVotingApplication/Views/Election/ElectionError.cshtml]
+[C:/Users/Paweł/Desktop/InernetVotingApplication/InernetVotingApplication/Views/Election/ElectionError.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRWxlY3Rpb25cRWxlY3Rpb25FcnJvci5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Paweł/Documents/GitHub/InernetVotingApplication/InernetVotingApplication/Views/Election/ElectionResult.cshtml]
+[C:/Users/Paweł/Desktop/InernetVotingApplication/InernetVotingApplication/Views/Election/ElectionResult.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRWxlY3Rpb25cRWxlY3Rpb25SZXN1bHQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Paweł/Documents/GitHub/InernetVotingApplication/InernetVotingApplication/Views/Election/Voted.cshtml]
+[C:/Users/Paweł/Desktop/InernetVotingApplication/InernetVotingApplication/Views/Election/Voted.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRWxlY3Rpb25cVm90ZWQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Paweł/Documents/GitHub/InernetVotingApplication/InernetVotingApplication/Views/Election/Voting.cshtml]
+[C:/Users/Paweł/Desktop/InernetVotingApplication/InernetVotingApplication/Views/Election/Voting.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRWxlY3Rpb25cVm90aW5nLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Paweł/Documents/GitHub/InernetVotingApplication/InernetVotingApplication/Views/Home/Contact.cshtml]
+[C:/Users/Paweł/Desktop/InernetVotingApplication/InernetVotingApplication/Views/Home/Contact.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxDb250YWN0LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Paweł/Documents/GitHub/InernetVotingApplication/InernetVotingApplication/Views/Home/Index.cshtml]
+[C:/Users/Paweł/Desktop/InernetVotingApplication/InernetVotingApplication/Views/Home/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Paweł/Documents/GitHub/InernetVotingApplication/InernetVotingApplication/Views/Home/Privacy.cshtml]
+[C:/Users/Paweł/Desktop/InernetVotingApplication/InernetVotingApplication/Views/Home/Privacy.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxQcml2YWN5LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Paweł/Documents/GitHub/InernetVotingApplication/InernetVotingApplication/Views/Shared/_Layout.cshtml]
+[C:/Users/Paweł/Desktop/InernetVotingApplication/InernetVotingApplication/Views/Shared/_Layout.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9MYXlvdXQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Paweł/Documents/GitHub/InernetVotingApplication/InernetVotingApplication/Views/Shared/_ValidationScriptsPartial.cshtml]
+[C:/Users/Paweł/Desktop/InernetVotingApplication/InernetVotingApplication/Views/Shared/_ValidationScriptsPartial.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9WYWxpZGF0aW9uU2NyaXB0c1BhcnRpYWwuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Paweł/Documents/GitHub/InernetVotingApplication/InernetVotingApplication/Views/_ViewImports.cshtml]
+[C:/Users/Paweł/Desktop/InernetVotingApplication/InernetVotingApplication/Views/_ViewImports.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdJbXBvcnRzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Paweł/Documents/GitHub/InernetVotingApplication/InernetVotingApplication/Views/_ViewStart.cshtml]
+[C:/Users/Paweł/Desktop/InernetVotingApplication/InernetVotingApplication/Views/_ViewStart.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdTdGFydC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 

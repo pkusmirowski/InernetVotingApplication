@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "Q4wXZHCV7xOuJsXEij0lXh+ublrvcQri5E1ijVPHPXbs/TkaQzWRA4PZPZTfN410w7aP0pBOnRRiduWVgR0w/Q==",
+  "dgSpecHash": "XN8iaL59TWPCq5kX6G1+x85xhUx54C2r37fQmGm2SXk/GUg63WVvMPH6kuT3L2UmvXFby0NJcqePyUxrsMSSxg==",
   "success": true,
-  "projectFilePath": "C:\\Users\\Paweł\\Documents\\GitHub\\InernetVotingApplication\\InernetVotingApplication\\InernetVotingApplication.csproj",
+  "projectFilePath": "C:\\Users\\Paweł\\Desktop\\InernetVotingApplication\\InernetVotingApplication\\InernetVotingApplication.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Paweł\\.nuget\\packages\\abp\\7.1.0\\abp.7.1.0.nupkg.sha512",
     "C:\\Users\\Paweł\\.nuget\\packages\\asyncfixer\\1.5.1\\asyncfixer.1.5.1.nupkg.sha512",
@@ -126,7 +126,7 @@
     "C:\\Users\\Paweł\\.nuget\\packages\\nunit\\3.13.3\\nunit.3.13.3.nupkg.sha512",
     "C:\\Users\\Paweł\\.nuget\\packages\\nunit3testadapter\\4.2.1\\nunit3testadapter.4.2.1.nupkg.sha512",
     "C:\\Users\\Paweł\\.nuget\\packages\\portable.bouncycastle\\1.9.0\\portable.bouncycastle.1.9.0.nupkg.sha512",
-    "C:\\Users\\Paweł\\.nuget\\packages\\roslynator.analyzers\\4.0.2\\roslynator.analyzers.4.0.2.nupkg.sha512",
+    "C:\\Users\\Paweł\\.nuget\\packages\\roslynator.analyzers\\4.1.0\\roslynator.analyzers.4.1.0.nupkg.sha512",
     "C:\\Users\\Paweł\\.nuget\\packages\\runtime.native.system\\4.3.0\\runtime.native.system.4.3.0.nupkg.sha512",
     "C:\\Users\\Paweł\\.nuget\\packages\\system.buffers\\4.5.1\\system.buffers.4.5.1.nupkg.sha512",
     "C:\\Users\\Paweł\\.nuget\\packages\\system.collections\\4.3.0\\system.collections.4.3.0.nupkg.sha512",

@@ -62,7 +62,7 @@ namespace InernetVotingApplication.Controllers
         {
             if (ModelState.IsValid)
             {
-                if (await _adminService.AddCandidate(kandydat))
+                if (await _adminService.AddCandidateAsync(kandydat))
                 {
                     ViewBag.addCandidateSuccessful = "Kandydat " + kandydat.Imie + " " + kandydat.Nazwisko + " został dodany do głosowania wyborczego!";
                 }

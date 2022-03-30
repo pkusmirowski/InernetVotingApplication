@@ -2437,7 +2437,7 @@
           "lib/netstandard2.0/BouncyCastle.Crypto.dll": {}
         }
       },
-      "Roslynator.Analyzers/4.0.2": {
+      "Roslynator.Analyzers/4.1.0": {
         "type": "package"
       },
       "runtime.native.System/4.3.0": {
@@ -7756,10 +7756,10 @@
         "portable.bouncycastle.nuspec"
       ]
     },
-    "Roslynator.Analyzers/4.0.2": {
-      "sha512": "UmKLY06/yIAAkARvvGHjIS5LA0XEeEn7pbRHmsDcxvbLFla2fqrTTPVBUW7HMttBAwFi2WKvkVzGNu3/0JDdxA==",
+    "Roslynator.Analyzers/4.1.0": {
+      "sha512": "xTSs7KdwhIUOTqEubcfW043o0dpSjKpNF+C6Aj5OuJv69rVJ0ypjChNeeXRALB2I1S9W1+qmgbVWYg7qftgoCA==",
       "type": "package",
-      "path": "roslynator.analyzers/4.0.2",
+      "path": "roslynator.analyzers/4.1.0",
       "hasTools": true,
       "files": [
         ".nupkg.metadata",
@@ -7773,7 +7773,7 @@
         "analyzers/dotnet/cs/Roslynator_Analyzers_Roslynator.Workspaces.Common.dll",
         "analyzers/dotnet/cs/Roslynator_Analyzers_Roslynator.Workspaces.Core.dll",
         "icon.png",
-        "roslynator.analyzers.4.0.2.nupkg.sha512",
+        "roslynator.analyzers.4.1.0.nupkg.sha512",
         "roslynator.analyzers.nuspec",
         "tools/install.ps1",
         "tools/uninstall.ps1"
@@ -11740,7 +11740,7 @@
       "Moq >= 4.17.2",
       "NUnit >= 3.13.3",
       "NUnit3TestAdapter >= 4.2.1",
-      "Roslynator.Analyzers >= 4.0.2",
+      "Roslynator.Analyzers >= 4.1.0",
       "xunit >= 2.4.1",
       "xunit.runner.visualstudio >= 2.4.3"
     ]
@@ -11752,11 +11752,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Paweł\\Documents\\GitHub\\InernetVotingApplication\\InernetVotingApplication\\InernetVotingApplication.csproj",
+      "projectUniqueName": "C:\\Users\\Paweł\\Desktop\\InernetVotingApplication\\InernetVotingApplication\\InernetVotingApplication.csproj",
       "projectName": "InernetVotingApplication",
-      "projectPath": "C:\\Users\\Paweł\\Documents\\GitHub\\InernetVotingApplication\\InernetVotingApplication\\InernetVotingApplication.csproj",
+      "projectPath": "C:\\Users\\Paweł\\Desktop\\InernetVotingApplication\\InernetVotingApplication\\InernetVotingApplication.csproj",
       "packagesPath": "C:\\Users\\Paweł\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Paweł\\Documents\\GitHub\\InernetVotingApplication\\InernetVotingApplication\\obj\\",
+      "outputPath": "C:\\Users\\Paweł\\Desktop\\InernetVotingApplication\\InernetVotingApplication\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -11863,7 +11863,7 @@
             "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
             "suppressParent": "All",
             "target": "Package",
-            "version": "[4.0.2, )"
+            "version": "[4.1.0, )"
           },
           "xunit": {
             "target": "Package",
@@ -11894,7 +11894,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.200\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.201\\RuntimeIdentifierGraph.json"
       }
     }
   }

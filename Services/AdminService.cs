@@ -15,7 +15,7 @@ namespace InernetVotingApplication.Services
             _electionService = electionService;
         }
 
-        public async Task<bool> AddCandidate(Kandydat candidate)
+        public async Task<bool> AddCandidateAsync(Kandydat candidate)
         {
             string candidateName = await (from Kandydat in _context.Kandydats
                                           where Kandydat.Imie == candidate.Imie
@@ -42,12 +42,11 @@ namespace InernetVotingApplication.Services
                 return false;
             }
 
-            //Wybory się nie skończyły - done
-            //Dodać sprawdzenie czy nie trwają - to do
-            if (_electionService.CheckIfElectionStarted(candidate.IdWybory) || !_electionService.CheckIfElectionEnded(candidate.IdWybory))
-            {
-                return false;
-            }
+            //to FIX
+            //if (_electionService.CheckIfElectionStarted(candidate.IdWybory) || !_electionService.CheckIfElectionEnded(candidate.IdWybory))
+            //{
+            //    return false;
+            //}
 
             await _context.AddAsync(candidate);
             _context.SaveChanges();
