@@ -95,7 +95,7 @@ namespace InernetVotingApplication.Controllers
 
         public IActionResult ChangePassword()
         {
-            if (string.IsNullOrEmpty(HttpContext.Session.GetString("email")))
+            if (HttpContext.Session.GetString("email") != null)
             {
                 return RedirectToAction("Login");
             }
@@ -112,10 +112,9 @@ namespace InernetVotingApplication.Controllers
                 return RedirectToAction("Login");
             }
 
-            var userEmail = HttpContext.Session.GetString("email");
             if (ModelState.IsValid)
             {
-                if (_userService.ChangePassword(user, userEmail))
+                if (_userService.ChangePassword(user, HttpContext.Session.GetString("email")))
                 {
                     ViewBag.changePasswordSuccessful = "Hasło zostało zmienione poprawnie!";
                     return View();
@@ -131,8 +130,7 @@ namespace InernetVotingApplication.Controllers
             ViewBag.Message = "Zły kod aktywacyjny.";
             if (RouteData.Values["id"] != null)
             {
-                Guid activationCode = new(RouteData.Values["id"].ToString());
-                if (_userService.GetUserByAcitvationCode(activationCode))
+                if (_userService.GetUserByAcitvationCode(new(RouteData.Values["id"].ToString())))
                 {
                     ViewBag.Message = "Aktywacja konta powiodła się.";
                 }
