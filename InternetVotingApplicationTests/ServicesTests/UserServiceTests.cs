@@ -31,8 +31,9 @@ namespace InternetVotingApplicationTests
             options = new DbContextOptionsBuilder<InternetVotingContext>().UseInMemoryDatabase(databaseName: "tempDB").Options;
         }
 
+        //Works alone
         [Test]
-        public async Task LoginAndActivationAccountTest()
+        public async Task LoginAndActivationAccount_ReturnsSuccessfullyActivatedAndRegisteredUser()
         {
             var login = new Logowanie()
             {
@@ -55,7 +56,7 @@ namespace InternetVotingApplicationTests
         }
 
         [Test]
-        public async Task RegisterTest()
+        public async Task RegisterUser_CheckValuesFromDatabase()
         {
             using (var context = new InternetVotingContext(options))
             {
@@ -82,7 +83,7 @@ namespace InternetVotingApplicationTests
         }
 
         [Test]
-        public async Task ChangePasswordTest()
+        public async Task ChangePassword_ReturnsSuccessfullyPasswordChange()
         {
             var login = new ChangePassword()
             {
@@ -91,21 +92,14 @@ namespace InternetVotingApplicationTests
                 ConfirmNewPassword = "PASSW0RD"
             };
 
-            var context = new InternetVotingContext(options);
-            context.Database.EnsureDeleted();
-            var repository = new UserService(context);
-            await repository.RegisterAsync(userOne);
-            var bookingFromDb = context.Uzytkowniks.FirstOrDefault();
-            if (bookingFromDb != null)
-            {
-                repository.GetUserByAcitvationCode(bookingFromDb.KodAktywacyjny);
-            }
+            UserService repository = await RegisterUser();
+
             bool changePasswordResult = repository.ChangePassword(login, "test@op.pl");
             Assert.IsTrue(changePasswordResult);
         }
 
         [Test]
-        public async Task RecoverPasswordTest()
+        public async Task RecoverPassword_ReturnsSuccessfullyChangedPassword()
         {
             var recPassword = new PasswordRecovery()
             {
@@ -113,6 +107,14 @@ namespace InternetVotingApplicationTests
                 Pesel = "51092337495"
             };
 
+            UserService repository = await RegisterUser();
+
+            bool recoverPasswordResult = await repository.RecoverPassword(recPassword);
+            Assert.IsTrue(recoverPasswordResult);
+        }
+
+        private async Task<UserService> RegisterUser()
+        {
             var context = new InternetVotingContext(options);
             context.Database.EnsureDeleted();
             var repository = new UserService(context);
@@ -122,8 +124,8 @@ namespace InternetVotingApplicationTests
             {
                 repository.GetUserByAcitvationCode(bookingFromDb.KodAktywacyjny);
             }
-            bool recoverPasswordResult = await repository.RecoverPassword(recPassword);
-            Assert.IsTrue(recoverPasswordResult);
+
+            return repository;
         }
     }
 }

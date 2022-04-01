@@ -2,11 +2,6 @@
 using InernetVotingApplication.Services;
 using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace InternetVotingApplicationTests
 {
@@ -22,11 +17,11 @@ namespace InternetVotingApplicationTests
         }
 
         [Test]
-        public void GetAllElectionTest()
+        public void GetAllElectionTest_CheckElectionsIsNotNull()
         {
             var context = new InternetVotingContext(options);
-            var repository = new ElectionService(context);
-            var test = repository.GetAllElections();
+            var electionService = new ElectionService(context);
+            var test = electionService.GetAllElections();
             Assert.IsNotNull(test);
         }
 

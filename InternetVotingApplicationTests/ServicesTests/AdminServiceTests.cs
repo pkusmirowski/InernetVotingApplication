@@ -19,7 +19,7 @@ namespace InternetVotingApplicationTests
         }
 
         [Test]
-        public async Task AddCandidateAndElectionTestAsync()
+        public async Task AddCandidateAndElection_ReturnsTrueResults()
         {
             candidate = new Kandydat()
             {
