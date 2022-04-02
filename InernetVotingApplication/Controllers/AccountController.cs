@@ -2,7 +2,6 @@
 using InernetVotingApplication.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System;
 using System.Threading.Tasks;
 
 namespace InernetVotingApplication.Controllers

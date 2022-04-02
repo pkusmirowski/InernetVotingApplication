@@ -21,9 +21,5 @@
   <ItemGroup>
     <ProjectReference Include="..\InernetVotingApplication\InernetVotingApplication.csproj" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="ExtensionMethodsTests\" />
-  </ItemGroup>
   
 </Project>

@@ -2,7 +2,6 @@
 using InernetVotingApplication.IServices;
 using InernetVotingApplication.Models;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Moq;
@@ -150,7 +149,7 @@ namespace InternetVotingApplicationTests.ExtensionMethodsTests
         public void Logout_ReturnRedirectToAction()
         {
             EmptySession();
-            var result =  _accountController.Logout() as RedirectToActionResult;
+            var result = _accountController.Logout() as RedirectToActionResult;
 
             Assert.IsInstanceOf<RedirectToActionResult>(result);
             Assert.AreEqual("Login", result.ActionName);
@@ -204,7 +203,7 @@ namespace InternetVotingApplicationTests.ExtensionMethodsTests
             NotEmptySession();
             _userService.Setup(x => x.ChangePassword(userPasswords, It.IsAny<string>())).Returns(true);
             var result = _accountController.ChangePassword(userPasswords) as ViewResult;
-            string successfulViewBag = "Hasło zostało zmienione poprawnie!";
+            const string successfulViewBag = "Hasło zostało zmienione poprawnie!";
 
             Assert.IsInstanceOf<ViewResult>(result);
             Assert.AreEqual(successfulViewBag, result.ViewData["changePasswordSuccessful"]);
@@ -222,7 +221,7 @@ namespace InternetVotingApplicationTests.ExtensionMethodsTests
             NotEmptySession();
             _userService.Setup(x => x.ChangePassword(userPasswords, It.IsAny<string>())).Returns(false);
             var result = _accountController.ChangePassword(userPasswords) as ViewResult;
-            bool error = false;
+            const bool error = false;
 
             Assert.IsInstanceOf<ViewResult>(result);
             Assert.AreEqual(error, result.ViewData["Error"]);
@@ -235,7 +234,7 @@ namespace InternetVotingApplicationTests.ExtensionMethodsTests
             routeData.Values.Add("key1", "value1");
             _accountController.ControllerContext.RouteData = routeData;
             var result = _accountController.Activation() as ViewResult;
-            string error = "Zły kod aktywacyjny.";
+            const string error = "Zły kod aktywacyjny.";
 
             Assert.IsInstanceOf<ViewResult>(result);
             Assert.AreEqual(error, result.ViewData["Message"]);
@@ -260,11 +259,7 @@ namespace InternetVotingApplicationTests.ExtensionMethodsTests
         [Test]
         public async Task PasswordRecoveryTest_ModelStateInvalid_ReturnView()
         {
-            var password = new PasswordRecovery
-            {
-                Email = "test@op.pl",
-                Pesel = "81032549648"
-            };
+            PasswordRecovery password = GeneratePassword();
             _accountController.ModelState.AddModelError("test", "test");
 
             var result = await _accountController.PasswordRecoveryAsync(password);
@@ -274,11 +269,7 @@ namespace InternetVotingApplicationTests.ExtensionMethodsTests
         [Test]
         public async Task PasswordRecoveryTest_ModelStateIsValid_ReturnSuccess()
         {
-            var password = new PasswordRecovery
-            {
-                Email = "test@op.pl",
-                Pesel = "81032549648"
-            };
+            PasswordRecovery password = GeneratePassword();
             _userService.Setup(x => x.RecoverPassword(password)).ReturnsAsync(true);
             var result = await _accountController.PasswordRecoveryAsync(password) as ViewResult;
 
@@ -290,11 +281,7 @@ namespace InternetVotingApplicationTests.ExtensionMethodsTests
         [Test]
         public async Task PasswordRecoveryTest_ModelStateIsValid_ReturnFailure()
         {
-            var password = new PasswordRecovery
-            {
-                Email = "test@op.pl",
-                Pesel = "81032549648"
-            };
+            PasswordRecovery password = GeneratePassword();
             _userService.Setup(x => x.RecoverPassword(password)).ReturnsAsync(false);
             var result = await _accountController.PasswordRecoveryAsync(password) as ViewResult;
 
@@ -346,6 +333,15 @@ namespace InternetVotingApplicationTests.ExtensionMethodsTests
             {
                 Email = "test@op.pl",
                 Haslo = "P@ssw0rd"
+            };
+        }
+
+        private static PasswordRecovery GeneratePassword()
+        {
+            return new PasswordRecovery
+            {
+                Email = "test@op.pl",
+                Pesel = "81032549648"
             };
         }
     }
