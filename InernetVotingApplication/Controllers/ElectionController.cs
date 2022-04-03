@@ -34,10 +34,11 @@ namespace InernetVotingApplication.Controllers
                 return RedirectToAction("Login");
             }
 
-            if (!string.IsNullOrEmpty(HttpContext.Session.GetString("Admin")))
-            {
-                return RedirectToAction("Panel");
-            }
+            //Check this condition
+            //if (!string.IsNullOrEmpty(HttpContext.Session.GetString("Admin")))
+            //{
+            //    return RedirectToAction("Panel");
+            //}
 
             if (_electionService.CheckElectionBlockchain(id))
             {

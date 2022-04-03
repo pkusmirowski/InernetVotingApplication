@@ -1,7 +1,6 @@
 ﻿using InernetVotingApplication.Controllers;
 using InernetVotingApplication.IServices;
 using InernetVotingApplication.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Moq;
