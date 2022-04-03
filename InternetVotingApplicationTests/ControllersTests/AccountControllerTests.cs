@@ -29,7 +29,7 @@ namespace InternetVotingApplicationTests.ExtensionMethodsTests
         [Test]
         public void CheckIfUserIsRegistered_ReturnView()
         {
-            EmptySession();
+            SessionManager.EmptySession(_accountController);
             var result = _accountController.Register();
 
             Assert.IsInstanceOf<ViewResult>(result);
@@ -38,7 +38,7 @@ namespace InternetVotingApplicationTests.ExtensionMethodsTests
         [Test]
         public void CheckIfUserIsRegistered_ReturnRedirectToDashboard()
         {
-            NotEmptySession();
+            SessionManager.NotEmptySession(_accountController);
             var result = _accountController.Register();
 
             Assert.IsInstanceOf<RedirectToActionResult>(result);
@@ -47,7 +47,7 @@ namespace InternetVotingApplicationTests.ExtensionMethodsTests
         [Test]
         public async Task RegisterUser_UserAlreadyRegistered_ReturnRedirectToDashboard()
         {
-            NotEmptySession();
+            SessionManager.NotEmptySession(_accountController);
             Uzytkownik user = CreateNewUser();
             var result = await _accountController.RegisterAsync(user) as RedirectToActionResult;
 
@@ -59,7 +59,7 @@ namespace InternetVotingApplicationTests.ExtensionMethodsTests
         public async Task RegisterUser_ModelStateInvalid_ReturnView()
         {
             Uzytkownik user = CreateNewUser();
-            EmptySession();
+            SessionManager.EmptySession(_accountController);
             _accountController.ModelState.AddModelError("error", "error");
             var result = await _accountController.RegisterAsync(user);
 
@@ -70,7 +70,7 @@ namespace InternetVotingApplicationTests.ExtensionMethodsTests
         public async Task RegisterUser_RegisterNotSuccessful_ReturnView()
         {
             Uzytkownik user = CreateNewUser();
-            EmptySession();
+            SessionManager.EmptySession(_accountController);
             _userService.Setup(x => x.RegisterAsync(It.IsAny<Uzytkownik>())).ReturnsAsync(false);
             const bool viewBagResult = false;
             var result = await _accountController.RegisterAsync(user) as ViewResult;
@@ -84,7 +84,7 @@ namespace InternetVotingApplicationTests.ExtensionMethodsTests
         public async Task RegisterUser_RegisterSuccessful_ReturnView()
         {
             Uzytkownik user = CreateNewUser();
-            EmptySession();
+            SessionManager.EmptySession(_accountController);
             _userService.Setup(x => x.RegisterAsync(It.IsAny<Uzytkownik>())).ReturnsAsync(true);
             string viewBagResult = "Uzytkownik " + user.Imie + " " + user.Nazwisko + " został zarejestrowany poprawnie! </br> Aktywuj swoje konto potwierdzając adres E-mail";
             var result = await _accountController.RegisterAsync(user) as ViewResult;
@@ -97,7 +97,7 @@ namespace InternetVotingApplicationTests.ExtensionMethodsTests
         public async Task LoginUser_ModelStateInvalid_ReturnView()
         {
             Logowanie user = CreateLoginUser();
-            EmptySession();
+            SessionManager.EmptySession(_accountController);
             _accountController.ModelState.AddModelError("test", "test");
             var result = await _accountController.LoginAsync(user);
 
@@ -108,7 +108,7 @@ namespace InternetVotingApplicationTests.ExtensionMethodsTests
         public async Task LoginAdmin_ModelStateValid_ReturnRedirectToAdminPanel()
         {
             Logowanie user = CreateLoginUser();
-            EmptySession();
+            SessionManager.EmptySession(_accountController);
             _userService.Setup(x => x.GetLoggedEmail(It.IsAny<Logowanie>())).Returns("test@op.pl");
             var result = await _accountController.LoginAsync(user) as RedirectToActionResult;
 
@@ -121,7 +121,7 @@ namespace InternetVotingApplicationTests.ExtensionMethodsTests
         public async Task LoginUser_ModelStateValid_ReturnRedirectToUserPanel()
         {
             Logowanie user = CreateLoginUser();
-            EmptySession();
+            SessionManager.EmptySession(_accountController);
             _userService.Setup(x => x.LoginAsync(It.IsAny<Logowanie>())).ReturnsAsync(1);
             _userService.Setup(x => x.GetLoggedEmail(It.IsAny<Logowanie>())).Returns("test@op.pl");
             var result = await _accountController.LoginAsync(user) as RedirectToActionResult;
@@ -135,7 +135,7 @@ namespace InternetVotingApplicationTests.ExtensionMethodsTests
         public async Task LoginUser_ModelStateValid_ReturnError()
         {
             Logowanie user = CreateLoginUser();
-            EmptySession();
+            SessionManager.EmptySession(_accountController);
             _userService.Setup(x => x.LoginAsync(It.IsAny<Logowanie>())).ReturnsAsync(3);
             _userService.Setup(x => x.GetLoggedEmail(It.IsAny<Logowanie>())).Returns("test@op.pl");
             const bool viewResult = false;
@@ -148,7 +148,7 @@ namespace InternetVotingApplicationTests.ExtensionMethodsTests
         [Test]
         public void Logout_ReturnRedirectToAction()
         {
-            EmptySession();
+            SessionManager.EmptySession(_accountController);
             var result = _accountController.Logout() as RedirectToActionResult;
 
             Assert.IsInstanceOf<RedirectToActionResult>(result);
@@ -158,7 +158,7 @@ namespace InternetVotingApplicationTests.ExtensionMethodsTests
         [Test]
         public void ChangePassword_EmptySession_ReturnView()
         {
-            EmptySession();
+            SessionManager.EmptySession(_accountController);
             var result = _accountController.ChangePassword() as ViewResult;
 
             Assert.IsInstanceOf<ViewResult>(result);
@@ -167,7 +167,7 @@ namespace InternetVotingApplicationTests.ExtensionMethodsTests
         [Test]
         public void ChangePassword_NotEmptySession_ReturnRedirectToAction()
         {
-            NotEmptySession();
+            SessionManager.NotEmptySession(_accountController);
             var result = _accountController.ChangePassword() as RedirectToActionResult;
 
             Assert.IsInstanceOf<RedirectToActionResult>(result);
@@ -184,7 +184,7 @@ namespace InternetVotingApplicationTests.ExtensionMethodsTests
                 ConfirmNewPassword = "P@@SWORD"
             };
 
-            EmptySession();
+            SessionManager.EmptySession(_accountController);
             var result = _accountController.ChangePassword(userPasswords) as RedirectToActionResult;
 
             Assert.IsInstanceOf<RedirectToActionResult>(result);
@@ -200,7 +200,7 @@ namespace InternetVotingApplicationTests.ExtensionMethodsTests
                 NewPassword = "P@@SWORD",
                 ConfirmNewPassword = "P@@SWORD"
             };
-            NotEmptySession();
+            SessionManager.NotEmptySession(_accountController);
             _userService.Setup(x => x.ChangePassword(userPasswords, It.IsAny<string>())).Returns(true);
             var result = _accountController.ChangePassword(userPasswords) as ViewResult;
             const string successfulViewBag = "Hasło zostało zmienione poprawnie!";
@@ -218,7 +218,7 @@ namespace InternetVotingApplicationTests.ExtensionMethodsTests
                 NewPassword = "P@@SWORD",
                 ConfirmNewPassword = "P@@SWORD"
             };
-            NotEmptySession();
+            SessionManager.NotEmptySession(_accountController);
             _userService.Setup(x => x.ChangePassword(userPasswords, It.IsAny<string>())).Returns(false);
             var result = _accountController.ChangePassword(userPasswords) as ViewResult;
             const bool error = false;
@@ -296,26 +296,6 @@ namespace InternetVotingApplicationTests.ExtensionMethodsTests
             var result = _accountController.Search("test");
             Assert.IsNotNull(result);
             Assert.IsInstanceOf<ViewResult>(result);
-        }
-
-        private void EmptySession()
-        {
-            Mock<ISession> sessionMock = new();
-            _accountController.ControllerContext.HttpContext = new DefaultHttpContext
-            {
-                Session = sessionMock.Object
-            };
-        }
-
-        private void NotEmptySession()
-        {
-            var mockContext = new Mock<HttpContext>();
-            var mockSession = new Mock<ISession>();
-            const string sessionValue = "email";
-            byte[] dummy = System.Text.Encoding.UTF8.GetBytes(sessionValue);
-            mockSession.Setup(x => x.TryGetValue(It.IsAny<string>(), out dummy)).Returns(true);
-            mockContext.Setup(s => s.Session).Returns(mockSession.Object);
-            _accountController.ControllerContext.HttpContext = mockContext.Object;
         }
 
         private static Uzytkownik CreateNewUser()
