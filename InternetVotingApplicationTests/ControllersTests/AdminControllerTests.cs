@@ -41,13 +41,7 @@ namespace InternetVotingApplicationTests.ControllersTests
         [Test]
         public async Task AddCandidate_ModelStateInvalid_ReturnView()
         {
-            var candidate = new Kandydat
-            {
-                Id = 1,
-                Imie = "John",
-                Nazwisko = "Inny",
-                IdWybory = 1
-            };
+            Kandydat candidate = CreateCandidate();
             _electionService.Setup(x => x.ShowElectionByName()).Returns(new List<DataWyborow>());
             _adminController.ModelState.AddModelError("test", "test");
             var result = await _adminController.AddCandidateAsync(candidate);
@@ -58,13 +52,7 @@ namespace InternetVotingApplicationTests.ControllersTests
         [Test]
         public async Task AddCandidate_ModelStateValid_ReturnSuccessView()
         {
-            var candidate = new Kandydat
-            {
-                Id = 1,
-                Imie = "John",
-                Nazwisko = "Inny",
-                IdWybory = 1
-            };
+            Kandydat candidate = CreateCandidate();
             _adminService.Setup(x => x.AddCandidateAsync(candidate)).ReturnsAsync(true);
             _electionService.Setup(x => x.ShowElectionByName()).Returns(new List<DataWyborow>());
             string viewBagResult = "Kandydat " + candidate.Imie + " " + candidate.Nazwisko + " został dodany do głosowania wyborczego!";
@@ -72,19 +60,12 @@ namespace InternetVotingApplicationTests.ControllersTests
 
             Assert.IsInstanceOf<ViewResult>(result);
             Assert.AreEqual(viewBagResult, result.ViewData["addCandidateSuccessful"]);
-
         }
 
         [Test]
         public async Task AddCandidate_ModelStateValid_ReturnFailureView()
         {
-            var candidate = new Kandydat
-            {
-                Id = 1,
-                Imie = "John",
-                Nazwisko = "Inny",
-                IdWybory = 1
-            };
+            Kandydat candidate = CreateCandidate();
             _adminService.Setup(x => x.AddCandidateAsync(candidate)).ReturnsAsync(false);
             _electionService.Setup(x => x.ShowElectionByName()).Returns(new List<DataWyborow>());
             var result = await _adminController.AddCandidateAsync(candidate) as ViewResult;
@@ -96,17 +77,11 @@ namespace InternetVotingApplicationTests.ControllersTests
         [Test]
         public async Task CreateElection_ModelStateValid_SuccessfullAdded()
         {
-            var electionDate = new DataWyborow
-            {
-                Id = 1,
-                DataRozpoczecia = new DateTime(2022, 4, 1),
-                DataZakonczenia = new DateTime(2022, 7, 1),
-                Opis = "Presidental election"
-            };
+            DataWyborow electionDate = CreateElectionDate();
             SessionManager.NotEmptySession(_adminController);
-            _adminService.Setup(x=>x.AddElectionAsync(electionDate)).ReturnsAsync(true);
+            _adminService.Setup(x => x.AddElectionAsync(electionDate)).ReturnsAsync(true);
             var result = await _adminController.CreateElectionAsync(electionDate) as ViewResult;
-            string viewBagResult = "Wybory zostały dodane!";
+            const string viewBagResult = "Wybory zostały dodane!";
 
             Assert.IsInstanceOf<ViewResult>(result);
             Assert.AreEqual(viewBagResult, result.ViewData["addElectionSuccessful"]);
@@ -115,19 +90,35 @@ namespace InternetVotingApplicationTests.ControllersTests
         [Test]
         public async Task CreateElection_ModelStateValid_UnsuccessfulAdded()
         {
-            var electionDate = new DataWyborow
-            {
-                Id = 1,
-                DataRozpoczecia = new DateTime(2022, 4, 1),
-                DataZakonczenia = new DateTime(2022, 7, 1),
-                Opis = "Presidental election"
-            };
+            DataWyborow electionDate = CreateElectionDate();
             SessionManager.NotEmptySession(_adminController);
             _adminService.Setup(x => x.AddElectionAsync(electionDate)).ReturnsAsync(false);
             var result = await _adminController.CreateElectionAsync(electionDate) as ViewResult;
 
             Assert.IsInstanceOf<ViewResult>(result);
             Assert.AreEqual(false, result.ViewData["Error"]);
+        }
+
+        private static Kandydat CreateCandidate()
+        {
+            return new Kandydat
+            {
+                Id = 1,
+                Imie = "John",
+                Nazwisko = "Inny",
+                IdWybory = 1
+            };
+        }
+
+        private static DataWyborow CreateElectionDate()
+        {
+            return new DataWyborow
+            {
+                Id = 1,
+                DataRozpoczecia = new DateTime(2022, 4, 1),
+                DataZakonczenia = new DateTime(2022, 7, 1),
+                Opis = "Presidental election"
+            };
         }
     }
 }
