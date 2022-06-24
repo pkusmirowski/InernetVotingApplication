@@ -171,5 +171,7 @@ namespace InernetVotingApplication.Controllers
 
             return View(vm);
         }
+
+
     }
 }
