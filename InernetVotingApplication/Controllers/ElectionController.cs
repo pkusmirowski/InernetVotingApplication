@@ -1,4 +1,5 @@
 ﻿using InernetVotingApplication.IServices;
+using InernetVotingApplication.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -11,7 +12,7 @@ namespace InernetVotingApplication.Controllers
     {
         private readonly IElectionService _electionService;
         private static readonly object obj = new();
-        public ElectionController(IElectionService electionService)
+        public ElectionController(ElectionService electionService)
         {
             _electionService = electionService;
         }

@@ -8,11 +8,9 @@ namespace InernetVotingApplication.Services
     public class AdminService : IAdminService
     {
         private readonly InternetVotingContext _context;
-        private readonly ElectionService _electionService;
-        public AdminService(InternetVotingContext context, ElectionService electionService)
+        public AdminService(InternetVotingContext context)
         {
             _context = context;
-            _electionService = electionService;
         }
 
         public async Task<bool> AddCandidateAsync(Kandydat candidate)
