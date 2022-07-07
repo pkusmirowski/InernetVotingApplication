@@ -1,6 +1,8 @@
+using InernetVotingApplication.Models;
 using InernetVotingApplication.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -18,9 +20,8 @@ namespace InernetVotingApplication
 
         public void ConfigureServices(IServiceCollection services)
         {
-
             services.AddControllersWithViews();
-            //services.AddDbContext<InternetVotingContext>(options => options.UseSqlServer(Configuration.GetConnectionString("Default")));
+            services.AddDbContext<InternetVotingContext>(options => options.UseSqlServer(Configuration.GetConnectionString("Default")));
             services.AddTransient<UserService>();
             services.AddTransient<AdminService>();
             services.AddTransient<ElectionService>();

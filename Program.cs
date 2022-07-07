@@ -9,12 +9,12 @@ using System;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Configuration.AddAzureKeyVault(
-    new Uri($"https://{builder.Configuration["KeyVaultName"]}.vault.azure.net/"),
-    new DefaultAzureCredential());
+//builder.Configuration.AddAzureKeyVault(
+//    new Uri($"https://{builder.Configuration["KeyVaultName"]}.vault.azure.net/"),
+//    new DefaultAzureCredential());
 
-// Add services to the container.
-builder.Services.AddDbContext<InternetVotingContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString(builder.Configuration["Default"])));
+//// Add services to the container.
+//builder.Services.AddDbContext<InternetVotingContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString(builder.Configuration["Default"])));
 
 var startup = new Startup(builder.Configuration);
 

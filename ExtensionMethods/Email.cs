@@ -15,7 +15,7 @@ namespace InernetVotingApplication.ExtensionMethods
             sendEmail.Subject = "Link aktywacyjny do konta w aplikacji do głosowania";
             sendEmail.Body = new TextPart(TextFormat.Html)
             {
-                Text = "<h2>Twoje konto <b>" + user.Imie + " " + user.Nazwisko + "</b> w aplikacji do głosowania zostało założone pomyślnie!</h2><br /><br />Naciśnij ten link aby aktywować konto<br /><a href = https://inernetvotingapplication.azurewebsites.net//Account/Activation/" + user.KodAktywacyjny + "> Naciśnij aby aktywować konto.</a><br />"
+                Text = "<h2>Twoje konto <b>" + user.Imie + " " + user.Nazwisko + "</b> w aplikacji do głosowania zostało założone pomyślnie!</h2><br /><br />Naciśnij ten link aby aktywować konto<br /><a href = https://inernetvotingapplication.azurewebsites.net/Account/Activation/" + user.KodAktywacyjny + "> Naciśnij aby aktywować konto.</a><br />"
             };
             ConnectToSend(sendEmail);
         }
@@ -62,8 +62,8 @@ namespace InernetVotingApplication.ExtensionMethods
         private static void ConnectToSend(MimeMessage sendEmail)
         {
             var smtp = new SmtpClient();
-            smtp.Connect("smtp.ethereal.email", 587, SecureSocketOptions.StartTls);
-            smtp.Authenticate("yoshiko.streich@ethereal.email", "vZg9ASg5Vf9VWeGUQn");
+            smtp.Connect("smtp-relay.sendinblue.com", 587, SecureSocketOptions.StartTls);
+            smtp.Authenticate("pawelgts85@gmail.com", "VvCKpLGAHwgSXz5x");
             smtp.Send(sendEmail);
             smtp.Disconnect(true);
         }
