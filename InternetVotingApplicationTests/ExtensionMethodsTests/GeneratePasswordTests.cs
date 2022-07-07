@@ -1,5 +1,6 @@
 ﻿using InernetVotingApplication.ExtensionMethods;
 using NUnit.Framework;
+using System.Text.RegularExpressions;
 
 namespace InternetVotingApplicationTests.ExtensionMethodsTests
 {

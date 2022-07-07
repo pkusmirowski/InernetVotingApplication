@@ -13,12 +13,5 @@ namespace InternetVotingApplicationTests.ExtensionMethodsTests
             var result = PeselValidation.IsValidPESEL(PESEL);
             Assert.IsTrue(result);
         }
-        [Test]
-        public void PESELValidate_ReturnsFalse()
-        {
-            const string PESEL = "58010662720";
-            var result = PeselValidation.IsValidPESEL(PESEL);
-            Assert.IsFalse(result);
-        }
     }
 }

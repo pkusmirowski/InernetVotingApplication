@@ -276,6 +276,7 @@ namespace InternetVotingApplicationTests.ExtensionMethodsTests
             Assert.IsInstanceOf<ViewResult>(result);
             Assert.AreEqual(viewResult, result.ViewData["Success"]);
         }
+        
 
         [Test]
         public async Task PasswordRecoveryTest_ModelStateIsValid_ReturnFailure()
@@ -296,7 +297,7 @@ namespace InternetVotingApplicationTests.ExtensionMethodsTests
             Assert.IsNotNull(result);
             Assert.IsInstanceOf<ViewResult>(result);
         }
-
+      
         private static Uzytkownik CreateNewUser()
         {
             return new Uzytkownik
