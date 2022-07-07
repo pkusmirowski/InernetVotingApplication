@@ -15,7 +15,7 @@ namespace InernetVotingApplication.ExtensionMethods
             sendEmail.Subject = "Link aktywacyjny do konta w aplikacji do głosowania";
             sendEmail.Body = new TextPart(TextFormat.Html)
             {
-                Text = "<h2>Twoje konto <b>" + user.Imie + " " + user.Nazwisko + "</b> w aplikacji do głosowania zostało założone pomyślnie!</h2><br /><br />Naciśnij ten link aby aktywować konto<br /><a href = https://localhost:44342/Account/Activation/" + user.KodAktywacyjny + "> Naciśnij aby aktywować konto.</a><br />"
+                Text = "<h2>Twoje konto <b>" + user.Imie + " " + user.Nazwisko + "</b> w aplikacji do głosowania zostało założone pomyślnie!</h2><br /><br />Naciśnij ten link aby aktywować konto<br /><a href = https://inernetvotingapplication.azurewebsites.net//Account/Activation/" + user.KodAktywacyjny + "> Naciśnij aby aktywować konto.</a><br />"
             };
             ConnectToSend(sendEmail);
         }
