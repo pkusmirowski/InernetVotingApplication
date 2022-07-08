@@ -1,3 +1,4 @@
+using InernetVotingApplication.ExtensionMethods;
 using InernetVotingApplication.Models;
 using InernetVotingApplication.Services;
 using Microsoft.AspNetCore.Builder;
@@ -20,15 +21,15 @@ namespace InernetVotingApplication
 
         public void ConfigureServices(IServiceCollection services)
         {
+            string ConnectionString = Vault.GetSecretPhrase("Default");
             services.AddControllersWithViews();
-            services.AddDbContext<InternetVotingContext>(options => options.UseSqlServer(Configuration.GetConnectionString("Default")));
+            services.AddDbContext<InternetVotingContext>(options => options.UseSqlServer(ConnectionString));
             services.AddTransient<UserService>();
             services.AddTransient<AdminService>();
             services.AddTransient<ElectionService>();
             services.AddDistributedMemoryCache();
             services.AddSession();
             services.AddRazorPages();
-            //services.AddControllersWithViews().AddRazorRuntimeCompilation();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

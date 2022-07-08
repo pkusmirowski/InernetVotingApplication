@@ -3,6 +3,7 @@ using MailKit.Net.Smtp;
 using MailKit.Security;
 using MimeKit;
 using MimeKit.Text;
+
 namespace InernetVotingApplication.ExtensionMethods
 {
     public static class Email
@@ -62,8 +63,9 @@ namespace InernetVotingApplication.ExtensionMethods
         private static void ConnectToSend(MimeMessage sendEmail)
         {
             var smtp = new SmtpClient();
+            string pass = Vault.GetSecretPhrase("smtp");
             smtp.Connect("smtp-relay.sendinblue.com", 587, SecureSocketOptions.StartTls);
-            smtp.Authenticate("pawelgts85@gmail.com", "VvCKpLGAHwgSXz5x");
+            smtp.Authenticate("pawelgts85@gmail.com", pass);
             smtp.Send(sendEmail);
             smtp.Disconnect(true);
         }
