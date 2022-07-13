@@ -1,11 +1,10 @@
-﻿using InernetVotingApplication.IServices;
-using InernetVotingApplication.Models;
+﻿using InernetVotingApplication.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Threading.Tasks;
 namespace InernetVotingApplication.Services
 {
-    public class AdminService : IAdminService
+    public class AdminService
     {
         private readonly InternetVotingContext _context;
         public AdminService(InternetVotingContext context)

@@ -1,5 +1,4 @@
-﻿using InernetVotingApplication.IServices;
-using InernetVotingApplication.Services;
+﻿using InernetVotingApplication.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -10,7 +9,7 @@ namespace InernetVotingApplication.Controllers
 {
     public class ElectionController : Controller
     {
-        private readonly IElectionService _electionService;
+        private readonly ElectionService _electionService;
         private static readonly object obj = new();
         public ElectionController(ElectionService electionService)
         {
@@ -35,25 +34,24 @@ namespace InernetVotingApplication.Controllers
                 return RedirectToAction("Login");
             }
 
-            //Check this condition
-            //if (!string.IsNullOrEmpty(HttpContext.Session.GetString("Admin")))
-            //{
-            //    return RedirectToAction("Panel");
-            //}
+            if (!string.IsNullOrEmpty(HttpContext.Session.GetString("Admin")))
+            {
+                return RedirectToAction("Panel");
+            }
 
             if (_electionService.CheckElectionBlockchain(id))
             {
-                if (_electionService.CheckIfElectionEnded(id))
+                if (!_electionService.CheckIfElectionEnded(id))
                 {
                     return RedirectToAction("ElectionResult", new { @ver = 3, @result = id });
                 }
 
-                if (_electionService.CheckIfElectionStarted(id))
+                if (!_electionService.CheckIfElectionStarted(id))
                 {
                     return RedirectToAction("ElectionResult", new { @ver = 1, @result = id });
                 }
 
-                if (await _electionService.CheckIfVoted(HttpContext.Session.GetString("email"), id))
+                if (await _electionService.CheckIfVoted(HttpContext.Session.GetString("email"), id).ConfigureAwait(false))
                 {
                     return RedirectToAction("ElectionResult", new { @ver = 2, @result = id });
                 }

@@ -1,6 +1,5 @@
 ﻿using InernetVotingApplication.Blockchain;
 using InernetVotingApplication.ExtensionMethods;
-using InernetVotingApplication.IServices;
 using InernetVotingApplication.Models;
 using InernetVotingApplication.ViewModels;
 using Microsoft.EntityFrameworkCore;
@@ -10,7 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 namespace InernetVotingApplication.Services
 {
-    public class ElectionService : IElectionService
+    public class ElectionService
     {
         private readonly InternetVotingContext _context;
 

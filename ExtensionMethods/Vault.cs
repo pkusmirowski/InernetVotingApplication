@@ -13,7 +13,6 @@ namespace InernetVotingApplication.ExtensionMethods
             var client = new SecretClient(vaultUri: new Uri(keyVaultUrl), credential);
             KeyVaultSecret secret = client.GetSecret(key);
             return secret.Value;
-           // return connectionString.Substring(1, connectionString.Length - 3);
         }
     }
 }

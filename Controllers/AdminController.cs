@@ -1,5 +1,4 @@
-﻿using InernetVotingApplication.IServices;
-using InernetVotingApplication.Models;
+﻿using InernetVotingApplication.Models;
 using InernetVotingApplication.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -11,8 +10,8 @@ namespace InernetVotingApplication.Controllers
 {
     public class AdminController : Controller
     {
-        private readonly IElectionService _electionService;
-        private readonly IAdminService _adminService;
+        private readonly ElectionService _electionService;
+        private readonly AdminService _adminService;
 
         public AdminController(ElectionService electionService, AdminService adminService)
         {
@@ -76,7 +75,7 @@ namespace InernetVotingApplication.Controllers
             List<DataWyborow> electionIdList = new();
             electionIdList = _electionService.ShowElectionByName();
 
-            ViewBag.IdWybory = (List<SelectListItem>)electionIdList.ConvertAll(a =>
+            ViewBag.IdWybory = electionIdList.ConvertAll(a =>
             {
                 return new SelectListItem()
                 {

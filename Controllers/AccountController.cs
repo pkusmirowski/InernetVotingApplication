@@ -1,5 +1,4 @@
-﻿using InernetVotingApplication.IServices;
-using InernetVotingApplication.Models;
+﻿using InernetVotingApplication.Models;
 using InernetVotingApplication.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -9,9 +8,9 @@ namespace InernetVotingApplication.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly IUserService _userService;
-        private readonly IElectionService _electionService;
-        private readonly IAdminService _adminService;
+        private readonly UserService _userService;
+        private readonly ElectionService _electionService;
+        private readonly AdminService _adminService;
         public AccountController(UserService userService, ElectionService electionService, AdminService adminService)
         {
             _userService = userService;
@@ -65,7 +64,7 @@ namespace InernetVotingApplication.Controllers
                     if (val == 0)
                     {
                         //Zapisanie admina w sesji
-                        string email = _userService.GetLoggedEmail(user);
+                        string email = user.Email;
                         HttpContext.Session.SetString("email", email);
 
                         const string admin = "Admin";
@@ -75,7 +74,7 @@ namespace InernetVotingApplication.Controllers
                     else
                     {
                         //Zapisanie użytkownika w sesji
-                        string email = _userService.GetLoggedEmail(user);
+                        string email = user.Email;
                         HttpContext.Session.SetString("email", email);
                         return RedirectToAction("Dashboard", "Election");
                     }
@@ -172,7 +171,5 @@ namespace InernetVotingApplication.Controllers
 
             return View(vm);
         }
-
-
     }
 }

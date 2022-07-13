@@ -1,5 +1,4 @@
 ﻿using InernetVotingApplication.ExtensionMethods;
-using InernetVotingApplication.IServices;
 using InernetVotingApplication.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -9,7 +8,7 @@ using BC = BCrypt.Net.BCrypt;
 
 namespace InernetVotingApplication.Services
 {
-    public class UserService : IUserService
+    public class UserService
     {
         private readonly InternetVotingContext _context;
 
@@ -80,15 +79,6 @@ namespace InernetVotingApplication.Services
             }
 
             return 2;
-        }
-
-        public string GetLoggedEmail(Logowanie user)
-        {
-            var queryName = from Uzytkownik in _context.Uzytkowniks
-                            where Uzytkownik.Email == user.Email
-                            select Uzytkownik.Email;
-
-            return queryName.ToString();
         }
 
         public async Task<bool> AuthenticateUser(Logowanie user)
