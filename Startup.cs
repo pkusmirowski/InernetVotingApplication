@@ -21,9 +21,9 @@ namespace InernetVotingApplication
 
         public void ConfigureServices(IServiceCollection services)
         {
-            string ConnectionString = Vault.GetSecretPhrase("Default");
+            var connectionString = Configuration.GetConnectionString("InternetVotingDBConnection");
             services.AddControllersWithViews();
-            services.AddDbContext<InternetVotingContext>(options => options.UseSqlServer(ConnectionString));
+            services.AddDbContext<InternetVotingContext>(options => options.UseSqlServer(connectionString));
             services.AddTransient<UserService>();
             services.AddTransient<AdminService>();
             services.AddTransient<ElectionService>();
