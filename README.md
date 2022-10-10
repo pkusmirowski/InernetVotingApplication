@@ -4,5 +4,3 @@ Application for presidential elections with an internal blockchain that checks t
 Technologies used:
 
 .Net 6 Core MVC, MS SQL Server, Entity Framework, Razor (CSS+HTML), Bootstrap
-
-The application is deployed in Azure.
