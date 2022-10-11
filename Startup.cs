@@ -1,4 +1,3 @@
-using InernetVotingApplication.ExtensionMethods;
 using InernetVotingApplication.Models;
 using InernetVotingApplication.Services;
 using Microsoft.AspNetCore.Builder;
