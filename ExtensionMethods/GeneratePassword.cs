@@ -1,20 +1,26 @@
 ﻿using System;
+using System.Security.Cryptography;
 
 namespace InernetVotingApplication.ExtensionMethods
 {
     public static class GeneratePassword
     {
-        public static string CreateRandomPassword(int length)
-        {
-            const string validChars = "ABCDEFGHJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*?_-";
-            Random random = new();
+        private static readonly char[] validChars = "ABCDEFGHJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*?_-".ToCharArray();
+        private static readonly RandomNumberGenerator rng = RandomNumberGenerator.Create();
 
-            char[] chars = new char[length];
+        public static ReadOnlySpan<char> CreateRandomPassword(int length)
+        {
+            Span<byte> bytes = stackalloc byte[length];
+            rng.GetBytes(bytes);
+
+            Span<char> chars = stackalloc char[length];
             for (int i = 0; i < length; i++)
             {
-                chars[i] = validChars[random.Next(0, validChars.Length)];
+                int index = bytes[i] % validChars.Length;
+                chars[i] = validChars[index];
             }
-            return new string(chars);
+
+            return chars.ToString();
         }
     }
 }

@@ -2,7 +2,6 @@
 using InernetVotingApplication.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using BC = BCrypt.Net.BCrypt;
 
@@ -19,15 +18,8 @@ namespace InernetVotingApplication.Services
 
         public async Task<bool> RegisterAsync(Uzytkownik user)
         {
-            var email = await _context.Uzytkowniks.SingleOrDefaultAsync(x => x.Email == user.Email);
-            var pesel = await _context.Uzytkowniks.SingleOrDefaultAsync(x => x.Pesel == user.Pesel);
-
-            if (email != null && email.Email == user.Email)
-            {
-                return false;
-            }
-
-            if (pesel != null && pesel.Pesel == user.Pesel)
+            var existingUser = await _context.Uzytkowniks.FirstOrDefaultAsync(x => x.Email == user.Email || x.Pesel == user.Pesel);
+            if (existingUser != null)
             {
                 return false;
             }
@@ -38,12 +30,12 @@ namespace InernetVotingApplication.Services
             }
 
             user.KodAktywacyjny = Guid.NewGuid();
-            user.Haslo = BC.HashPassword(user.Haslo);
+            user.Haslo = await Task.Run(() => BC.HashPassword(user.Haslo));
             user.JestAktywne = false;
             await _context.AddAsync(user);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
-            Email.SendEmailAfterRegistration(user);
+            await Email.SendEmailAfterRegistrationAsync(user);
             return true;
         }
 
@@ -53,101 +45,89 @@ namespace InernetVotingApplication.Services
         //2 - gdy nie jest ani Adminem ani Userem
         public async Task<int> LoginAsync(Logowanie user)
         {
-            var queryActive = from Uzytkownik in _context.Uzytkowniks
-                              where Uzytkownik.Email == user.Email
-                              select Uzytkownik.JestAktywne;
+            var userAccount = await _context.Uzytkowniks
+                .FirstOrDefaultAsync(u => u.Email == user.Email && u.Haslo == user.Haslo);
 
-            var getUserId = await (from Uzytkownik in _context.Uzytkowniks
-                                   where Uzytkownik.Email == user.Email
-                                   select Uzytkownik.Id).FirstOrDefaultAsync();
-
-            var getUserStatus = await (from Uzytkownik in _context.Uzytkowniks
-                                       where Uzytkownik.JestAktywne
-                                       select Uzytkownik.JestAktywne).FirstOrDefaultAsync();
-
-            var checkIfAdmin = await (from Administrator in _context.Administrators
-                                      where Administrator.IdUzytkownik == getUserId
-                                      select Administrator.IdUzytkownik).FirstOrDefaultAsync();
-
-            if (getUserStatus && user.Email != null && user.Haslo != null && (await queryActive.FirstOrDefaultAsync()) && await AuthenticateUser(user))
+            if (userAccount == null || !userAccount.JestAktywne)
             {
-                if (getUserId == checkIfAdmin)
-                {
-                    return 0;
-                }
-                return 1;
+                return 2;
             }
 
-            return 2;
+            var checkIfAdmin = await _context.Administrators
+                .AnyAsync(a => a.IdUzytkownik == userAccount.Id);
+
+            return checkIfAdmin ? 0 : 1;
         }
 
-        public async Task<bool> AuthenticateUser(Logowanie user)
-        {
-            var account = await _context.Uzytkowniks.SingleOrDefaultAsync(x => x.Email == user.Email);
 
-            return BC.Verify(user.Haslo, account.Haslo);
+        // Zwraca wartość true, jeśli użytkownik o podanym adresie email istnieje i podane hasło jest poprawne, w przeciwnym przypadku zwraca wartość false
+        public async Task<bool> AuthenticateUser(Logowanie login)
+        {
+            var user = await _context.Uzytkowniks
+                .FirstOrDefaultAsync(x => x.Email == login.Email);
+
+            return user != null && BC.Verify(login.Haslo, user.Haslo);
         }
 
-        public bool ChangePassword(ChangePassword password, string userEmail)
+        public async Task<bool> ChangePasswordAsync(ChangePassword password, string userEmail)
         {
-            var account = _context.Uzytkowniks.SingleOrDefault(x => x.Email == userEmail);
+            var account = await _context.Uzytkowniks.FirstOrDefaultAsync(x => x.Email == userEmail);
+
+            if (account == null)
+            {
+                return false;
+            }
+
             var verifyPassword = BC.Verify(password.Password, account.Haslo);
 
-            if (password.NewPassword != password.ConfirmNewPassword)
+            if (password.NewPassword != password.ConfirmNewPassword || !verifyPassword)
             {
                 return false;
             }
 
-            if (!verifyPassword)
-            {
-                return false;
-            }
+            account.Haslo = await Task.Run(() => BC.HashPassword(password.NewPassword));
+            _context.Uzytkowniks.Update(account);
+            await _context.SaveChangesAsync();
 
-            account.Haslo = BC.HashPassword(password.NewPassword);
-            _context.Update(account);
-            _context.SaveChanges();
-
-            Email.SendEmailChangePassword(userEmail);
+            await Email.SendEmailChangePasswordAsync(userEmail);
 
             return true;
         }
 
-        public bool GetUserByAcitvationCode(Guid activationCode)
+        public async Task<bool> GetUserByActivationCodeAsync(Guid activationCode)
         {
-            var user = (from Uzytkownik in _context.Uzytkowniks
-                        where Uzytkownik.KodAktywacyjny == activationCode
-                        select Uzytkownik).FirstOrDefault();
-            if (user != null)
+            var user = await _context.Uzytkowniks.FirstOrDefaultAsync(x => x.KodAktywacyjny == activationCode);
+
+            if (user == null)
             {
-                user.JestAktywne = true;
-                user.KodAktywacyjny = Guid.Empty;
-                _context.Update(user);
-                _context.SaveChanges();
-                return true;
+                return false;
             }
-            return false;
+
+            user.JestAktywne = true;
+            user.KodAktywacyjny = Guid.Empty;
+            _context.Update(user);
+            await _context.SaveChangesAsync();
+            return true;
         }
+
 
         public async Task<bool> RecoverPassword(PasswordRecovery password)
         {
-            var userByPesel = await (from Uzytkownik in _context.Uzytkowniks
-                                     where Uzytkownik.Pesel == password.Pesel
-                                     select Uzytkownik).FirstOrDefaultAsync();
+            var user = await _context.Uzytkowniks
+                .FirstOrDefaultAsync(x => x.Pesel == password.Pesel && x.Email == password.Email);
 
-            var userByEmail = await (from Uzytkownik in _context.Uzytkowniks
-                                     where Uzytkownik.Email == password.Email
-                                     select Uzytkownik).FirstOrDefaultAsync();
-
-            if (userByPesel != null && userByEmail != null && userByPesel.Email == userByEmail.Email && userByPesel.Pesel == userByEmail.Pesel)
+            if (user == null)
             {
-                string newPassword = GeneratePassword.CreateRandomPassword(8);
-                userByPesel.Haslo = BC.HashPassword(newPassword);
-                await _context.SaveChangesAsync();
-                Email.SendNewPassword(newPassword, userByPesel);
-                return true;
+                return false;
             }
 
-            return false;
+            string newPassword = GeneratePassword.CreateRandomPassword(8).ToString();
+            user.Haslo = BC.HashPassword(newPassword);
+            await _context.SaveChangesAsync();
+            await Email.SendNewPasswordAsync(newPassword, user);
+
+            return true;
         }
+
     }
 }

@@ -1,17 +1,38 @@
 ﻿@{
     ViewData["Title"] = "Aktywacja konta";
 }
-<br />
-<br />
-<br />
-<br />
+
 <div class="container">
     <main id="main">
-        <h2>Aktywacja konta</h2>
-        <hr />
-        <center>
-            <br />
-            <h1>@ViewBag.Message</h1>
-        </center>
+        <h2 class="text-center">Aktywacja konta</h2>
+        <div class="row justify-content-center">
+            <div class="col-md-6 text-center">
+                <h1>@ViewBag.Message</h1>
+                <p>Dziękujemy za aktywację Twojego konta.</p>
+            </div>
+        </div>
     </main>
 </div>
+
+<style>
+    main {
+        margin: 50px auto;
+        max-width: 800px;
+    }
+
+    h2 {
+        margin-bottom: 1rem;
+    }
+
+    h1 {
+        font-size: 4rem;
+        font-weight: bold;
+        margin-bottom: 1rem;
+    }
+
+    p {
+        font-size: 1.5rem;
+        font-weight: 500;
+        margin-bottom: 2rem;
+    }
+</style>

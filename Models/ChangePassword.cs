@@ -4,20 +4,18 @@ namespace InernetVotingApplication.Models
 {
     public class ChangePassword
     {
-        [Required(ErrorMessage = "Podaj hasło")]
+        [Required(ErrorMessage = "Wprowadź aktualne hasło")]
         [DataType(DataType.Password)]
-        [Display(Name = "Obecne hasło")]
         public string Password { get; set; }
 
-        [Required(ErrorMessage = "Podaj nowe hasło")]
+        [Required(ErrorMessage = "Wprowadź nowe hasło")]
         [DataType(DataType.Password)]
-        [Display(Name = "Nowe hasło")]
-        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[#$^+=!*()@%&]).{8,}$", ErrorMessage = "Hasło musi zawierać: małą i dużą litere, cyfre, specjalny symbol, 8 znaków")]
+        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$", ErrorMessage = "Nowe hasło musi składać się z co najmniej 8 znaków, w tym przynajmniej jednej małej litery, jednej wielkiej litery i jednej cyfry.")]
         public string NewPassword { get; set; }
 
-        [Required(ErrorMessage = "Powtórz hasło")]
+        [Required(ErrorMessage = "Potwierdź nowe hasło")]
         [DataType(DataType.Password)]
-        [Display(Name = "Potwierdź nowe hasło")]
+        [Compare("NewPassword", ErrorMessage = "Nowe hasło i potwierdzone hasło nie są takie same.")]
         public string ConfirmNewPassword { get; set; }
     }
 }

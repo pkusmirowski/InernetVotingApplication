@@ -8,45 +8,55 @@
 <br />
 <div class="container">
     <main id="main">
-        <center>
-            <h2>Panel głosowania</h2>
-            <table class="table table-striped">
-                <thead>
+        <h2 class="text-center">Panel głosowania</h2>
+        <table class="table table-striped text-center">
+            <thead>
+                <tr>
+                    <th scope="col">Numer głosowania</th>
+                    <th scope="col">Data rozpoczęcia</th>
+                    <th scope="col">Data zakończenia</th>
+                    <th scope="col">Opis głosowania</th>
+                    <th scope="col">Link</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var election in Model.ElectionDates)
+                {
                     <tr>
-                        <th scope="col">Numer głosowania</th>
-                        <th scope="col">Data rozpoczęcia</th>
-                        <th scope="col">Data zakończenia</th>
-                        <th scope="col">Opis głosowania</th>
-                        <th scope="col">Link</th>
+                        <th scope="col">@election.Id</th>
+                        <td>@election.DataRozpoczecia</td>
+                        <td>@election.DataZakonczenia</td>
+                        <td>@election.Opis</td>
+                        @if (election.Type == 1)
+                        {
+                            <td>
+                                <a asp-controller="Election" asp-action="Voting" asp-route-id="@election.Id">
+                                    Sprawdź wyniki
+                                    głosowania
+                                </a>
+                            </td>
+                        }
+                        else if (election.Type == 2)
+                        {
+                            <td>
+                                <a asp-controller="Election" asp-action="Voting" asp-route-id="@election.Id">
+                                    Wybory jeszcze
+                                    się nie rozpoczęły
+                                </a>
+                            </td>
+                        }
+                        else
+                        {
+                            <td>
+                                <a asp-controller="Election" asp-action="Voting" asp-route-id="@election.Id">
+                                    Przejdź do
+                                    głosowania
+                                </a>
+                            </td>
+                        }
                     </tr>
-                </thead>
-                <tbody>
-                    @foreach (var election in Model.ElectionDates)
-                    {
-                        <tr>
-                            <th scope="row">@election.Id</th>
-                            <td>@election.DataRozpoczecia</td>
-                            <td>@election.DataZakonczenia</td>
-                            <td>@election.Opis</td>
-                            @if (@election.Type == 1)
-                            {
-                                <td><a asp-controller="Election" asp-action="Voting" asp-route-id="@election.Id">Sprawdź wyniki
-                                        głosowania</a></td>
-                            }
-                            else if (@election.Type == 2)
-                            {
-                                <td><a asp-controller="Election" asp-action="Voting" asp-route-id="@election.Id">Wybory jeszcze
-                                        się nie rozpoczęły</a></td>
-                            }
-                            else
-                            {
-                                <td><a asp-controller="Election" asp-action="Voting" asp-route-id="@election.Id">Przejdź do
-                                        głosowania</a></td>
-                            }
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </center>
+                }
+            </tbody>
+        </table>
     </main>
 </div>

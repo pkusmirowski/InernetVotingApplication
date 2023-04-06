@@ -3,49 +3,50 @@
 @{
     ViewData["Title"] = "Dodaj kandydata";
 }
-<br />
-<br />
-<br />
-<br />
+
 <div class="container">
     <main id="main">
-        <h2>Dodaj kandydata</h2>
+        <h2 class="text-center">Dodaj kandydata</h2>
         <hr />
         <div class="row">
             <div class="col-md-4">
                 <form asp-action="AddCandidate">
                     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
                     <div class="form-group">
                         <label asp-for="Imie" class="control-label"></label>
                         <input asp-for="Imie" class="form-control" />
                         <span asp-validation-for="Imie" class="text-danger"></span>
                     </div>
+
                     <div class="form-group">
                         <label asp-for="Nazwisko" class="control-label"></label>
                         <input asp-for="Nazwisko" class="form-control" />
                         <span asp-validation-for="Nazwisko" class="text-danger"></span>
                     </div>
+
                     <div class="form-group">
-                        <p>Nazwa wyborów</p>
+                        <label asp-for="IdWybory" class="control-label">Nazwa wyborów</label>
                         <select asp-for="IdWybory" class="form-control" asp-items="ViewBag.IdWybory"></select>
                     </div>
-                    <div class="form-group">
-                        <input type="submit" value="Stwórz" class="btn btn-primary" />
+
+                    <div class="form-group text-center">
+                        <button type="submit" class="btn btn-primary">Stwórz</button>
                     </div>
                 </form>
             </div>
         </div>
+
         @if (ViewBag.Error == false)
         {
-            <br />
             <div class="alert alert-danger" role="alert">
                 <b>Błąd. Kandydat nie został dodany! Możliwe, że już bierze udział w wyborach.</b>
             </div>
         }
+
         <br />
         <p class="text-success"><b>@ViewBag.addCandidateSuccessful</b></p>
-        @section Scripts {
-        @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-        }
+
+        @await Html.PartialAsync("_ValidationScriptsPartial")
     </main>
 </div>

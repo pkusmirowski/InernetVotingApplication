@@ -1,36 +1,37 @@
-﻿namespace InernetVotingApplication.ExtensionMethods
+﻿using System.Linq;
+
+namespace InernetVotingApplication.ExtensionMethods
 {
     public static class PeselValidation
     {
+        // Metoda sprawdzająca poprawność numeru PESEL
         public static bool IsValidPESEL(string input)
         {
+            // Wagi poszczególnych cyfr PESEL
             int[] weights = { 1, 3, 7, 9, 1, 3, 7, 9, 1, 3 };
-            bool result = false;
-            if (input.Length == 11)
+
+            // Sprawdzenie, czy długość podanego numeru PESEL jest równa 11
+            if (input.Length != 11)
             {
-                int controlSum = CalculateControlSum(input, weights);
-                int controlNumber = controlSum % 10;
-                controlNumber = 10 - controlNumber;
-
-                if (controlNumber == 10)
-                {
-                    controlNumber = 0;
-                }
-
-                int lastDigit = int.Parse(input[^1].ToString());
-                result = controlNumber == lastDigit;
+                return false;
             }
-            return result;
-        }
 
-        private static int CalculateControlSum(string input, int[] weights, int offset = 0)
-        {
             int controlSum = 0;
-            for (int i = 0; i < input.Length - 1; i++)
+            // Dla każdej cyfry z pierwszych 10 wykorzystywana jest waga z tablicy weights
+            // i obliczana jest suma kontrolna
+            foreach (var (digit, weight) in input[..10].Zip(weights))
             {
-                controlSum += weights[i + offset] * int.Parse(input[i].ToString());
+                // Sprawdzenie, czy dana cyfra jest liczbą
+                if (!int.TryParse(digit.ToString(), out int parsedDigit))
+                {
+                    return false;
+                }
+                controlSum += weight * parsedDigit;
             }
-            return controlSum;
+            // Obliczenie ostatniej cyfry numeru PESEL
+            int controlNumber = (10 - (controlSum % 10)) % 10;
+            // Sprawdzenie, czy obliczona cyfra kontrolna jest równa ostatniej cyfrze numeru PESEL
+            return controlNumber == int.Parse(input[^1].ToString());
         }
     }
 }

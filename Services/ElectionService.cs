@@ -20,29 +20,16 @@ namespace InernetVotingApplication.Services
 
         public DataWyborowViewModel GetAllElections()
         {
-            var electionDates = _context.DataWyborows.Select(x => new DataWyborowItemViewModel
-            {
-                Id = x.Id,
-                DataRozpoczecia = x.DataRozpoczecia,
-                DataZakonczenia = x.DataZakonczenia,
-                Opis = x.Opis
-            }).ToList();
-
-            foreach (var electionDate in electionDates)
-            {
-                if (!CheckIfElectionEnded(electionDate.Id))
+            var electionDates = _context.DataWyborows
+                .Select(x => new DataWyborowItemViewModel
                 {
-                    electionDate.Type = 1;
-                }
-                else if (!CheckIfElectionStarted(electionDate.Id))
-                {
-                    electionDate.Type = 2;
-                }
-                else
-                {
-                    electionDate.Type = 3;
-                }
-            }
+                    Id = x.Id,
+                    DataRozpoczecia = x.DataRozpoczecia,
+                    DataZakonczenia = x.DataZakonczenia,
+                    Opis = x.Opis,
+                    Type = CheckElectionType(x.Id)
+                })
+                .ToList();
 
             return new DataWyborowViewModel
             {
@@ -50,15 +37,35 @@ namespace InernetVotingApplication.Services
             };
         }
 
+        private int CheckElectionType(int electionId)
+        {
+            if (!CheckIfElectionEnded(electionId))
+            {
+                return 1;
+            }
+            else if (!CheckIfElectionStarted(electionId))
+            {
+                return 2;
+            }
+            else
+            {
+                return 3;
+            }
+        }
+
+
         public KandydatViewModel GetAllCandidates(int id)
         {
-            var electionCandidates = _context.Kandydats.Select(x => new KandydatItemViewModel
-            {
-                Id = x.Id,
-                Imie = x.Imie,
-                Nazwisko = x.Nazwisko,
-                IdWybory = x.IdWybory
-            }).Where(x => x.IdWybory == id);
+            var electionCandidates = _context.Kandydats
+                .Where(x => x.IdWybory == id)
+                .Select(x => new KandydatItemViewModel
+                {
+                    Id = x.Id,
+                    Imie = x.Imie,
+                    Nazwisko = x.Nazwisko,
+                    IdWybory = x.IdWybory
+                })
+                .ToList();
 
             return new KandydatViewModel
             {
@@ -66,9 +73,9 @@ namespace InernetVotingApplication.Services
             };
         }
 
-        public string AddVote(string user, int candidateId, int electionId)
+        public async Task<string> AddVoteAsync(string user, int candidateId, int electionId)
         {
-            List<GlosowanieWyborcze> listOfPreviousElectionVotes = VerifyElectionBlockchain(electionId);
+            var listOfPreviousElectionVotes = VerifyElectionBlockchain(electionId);
             if (listOfPreviousElectionVotes.Any(c => !c.JestPoprawny))
             {
                 return "0";
@@ -92,13 +99,15 @@ namespace InernetVotingApplication.Services
             var blockText = BlockHelper.VoteData(electionVoteDB.IdKandydat, electionVoteDB.IdWybory, electionVoteDB.Glos, previousBlockHash);
             electionVoteDB.Hash = HashHelper.Hash(blockText);
 
-            var userId = (from Uzytkownik in _context.Uzytkowniks
-                          where Uzytkownik.Email == user
-                          select Uzytkownik.Id).FirstOrDefault();
+            var userId = await _context.Uzytkowniks
+                .Where(u => u.Email == user)
+                .Select(u => u.Id)
+                .FirstOrDefaultAsync();
 
-            var userEmail = (from Uzytkownik in _context.Uzytkowniks
-                             where Uzytkownik.Email == user
-                             select Uzytkownik.Email).FirstOrDefault();
+            var userEmail = await _context.Uzytkowniks
+                .Where(u => u.Email == user)
+                .Select(u => u.Email)
+                .FirstOrDefaultAsync();
 
             var userVoiceDB = new GlosUzytkownika
             {
@@ -107,30 +116,34 @@ namespace InernetVotingApplication.Services
                 Glos = true
             };
 
-            _context.Add(electionVoteDB);
-            _context.Add(userVoiceDB);
-            _context.SaveChanges();
-            Email.SendEmailVoteHash(electionVoteDB, userEmail);
+            await _context.AddAsync(electionVoteDB);
+            await _context.AddAsync(userVoiceDB);
+            await _context.SaveChangesAsync();
+
+            // Wywołanie metody SendEmailVoteHashAsync i oczekiwanie na zakończenie działania tej metody
+            await Email.SendEmailVoteHashAsync(electionVoteDB, userEmail);
 
             return electionVoteDB.Hash;
         }
 
+
+
         public bool CheckIfElectionEnded(int electionId)
         {
-            var electionDateQuery = from DataWyborow in _context.DataWyborows
-                                    where electionId == DataWyborow.Id
-                                    select DataWyborow.DataZakonczenia;
-            DateTime electionDate = electionDateQuery.AsEnumerable().First();
+            var electionDate = _context.DataWyborows
+                .Where(x => x.Id == electionId)
+                .Select(x => x.DataZakonczenia)
+                .FirstOrDefault();
 
             return electionDate >= DateTime.Now;
         }
 
         public bool CheckIfElectionStarted(int electionId)
         {
-            var electionDateQuery = from DataWyborow in _context.DataWyborows
-                                    where electionId == DataWyborow.Id
-                                    select DataWyborow.DataRozpoczecia;
-            DateTime electionDate = electionDateQuery.AsEnumerable().First();
+            var electionDate = _context.DataWyborows
+                .Where(x => x.Id == electionId)
+                .Select(x => x.DataRozpoczecia)
+                .FirstOrDefault();
 
             return electionDate <= DateTime.Now;
         }
@@ -142,8 +155,9 @@ namespace InernetVotingApplication.Services
 
         private List<GlosowanieWyborcze> VerifyElectionBlockchain(int electionId)
         {
-            var listOfRoleId = _context.GlosowanieWyborczes.Select(r => r.Id);
-            var listOfPreviousElectionVotes = _context.GlosowanieWyborczes.Where(r => listOfRoleId.Contains(r.Id)).Where(r => r.IdWybory == electionId).ToList();
+            var listOfPreviousElectionVotes = _context.GlosowanieWyborczes
+                .Where(r => r.IdWybory == electionId)
+                .ToList();
 
             BlockChainHelper.VerifyBlockChain(listOfPreviousElectionVotes);
             return listOfPreviousElectionVotes;
@@ -155,9 +169,7 @@ namespace InernetVotingApplication.Services
                                 where Uzytkownik.Email == user
                                 select Uzytkownik.Id).FirstOrDefaultAsync();
 
-            return await (from GlosUzytkownika in _context.GlosUzytkownikas
-                          where GlosUzytkownika.IdUzytkownik == userId && GlosUzytkownika.IdWybory == election
-                          select GlosUzytkownika.Glos).FirstOrDefaultAsync();
+            return await _context.GlosUzytkownikas.AnyAsync(x => x.IdUzytkownik == userId && x.IdWybory == election);
         }
 
         public GlosowanieWyborczeViewModel SearchVote(string Text)
@@ -186,12 +198,14 @@ namespace InernetVotingApplication.Services
                 };
             }
 
-            var electionCandidates = _context.GlosowanieWyborczes.Select(x => new GlosowanieWyborczeItemViewModel
-            {
-                IdKandydat = x.IdKandydat,
-                IdWybory = x.IdWybory,
-                Hash = x.Hash
-            }).Where(x => x.Hash == Text);
+            var electionCandidates = _context.GlosowanieWyborczes
+                .Select(x => new GlosowanieWyborczeItemViewModel
+                {
+                    IdKandydat = x.IdKandydat,
+                    IdWybory = x.IdWybory,
+                    Hash = x.Hash
+                })
+                .Where(x => x.Hash == Text);
 
             var candidate = GetCandidateInfo(electionCandidates);
 
@@ -201,27 +215,30 @@ namespace InernetVotingApplication.Services
             };
         }
 
+
         public GlosowanieWyborczeViewModel GetElectionResult(int id)
         {
-            var electionResult = _context.GlosowanieWyborczes.Select(x => new GlosowanieWyborczeItemViewModel
-            {
-                IdKandydat = x.IdKandydat,
-                IdWybory = x.IdWybory,
-            }).Where(x => x.IdWybory == id).ToList();
+            var electionResult = _context.GlosowanieWyborczes
+                .Where(x => x.IdWybory == id)
+                .GroupBy(x => x.IdKandydat)
+                .Select(g => new GlosowanieWyborczeItemViewModel
+                {
+                    IdKandydat = g.Key,
+                    IdWybory = id,
+                    CountedVotes = g.Count()
+                })
+                .ToList();
 
-            for (int i = 0; i < electionResult.Count; i++)
+            double allElectionVotes = electionResult.Sum(c => c.CountedVotes);
+
+            if (allElectionVotes != 0)
             {
-                electionResult[i] = GetCandidateInfo(electionResult[i]);
-                electionResult[i].CountedVotes = CountVotes(id, electionResult[i].IdKandydat);
+                foreach (var candidate in electionResult)
+                {
+                    GetCandidateInfo(candidate);
+                    candidate.CountedVotesPercentage = (candidate.CountedVotes / allElectionVotes) * 100;
+                }
             }
-
-            electionResult = electionResult.Distinct(new ItemEqualityComparer()).ToList();
-
-            double allElectionVotes = 0;
-
-            allElectionVotes = CountedAllVotes(electionResult, allElectionVotes);
-
-            CountedVotesInPercentage(electionResult, allElectionVotes);
 
             return new GlosowanieWyborczeViewModel
             {
@@ -229,53 +246,38 @@ namespace InernetVotingApplication.Services
             };
         }
 
-        private static void CountedVotesInPercentage(List<GlosowanieWyborczeItemViewModel> electionResult, double allElectionVotes)
-        {
-            for (int i = 0; i < electionResult.Count; i++)
-            {
-                electionResult[i].CountedVotesPercentage = (electionResult[i].CountedVotes / allElectionVotes) * 100;
-            }
-        }
-
-        private static double CountedAllVotes(List<GlosowanieWyborczeItemViewModel> electionResult, double allElectionVotes)
-        {
-            for (int i = 0; i < electionResult.Count; i++)
-            {
-                allElectionVotes += electionResult[i].CountedVotes;
-            }
-
-            return allElectionVotes;
-        }
-
-        public int CountVotes(int election, int candidate)
-        {
-            return (from GlosowanieWyborcze in _context.GlosowanieWyborczes
-                    where GlosowanieWyborcze.IdKandydat == candidate && GlosowanieWyborcze.IdWybory == election
-                    select GlosowanieWyborcze.Glos).Count();
-        }
-
         private GlosowanieWyborczeItemViewModel GetCandidateInfo(GlosowanieWyborczeItemViewModel candidate)
         {
             int idKandydat = candidate.IdKandydat;
             int idWybory = candidate.IdWybory;
 
-            string candidateName = (from Kandydat in _context.Kandydats
-                                    where Kandydat.Id == idKandydat
-                                    select Kandydat.Imie).FirstOrDefault();
+            var result = from glosowanie in _context.GlosowanieWyborczes
+                         join kandydat in _context.Kandydats on glosowanie.IdKandydat equals kandydat.Id
+                         join dataWyborow in _context.DataWyborows on glosowanie.IdWybory equals dataWyborow.Id
+                         where glosowanie.IdKandydat == idKandydat && glosowanie.IdWybory == idWybory
+                         select new GlosowanieWyborczeItemViewModel
+                         {
+                             IdKandydat = glosowanie.IdKandydat,
+                             IdWybory = glosowanie.IdWybory,
+                             Hash = glosowanie.Hash,
+                             CandidateName = kandydat.Imie,
+                             CandidateSurname = kandydat.Nazwisko,
+                             ElectionDesc = dataWyborow.Opis
+                         };
 
-            string candidateSurname = (from Kandydat in _context.Kandydats
-                                       where Kandydat.Id == idKandydat
-                                       select Kandydat.Nazwisko).FirstOrDefault();
+            var resultCandidate = result.FirstOrDefault();
+            if (resultCandidate == null)
+            {
+                resultCandidate = new GlosowanieWyborczeItemViewModel
+                {
+                    IdWybory = -1,
+                    IdKandydat = -1
+                };
+            }
 
-            string electionDesc = (from DataWyborow in _context.DataWyborows
-                                   where DataWyborow.Id == idWybory
-                                   select DataWyborow.Opis).FirstOrDefault();
-
-            candidate.CandidateName = candidateName;
-            candidate.CandidateSurname = candidateSurname;
-            candidate.ElectionDesc = electionDesc;
-            return candidate;
+            return resultCandidate;
         }
+
         private GlosowanieWyborczeItemViewModel GetCandidateInfo(IQueryable<GlosowanieWyborczeItemViewModel> electionCandidates)
         {
             var candidate = electionCandidates.FirstOrDefault();
@@ -289,31 +291,12 @@ namespace InernetVotingApplication.Services
                 };
             }
 
-            int idKandydat = candidate.IdKandydat;
-            int idWybory = candidate.IdWybory;
-
-            string candidateName = (from Kandydat in _context.Kandydats
-                                    where Kandydat.Id == idKandydat
-                                    select Kandydat.Imie).FirstOrDefault();
-
-            string candidateSurname = (from Kandydat in _context.Kandydats
-                                       where Kandydat.Id == idKandydat
-                                       select Kandydat.Nazwisko).FirstOrDefault();
-
-            string electionDesc = (from DataWyborow in _context.DataWyborows
-                                   where DataWyborow.Id == idWybory
-                                   select DataWyborow.Opis).FirstOrDefault();
-
-            candidate.CandidateName = candidateName;
-            candidate.CandidateSurname = candidateSurname;
-            candidate.ElectionDesc = electionDesc;
-            return candidate;
+            return GetCandidateInfo(candidate);
         }
 
-        public List<DataWyborow> ShowElectionByName()
+        public async Task<List<DataWyborow>> ShowElectionByNameAsync()
         {
-            var listOfElectionId = _context.DataWyborows.Select(r => r.Id);
-            return _context.DataWyborows.Where(r => listOfElectionId.Contains(r.Id)).ToList();
+            return await _context.DataWyborows.ToListAsync();
         }
     }
 }

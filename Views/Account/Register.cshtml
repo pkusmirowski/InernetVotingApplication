@@ -3,10 +3,7 @@
 @{
     ViewData["Title"] = "Rejestracja użytkownika";
 }
-<br />
-<br />
-<br />
-<br />
+
 <div class="container">
     <main id="main">
         <h2>Rejestracja</h2>
@@ -16,58 +13,61 @@
                 <form asp-action="Register">
                     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                     <div class="form-group">
-                        <label asp-for="Imie" class="control-label"></label>
+                        <label asp-for="Imie" class="control-label">Imię</label>
                         <input asp-for="Imie" class="form-control" />
                         <span asp-validation-for="Imie" class="text-danger"></span>
                     </div>
                     <div class="form-group">
-                        <label asp-for="Nazwisko" class="control-label"></label>
+                        <label asp-for="Nazwisko" class="control-label">Nazwisko</label>
                         <input asp-for="Nazwisko" class="form-control" />
                         <span asp-validation-for="Nazwisko" class="text-danger"></span>
                     </div>
                     <div class="form-group">
-                        <label asp-for="Pesel" class="control-label"></label>
+                        <label asp-for="Pesel" class="control-label">PESEL</label>
                         <input asp-for="Pesel" class="form-control" />
                         <span asp-validation-for="Pesel" class="text-danger"></span>
                     </div>
                     <div class="form-group">
-                        <label asp-for="Email" class="control-label"></label>
+                        <label asp-for="Email" class="control-label">E-mail</label>
                         <input asp-for="Email" class="form-control" />
                         <span asp-validation-for="Email" class="text-danger"></span>
                     </div>
                     <div class="form-group">
-                        <label asp-for="DataUrodzenia" class="control-label"></label>
+                        <label asp-for="DataUrodzenia" class="control-label">Data urodzenia</label>
                         <input asp-for="DataUrodzenia" class="form-control" />
                         <span asp-validation-for="DataUrodzenia" class="text-danger"></span>
                     </div>
                     <div class="form-group">
-                        <label asp-for="Haslo" class="control-label"></label>
+                        <label asp-for="Haslo" class="control-label">Hasło</label>
                         <input asp-for="Haslo" class="form-control" />
                         <span asp-validation-for="Haslo" class="text-danger"></span>
                     </div>
                     <div class="form-group">
-                        <label asp-for="ConfirmPassword" class="control-label"></label>
+                        <label asp-for="ConfirmPassword" class="control-label">Powtórz hasło</label>
                         <input asp-for="ConfirmPassword" class="form-control" />
                         <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
                     </div>
-                    <div class="form-group">
-                        <input type="submit" value="Zarejestruj się" class="btn btn-primary" />
-                    </div>
+                    <button type="submit" class="btn btn-primary">Zarejestruj się</button>
                 </form>
-                @if (ViewBag.Error == false)
+                @if (ViewBag.Error)
                 {
-                    <br />
-                    <div class="alert alert-danger" role="alert">
+                    <div class="alert alert-danger mt-3" role="alert">
                         <b>Wprowadzono niepoprawne dane!</b>
                     </div>
                 }
-                <br />
-                <p class="text-success"><b>@ViewBag.registrationSuccessful</b></p>
+                @if (!string.IsNullOrEmpty(ViewBag.registrationSuccessful))
+                {
+                    <div class="alert alert-success mt-3" role="alert">
+                        <b>@ViewBag.registrationSuccessful</b>
+                    </div>
+                }
             </div>
         </div>
-
-        @section Scripts {
-        @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-        }
     </main>
 </div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

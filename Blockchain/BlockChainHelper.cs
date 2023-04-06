@@ -1,4 +1,5 @@
 ﻿using InernetVotingApplication.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -6,26 +7,33 @@ namespace InernetVotingApplication.Blockchain
 {
     public static class BlockChainHelper
     {
-        public static void VerifyBlockChain(IList<GlosowanieWyborcze> listOfPreviousElectionVotes)
+        private const int FirstBlockId = 0;
+
+        public static bool VerifyBlockChain(IEnumerable<GlosowanieWyborcze> listOfPreviousElectionVotes)
         {
-            string previousHash = null;
-            foreach (var value in listOfPreviousElectionVotes.OrderBy(c => c.Id))
+            if (!listOfPreviousElectionVotes.Any())
             {
-                var previousBlock = listOfPreviousElectionVotes.SingleOrDefault(c => c.Id == value.IdPoprzednie);
-                var blockText = BlockHelper.VoteData(
-                    value.IdKandydat,
-                    value.IdWybory,
-                    value.Glos,
-                    previousHash);
-
-                var blockHash = HashHelper.Hash(blockText);
-
-                // check current block hashes, and previous block hashes, since
-                // it could have been modified in DB, ie checking the chain by two blocks at a time
-                value.JestPoprawny = blockHash == value.Hash && previousHash == previousBlock?.Hash;
-
-                previousHash = blockHash;
+                throw new ArgumentException("Lista poprzednich głosowań nie może być pusta.", nameof(listOfPreviousElectionVotes));
             }
+
+            string previousHash = "";
+
+            foreach (GlosowanieWyborcze value in listOfPreviousElectionVotes.OrderBy(c => c.Id))
+            {
+                if (value.Id != FirstBlockId && listOfPreviousElectionVotes.SingleOrDefault(c => c.Id == value.IdPoprzednie)?.Hash != previousHash)
+                {
+                    return false;
+                }
+
+                if (HashHelper.Hash(BlockHelper.VoteData(value.IdKandydat, value.IdWybory, value.Glos, previousHash)) != value.Hash)
+                {
+                    return false;
+                }
+
+                previousHash = value.Hash;
+            }
+
+            return true;
         }
     }
 }

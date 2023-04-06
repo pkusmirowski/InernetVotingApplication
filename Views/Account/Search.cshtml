@@ -3,16 +3,14 @@
 @{
     ViewData["Title"] = "Wyszukiwarka";
 }
-<br />
-<br />
-<br />
-<br />
+
 <div class="container">
     <main id="main">
         <h2>Wprowadź hash swojego głosu aby sprawdzić jego poprawność</h2>
         <h3>Jeśli twój głos zostanie znaleziony, zobaczysz go poniżej</h3>
         <hr />
-        <center>
+
+        <div class="text-center">
             <form method="get">
                 <div class="input-group">
                     <input class="form-control" asp-for="Text" />
@@ -21,23 +19,28 @@
                     </div>
                 </div>
             </form>
-            @if (@Model.SearchCandidate.IdKandydat != 0 && @Model.SearchCandidate.IdWybory != 0)
+
+            @if (Model.SearchCandidate.IdKandydat != 0 && Model.SearchCandidate.IdWybory != 0)
             {
-                <table border="1">
-                    <tr>
-                        <th>Imię kandydata</th>
-                        <th>Nazwisko kandydata</th>
-                        <th>Opis wyborów</th>
-                        <th>Hash</th>
-                    </tr>
-                    <tr>
-                        <td>@Model.SearchCandidate.CandidateName</td>
-                        <td>@Model.SearchCandidate.CandidateSurname</td>
-                        <td>@Model.SearchCandidate.ElectionDesc</td>
-                        <td>@Model.SearchCandidate.Hash</td>
-                    </tr>
+                <table class="table mt-4">
+                    <thead>
+                        <tr>
+                            <th scope="col">Imię kandydata</th>
+                            <th scope="col">Nazwisko kandydata</th>
+                            <th scope="col">Opis wyborów</th>
+                            <th scope="col">Hash</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>@Model.SearchCandidate.CandidateName</td>
+                            <td>@Model.SearchCandidate.CandidateSurname</td>
+                            <td>@Model.SearchCandidate.ElectionDesc</td>
+                            <td>@Model.SearchCandidate.Hash</td>
+                        </tr>
+                    </tbody>
                 </table>
             }
-        </center>
+        </div>
     </main>
 </div>

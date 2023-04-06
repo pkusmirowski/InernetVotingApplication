@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using System.Text;
 
 namespace InernetVotingApplication.Blockchain
@@ -8,25 +7,14 @@ namespace InernetVotingApplication.Blockchain
     {
         public static string Hash(string input)
         {
-            return HashInternal(input);
-        }
-
-        private static string HashInternal(string str)
-        {
             using var sha = SHA256.Create();
-            var inputBytes = Encoding.UTF8.GetBytes(str);
+            var inputBytes = Encoding.UTF8.GetBytes(input);
             var hashBytes = sha.ComputeHash(inputBytes);
-            return GetStringFromHash(hashBytes);
-        }
-
-        private static string GetStringFromHash(IEnumerable<byte> hash)
-        {
-            var result = new StringBuilder();
-            foreach (var value in hash)
+            var result = new StringBuilder(hashBytes.Length * 2);
+            foreach (var b in hashBytes)
             {
-                result.Append(value.ToString("X2"));
+                result.Append(b.ToString("x2"));
             }
-
             return result.ToString();
         }
     }

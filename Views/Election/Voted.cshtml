@@ -1,24 +1,18 @@
 ﻿@{
     ViewData["Title"] = "Oddany głos";
 }
-<br />
-<br />
-<br />
-<br />
+
 <div class="container">
     <main id="main">
         <center>
-            <p>
-            <h2><b class="text-success">Twój głos został oddany pomyślnie!</b></h2>
-            </p>
-            <p>
-            <h3><b class="text-danger">UWAGA!</b></h3>
-            </p>
-            <p>Skopiuj i zapisz hash aby móc w przyszłości sprawdzić swój głos.</p>
-            <p>
-            <h4>Hash głosu: <b class="text-warning">@ViewBag.ID</b></h4>
-            </p>
-            <p>Twój hash został również wysłany na twój adres Email!</p>
+            <h2 class="text-success">Twój głos został oddany pomyślnie!</h2>
+            <br />
+            <h3 class="text-danger">UWAGA!</h3>
+            <br />
+            <p>Skopiuj i zapisz hash, aby móc w przyszłości sprawdzić swój głos:</p>
+            <h4 class="text-warning font-weight-bold">@ViewBag.ID</h4>
+            <br />
+            <p>Twój hash został również wysłany na Twój adres e-mail.</p>
         </center>
     </main>
 </div>

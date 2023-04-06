@@ -3,24 +3,20 @@
 @{
     ViewData["Title"] = "Wyniki wyborów";
 }
-<br />
-<br />
-<br />
-<br />
+
 <div class="container">
     <main id="main">
         <center>
-            @if (@ViewBag.ID == 1)
+            @if (ViewBag.ID == 1)
             {
                 <p><b>Wybory się nie zaczęły.</b></p>
-                <p>Sprawdź datę i wróć aby oddać głos gdy się zaczną!</p>
+                <p>Sprawdź datę i wróć, aby oddać głos, gdy się zaczną!</p>
             }
-            else if (@ViewBag.ID == 2)
+            else if (ViewBag.ID == 2)
             {
-                <p><b>Oddałeś już swój głos w tych wyborach. Jeśli zgubiłeś hash swojego głosu znajdziesz go na swojej
-                        poczcie e-mail.</b></p>
+                <p><b>Oddałeś już swój głos w tych wyborach. Jeśli zgubiłeś hash swojego głosu, znajdziesz go na swojej poczcie e-mail.</b></p>
                 <p><b>Wybory jeszcze trwają.</b></p>
-                <p>Wróć gdy się zakończą aby poznać wyniki!</p>
+                <p>Wróć, gdy się zakończą, aby poznać wyniki!</p>
             }
             else
             {
@@ -28,29 +24,31 @@
                 <table class="table table-striped">
                     <thead>
                         <tr>
-                            <th scope="col">Imię kandydata</th>
-                            <th scope="col">Nazwisko kandydata</th>
-                            <th scope="col">Opis wyborów</th>
-                            <th scope="col">Ilość uzyskanych głosów</th>
-                            <th scope="col">Procent uzyskanych głosów</th>
+                            <th>Imię kandydata</th>
+                            <th>Nazwisko kandydata</th>
+                            <th>Opis wyborów</th>
+                            <th>Ilość uzyskanych głosów</th>
+                            <th>Procent uzyskanych głosów</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var result in Model.GetElectionVotes)
                         {
                             <tr>
-                                <th scope="row">@result.CandidateName</th>
+                                <td>@result.CandidateName</td>
                                 <td>@result.CandidateSurname</td>
                                 <td>@result.ElectionDesc</td>
                                 <td>@result.CountedVotes</td>
-                                @if (@result.CountedVotesPercentage > 50)
-                                {
-                                    <td class="bg-success text-white"><b>@result.CountedVotesPercentage</b></td>
-                                }
-                                else
-                                {
-                                    <td>@result.CountedVotesPercentage</td>
-                                }
+                                <td>
+                                    @if (result.CountedVotesPercentage > 50)
+                                    {
+                                        <span class="bg-success text-white font-weight-bold">@result.CountedVotesPercentage</span>
+                                    }
+                                    else
+                                    {
+                                        @result.CountedVotesPercentage
+                                    }
+                                </td>
                             </tr>
                         }
                     </tbody>
