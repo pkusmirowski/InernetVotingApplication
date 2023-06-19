@@ -1,11 +1,10 @@
-﻿using InernetVotingApplication.Models;
-using InernetVotingApplication.Services;
+﻿using InternetVotingApplication.Models;
+using InternetVotingApplication.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System;
 using System.Threading.Tasks;
 
-namespace InernetVotingApplication.Controllers
+namespace InternetVotingApplication.Controllers
 {
     public class AccountController : Controller
     {
@@ -32,30 +31,23 @@ namespace InernetVotingApplication.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RegisterAsync(Uzytkownik user)
         {
+            if (HttpContext.Session.GetString("email") != null)
+            {
+                return RedirectToAction("Dashboard");
+            }
+
             if (ModelState.IsValid)
             {
                 if (await _userService.RegisterAsync(user))
                 {
-                    ViewBag.registrationSuccessful = "Użytkownik " + user.Imie + " " + user.Nazwisko + " został zarejestrowany poprawnie! </br> Aktywuj swoje konto potwierdzając adres E-mail";
+                    ViewBag.registrationSuccessful = "Uzytkownik " + user.Imie + " " + user.Nazwisko + " został zarejestrowany poprawnie! </br> Aktywuj swoje konto potwierdzając adres E-mail";
                     return View();
                 }
-                else
-                {
-                    return RedirectToAction("RegistrationError");
-                }
+                ViewBag.Error = false;
+                return View();
             }
-            else
-            {
-                return View(user);
-            }
+            return View();
         }
-
-        public IActionResult RegistrationError()
-        {
-            ViewBag.Error = "Błąd podczas rejestracji użytkownika.";
-            return View("Register");
-        }
-
 
         public async Task<IActionResult> LoginAsync(Logowanie user)
         {
@@ -64,32 +56,35 @@ namespace InernetVotingApplication.Controllers
                 return RedirectToAction("Dashboard");
             }
 
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
+                var val = await _userService.LoginAsync(user);
+                if (val == 0 || val == 1)
+                {
+                    if (val == 0)
+                    {
+                        //Zapisanie admina w sesji
+                        string email = user.Email;
+                        HttpContext.Session.SetString("email", email);
+
+                        const string admin = "Admin";
+                        HttpContext.Session.SetString("Admin", admin);
+                        return RedirectToAction("Panel", "Admin");
+                    }
+                    else
+                    {
+                        //Zapisanie użytkownika w sesji
+                        string email = user.Email;
+                        HttpContext.Session.SetString("email", email);
+                        return RedirectToAction("Dashboard", "Election");
+                    }
+                }
+                ViewBag.Error = false;
                 return View();
             }
 
-            var val = await _userService.LoginAsync(user);
-
-            switch (val)
-            {
-                case 0:
-                    // Zapisanie admina w sesji
-                    HttpContext.Session.SetString("email", user.Email);
-                    HttpContext.Session.SetString("Admin", "Admin");
-                    return RedirectToAction("Panel", "Admin");
-
-                case 1:
-                    // Zapisanie użytkownika w sesji
-                    HttpContext.Session.SetString("email", user.Email);
-                    return RedirectToAction("Dashboard", "Election");
-
-                default:
-                    ViewBag.Error = false;
-                    return View();
-            }
+            return View();
         }
-
 
         public IActionResult Logout()
         {
@@ -109,7 +104,7 @@ namespace InernetVotingApplication.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ChangePassword(ChangePassword user)
+        public IActionResult ChangePassword(ChangePassword user)
         {
             if (string.IsNullOrEmpty(HttpContext.Session.GetString("email")))
             {
@@ -118,7 +113,7 @@ namespace InernetVotingApplication.Controllers
 
             if (ModelState.IsValid)
             {
-                if (await _userService.ChangePasswordAsync(user, HttpContext.Session.GetString("email")))
+                if (_userService.ChangePassword(user, HttpContext.Session.GetString("email")))
                 {
                     ViewBag.changePasswordSuccessful = "Hasło zostało zmienione poprawnie!";
                     return View();
@@ -129,34 +124,17 @@ namespace InernetVotingApplication.Controllers
             return View();
         }
 
-        // Obsługuje aktywację konta za pomocą kodu aktywacyjnego
-        public async Task<ActionResult> Activation()
+        public ActionResult Activation()
         {
-            // Sprawdza, czy kod aktywacyjny został podany
-            if (!RouteData.Values.TryGetValue("id", out object idValue))
+            ViewBag.Message = "Zły kod aktywacyjny.";
+            if (RouteData.Values["id"] != null)
             {
-                ViewBag.Message = "Nie podano kodu aktywacyjnego.";
-                return View();
+                if (_userService.GetUserByAcitvationCode(new(RouteData.Values["id"].ToString())))
+                {
+                    ViewBag.Message = "Aktywacja konta powiodła się.";
+                }
             }
 
-            // Sprawdza, czy kod aktywacyjny jest poprawny
-            if (!Guid.TryParse(idValue.ToString(), out Guid activationCode))
-            {
-                ViewBag.Message = "Nieprawidłowy kod aktywacyjny.";
-                return View();
-            }
-
-            // Wywołuje metodę serwisu, która zmienia stan konta i kod aktywacyjny
-            if (await _userService.GetUserByActivationCodeAsync(activationCode))
-            {
-                ViewBag.Message = "Aktywacja konta powiodła się.";
-            }
-            else
-            {
-                ViewBag.Message = "Nieprawidłowy kod aktywacyjny.";
-            }
-
-            // Zwraca widok z odpowiednim komunikatem
             return View();
         }
 
@@ -166,25 +144,29 @@ namespace InernetVotingApplication.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> PasswordRecoveryAsync(PasswordRecovery passwordRecovery)
+        public async Task<IActionResult> PasswordRecoveryAsync(PasswordRecovery password)
         {
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
-                return View();
+                if (await _userService.RecoverPassword(password))
+                {
+                    ViewBag.Success = true;
+                    return View();
+                }
+                else
+                {
+                    ViewBag.Error = false;
+                }
             }
-
-            if (await _userService.RecoverPassword(passwordRecovery))
-            {
-                ViewBag.Success = true;
-                return View();
-            }
-
-            ViewBag.Error = false;
             return View();
         }
 
-        public IActionResult Search(string Text = "1")
+        public IActionResult Search(string Text)
         {
+            if (string.IsNullOrEmpty(Text))
+            {
+                Text = "1";
+            }
             var vm = _electionService.SearchVote(Text);
 
             return View(vm);

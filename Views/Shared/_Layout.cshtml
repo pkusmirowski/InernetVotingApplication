@@ -1,7 +1,6 @@
 ﻿@using Microsoft.AspNetCore.Http;
 <!DOCTYPE html>
 <html lang="pl">
-
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
@@ -15,9 +14,7 @@
     <link href="/assets/img/apple-touch-icon.png" rel="apple-touch-icon">
 
     <!-- Google Fonts -->
-    <link
-        href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Raleway:300,300i,400,400i,600,600i,700,700i"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Raleway:300,300i,400,400i,600,600i,700,700i" rel="stylesheet">
 
     <!-- Vendor CSS Files -->
     <link href="/assets/vendor/aos/aos.css" rel="stylesheet">
@@ -37,13 +34,11 @@
     * License: https://bootstrapmade.com/license/
     ======================================================== -->
 </head>
-
 <body>
     <header id="header" class="fixed-top d-flex align-items-center">
         <div class="container d-flex align-items-center justify-content-between">
             <div class="logo">
-                <h1 class="text-light"><span><a class="nav-link text-dark" asp-controller="Home"
-                            asp-action="Index">Wybory Prezydenckie</a></span></h1>
+                <h1 class="text-light"><span><a class="nav-link text-dark" asp-controller="Home" asp-action="Index">Wybory Prezydenckie</a></span></h1>
                 <!-- <a href="index.html"><img src="assets/img/logo.png" alt="" class="img-fluid"></a> -->
             </div>
             <nav id="navbar" class="navbar">
@@ -58,8 +53,7 @@
                             <a class="nav-link scrollto" asp-controller="Account" asp-action="Login">Zaloguj się</a>
                         </li>
                         <li>
-                            <a class="nav-link scrollto" asp-controller="Account" asp-action="PasswordRecovery">Przypomnij
-                                hasło</a>
+                            <a class="nav-link scrollto" asp-controller="Account" asp-action="PasswordRecovery">Przypomnij hasło</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link scrollto" asp-controller="Account" asp-action="Search">Sprawdź głos</a>
@@ -69,12 +63,10 @@
                     {
 
                         <li>
-                            <a class="nav-link scrollto" asp-controller="Admin" asp-action="AddCandidate">Dodaj
-                                kandydata</a>
+                            <a class="nav-link scrollto" asp-controller="Admin" asp-action="AddCandidate">Dodaj kandydata</a>
                         </li>
                         <li>
-                            <a class="nav-link scrollto" asp-controller="Admin" asp-action="CreateElection">Stwórz
-                                wybory</a>
+                            <a class="nav-link scrollto" asp-controller="Admin" asp-action="CreateElection">Stwórz wybory</a>
                         </li>
                         <li>
                             <a class="nav-link scrollto" asp-controller="Account" asp-action="Logout">Wyloguj się</a>
@@ -83,12 +75,10 @@
                     else
                     {
                         <li>
-                            <a class="nav-link scrollto" asp-controller="Election" asp-action="Dashboard">Panel
-                                głosowania</a>
+                            <a class="nav-link scrollto" asp-controller="Election" asp-action="Dashboard">Panel głosowania</a>
                         </li>
                         <li>
-                            <a class="nav-link scrollto" asp-controller="Account" asp-action="ChangePassword">Zmiana
-                                hasła</a>
+                            <a class="nav-link scrollto" asp-controller="Account" asp-action="ChangePassword">Zmiana hasła</a>
                         </li>
                         <li>
                             <a class="nav-link scrollto" asp-controller="Account" asp-action="Search">Sprawdź głos</a>
@@ -103,7 +93,7 @@
                 </ul>
                 <i class="bi bi-list mobile-nav-toggle"></i>
             </nav><!-- .navbar -->
-        </div>
+            </div>
     </header>
     @RenderBody()
     <footer id="footer">
@@ -124,16 +114,11 @@
                     <div class="col-lg-3 col-md-6 footer-links">
                         <h4>Przydatne linki</h4>
                         <ul>
-                            <li><i class="bx bx-chevron-right"></i> <a asp-controller="Home" asp-action="Index">Strona
-                                    główna</a>
-                            <li><i class="bx bx-chevron-right"></i> <a asp-controller="Account"
-                                    asp-action="Register">Rejestracja</a>
-                            <li><i class="bx bx-chevron-right"></i> <a asp-controller="Account"
-                                    asp-action="Login">Zaloguj się</a>
-                            <li><i class="bx bx-chevron-right"></i> <a asp-controller="Account"
-                                    asp-action="PasswordRecovery">Przypomnij hasło</a>
-                            <li><i class="bx bx-chevron-right"></i> <a asp-area="" asp-controller="Home"
-                                    asp-action="Privacy">Prywatność</a>
+                            <li><i class="bx bx-chevron-right"></i> <a asp-controller="Home" asp-action="Index">Strona główna</a>
+                            <li><i class="bx bx-chevron-right"></i> <a asp-controller="Account" asp-action="Register">Rejestracja</a>
+                            <li><i class="bx bx-chevron-right"></i> <a asp-controller="Account" asp-action="Login">Zaloguj się</a>
+                            <li><i class="bx bx-chevron-right"></i> <a asp-controller="Account" asp-action="PasswordRecovery">Przypomnij hasło</a>
+                            <li><i class="bx bx-chevron-right"></i> <a asp-area="" asp-controller="Home" asp-action="Privacy">Prywatność</a>
                         </ul>
                     </div>
 
@@ -160,8 +145,7 @@
         </div>
         <div class="container py-4">
             <div class="copyright">
-                &copy; 2021 - AplikacjaDoGłosowańInternetowych <strong><span><a asp-area="" asp-controller="Home"
-                            asp-action="Privacy">Prywatność</a></span></strong>. All Rights Reserved
+                &copy; 2021 - AplikacjaDoGłosowańInternetowych <strong><span><a asp-area="" asp-controller="Home" asp-action="Privacy">Prywatność</a></span></strong>. All Rights Reserved
             </div>
             <div class="credits">
                 <!-- All the links in the footer should remain intact. -->
@@ -172,8 +156,7 @@
             </div>
         </div>
     </footer><!-- End Footer -->
-    <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i
-            class="bi bi-arrow-up-short"></i></a>
+    <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
@@ -191,5 +174,4 @@
     <script src="assets/js/main.js"></script>
     @RenderSection("Scripts", required: false)
 </body>
-
 </html>

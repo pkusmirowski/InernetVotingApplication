@@ -1,4 +1,4 @@
-﻿@model InernetVotingApplication.ViewModels.GlosowanieWyborczeViewModel
+﻿@model InternetVotingApplication.ViewModels.GlosowanieWyborczeViewModel
 
 @{
     ViewData["Title"] = "Wyszukiwarka";
@@ -10,25 +10,25 @@
         <h3>Jeśli twój głos zostanie znaleziony, zobaczysz go poniżej</h3>
         <hr />
 
-        <div class="text-center">
-            <form method="get">
-                <div class="input-group">
-                    <input class="form-control" asp-for="Text" />
-                    <div class="input-group-append">
-                        <button type="submit" class="btn btn-primary">Szukaj</button>
-                    </div>
+        <form method="get">
+            <div class="input-group">
+                <input class="form-control" asp-for="Text" />
+                <div class="input-group-append">
+                    <button type="submit" class="btn btn-primary">Szukaj</button>
                 </div>
-            </form>
+            </div>
+        </form>
 
-            @if (Model.SearchCandidate.IdKandydat != 0 && Model.SearchCandidate.IdWybory != 0)
-            {
-                <table class="table mt-4">
+        @if (Model.SearchCandidate.IdKandydat != 0 && Model.SearchCandidate.IdWybory != 0)
+        {
+            <div class="table-responsive">
+                <table class="table table-striped">
                     <thead>
                         <tr>
-                            <th scope="col">Imię kandydata</th>
-                            <th scope="col">Nazwisko kandydata</th>
-                            <th scope="col">Opis wyborów</th>
-                            <th scope="col">Hash</th>
+                            <th>Imię kandydata</th>
+                            <th>Nazwisko kandydata</th>
+                            <th>Opis wyborów</th>
+                            <th>Hash</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -40,7 +40,7 @@
                         </tr>
                     </tbody>
                 </table>
-            }
-        </div>
+            </div>
+        }
     </main>
 </div>

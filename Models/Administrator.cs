@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 #nullable disable
 
-namespace InernetVotingApplication.Models
+namespace InternetVotingApplication.Models
 {
     [Table("Administrator")]
     public partial class Administrator

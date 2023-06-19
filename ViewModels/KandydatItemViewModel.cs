@@ -1,4 +1,4 @@
-﻿namespace InernetVotingApplication.ViewModels
+﻿namespace InternetVotingApplication.ViewModels
 {
     public class KandydatItemViewModel
     {

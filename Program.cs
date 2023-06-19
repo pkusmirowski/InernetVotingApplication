@@ -1,4 +1,4 @@
-using InernetVotingApplication;
+using InternetVotingApplication;
 using Microsoft.AspNetCore.Builder;
 
 var builder = WebApplication.CreateBuilder(args);

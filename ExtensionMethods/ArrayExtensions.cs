@@ -1,15 +1,16 @@
 ﻿using System;
-using System.Diagnostics.Contracts;
 
-namespace InernetVotingApplication.ExtensionMethods
+namespace InternetVotingApplication.ExtensionMethods
 {
     public static class ArrayExtensions
     {
-        // Metoda z atrybutem Pure, informującym kompilator o tym, że metoda nie modyfikuje stanu programu
-        [Pure]
+        /// <summary>
+        /// Metoda sprawdza, czy tablica jest pusta bądź jej długość wynosi 0 elementów.
+        /// </summary>
+        /// <param name="array">Tablica do testowania.</param>
+        /// <returns>True, jeśli tablica spełnia warunki. Fałsz, jeśli nie spełnia.</returns>
         public static bool IsNullOrEmpty(this Array array)
         {
-            // Zwraca wartość true, jeśli przekazana tablica jest null lub ma długość równą 0
             return array == null || array.Length == 0;
         }
     }

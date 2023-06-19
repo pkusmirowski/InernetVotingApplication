@@ -1,12 +1,12 @@
-﻿using InernetVotingApplication.Models;
-using InernetVotingApplication.Services;
+﻿using InternetVotingApplication.Models;
+using InternetVotingApplication.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using System.Linq;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace InernetVotingApplication.Controllers
+namespace InternetVotingApplication.Controllers
 {
     public class AdminController : Controller
     {
@@ -21,7 +21,12 @@ namespace InernetVotingApplication.Controllers
 
         public IActionResult Panel()
         {
-            if (string.IsNullOrEmpty(HttpContext.Session.GetString("email")) || string.IsNullOrEmpty(HttpContext.Session.GetString("Admin")))
+            if (string.IsNullOrEmpty(HttpContext.Session.GetString("email")))
+            {
+                return RedirectToAction("Login");
+            }
+
+            if (string.IsNullOrEmpty(HttpContext.Session.GetString("Admin")))
             {
                 return RedirectToAction("Login");
             }
@@ -29,19 +34,28 @@ namespace InernetVotingApplication.Controllers
             return View();
         }
 
-        public async Task<IActionResult> AddCandidate()
+        public IActionResult AddCandidate()
         {
             if (string.IsNullOrEmpty(HttpContext.Session.GetString("Admin")))
             {
                 return RedirectToAction("Login");
             }
 
-            ViewBag.IdWybory = (await _electionService.ShowElectionByNameAsync())
-                                .Select(a => new SelectListItem { Text = a.Opis, Value = a.Id.ToString() });
+            List<DataWyborow> electionIdList = new();
+            electionIdList = _electionService.ShowElectionByName();
+
+            ViewBag.IdWybory = (List<SelectListItem>)electionIdList.ConvertAll(a =>
+            {
+                return new SelectListItem()
+                {
+                    Text = a.Opis,
+                    Value = a.Id.ToString(),
+                    Selected = false
+                };
+            });
 
             return View();
         }
-
 
         [HttpPost]
         public async Task<IActionResult> AddCandidateAsync(Kandydat kandydat)
@@ -50,7 +64,7 @@ namespace InernetVotingApplication.Controllers
             {
                 if (await _adminService.AddCandidateAsync(kandydat))
                 {
-                    ViewBag.addCandidateSuccessful = $"Kandydat {kandydat.Imie} {kandydat.Nazwisko} został dodany do głosowania wyborczego!";
+                    ViewBag.addCandidateSuccessful = "Kandydat " + kandydat.Imie + " " + kandydat.Nazwisko + " został dodany do głosowania wyborczego!";
                 }
                 else
                 {
@@ -58,18 +72,28 @@ namespace InernetVotingApplication.Controllers
                 }
             }
 
-            ViewBag.IdWybory = (await _electionService.ShowElectionByNameAsync()).Select(a => new SelectListItem { Text = a.Opis, Value = a.Id.ToString() });
+            List<DataWyborow> electionIdList = new();
+            electionIdList = _electionService.ShowElectionByName();
+
+            ViewBag.IdWybory = electionIdList.ConvertAll(a =>
+            {
+                return new SelectListItem()
+                {
+                    Text = a.Opis,
+                    Value = a.Id.ToString(),
+                    Selected = false
+                };
+            });
 
             return View();
         }
 
-
         public IActionResult CreateElection()
         {
-            var isAdmin = HttpContext.Session.GetString("Admin");
-
-            if (string.IsNullOrEmpty(isAdmin) || isAdmin != "true")
+            if (string.IsNullOrEmpty(HttpContext.Session.GetString("Admin")))
+            {
                 return RedirectToAction("Login");
+            }
 
             return View();
         }

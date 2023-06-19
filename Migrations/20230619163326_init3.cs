@@ -1,33 +1,35 @@
 ﻿using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace InernetVotingApplication.Migrations
+#nullable disable
+
+namespace InternetVotingApplication.Migrations
 {
-    public partial class fourth : Migration
+    public partial class init3 : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterColumn<bool>(
+            migrationBuilder.AlterColumn<int>(
                 name: "jestAktywne",
                 table: "Uzytkownik",
-                type: "bit",
-                nullable: false,
+                type: "int",
+                nullable: true,
                 defaultValueSql: "((1))",
-                oldClrType: typeof(bool),
-                oldType: "bit",
-                oldNullable: true,
+                oldClrType: typeof(int),
+                oldType: "int",
                 oldDefaultValueSql: "((1))");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterColumn<bool>(
+            migrationBuilder.AlterColumn<int>(
                 name: "jestAktywne",
                 table: "Uzytkownik",
-                type: "bit",
-                nullable: true,
+                type: "int",
+                nullable: false,
                 defaultValueSql: "((1))",
-                oldClrType: typeof(bool),
-                oldType: "bit",
+                oldClrType: typeof(int),
+                oldType: "int",
+                oldNullable: true,
                 oldDefaultValueSql: "((1))");
         }
     }

@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
-namespace InernetVotingApplication.Controllers
+namespace InternetVotingApplication.Controllers
 {
     public class HomeController : Controller
     {

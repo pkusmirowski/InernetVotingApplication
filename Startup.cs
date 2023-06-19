@@ -1,5 +1,5 @@
-using InernetVotingApplication.Models;
-using InernetVotingApplication.Services;
+using InternetVotingApplication.Models;
+using InternetVotingApplication.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -7,7 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace InernetVotingApplication
+namespace InternetVotingApplication
 {
     public class Startup
     {
@@ -21,27 +21,19 @@ namespace InernetVotingApplication
         public void ConfigureServices(IServiceCollection services)
         {
             var connectionString = Configuration.GetConnectionString("InternetVotingDBConnection");
-
             services.AddControllersWithViews();
-            services.AddDbContext<InternetVotingContext>(options =>
-                options.UseSqlServer(connectionString));
+            services.AddDbContext<InternetVotingContext>(options => options.UseSqlServer(connectionString));
             services.AddTransient<UserService>();
             services.AddTransient<AdminService>();
             services.AddTransient<ElectionService>();
-
             services.AddDistributedMemoryCache();
             services.AddSession();
-
             services.AddRazorPages();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-            else
+            if (!env.IsDevelopment())
             {
                 app.UseExceptionHandler("/Error");
                 app.UseHsts();
@@ -49,13 +41,9 @@ namespace InernetVotingApplication
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
-
             app.UseRouting();
-
-            app.UseAuthentication();
             app.UseAuthorization();
             app.UseSession();
-
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute(

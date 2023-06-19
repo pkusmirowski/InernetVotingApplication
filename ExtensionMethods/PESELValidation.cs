@@ -1,37 +1,30 @@
-﻿using System.Linq;
-
-namespace InernetVotingApplication.ExtensionMethods
+﻿namespace InternetVotingApplication.ExtensionMethods
 {
     public static class PeselValidation
     {
-        // Metoda sprawdzająca poprawność numeru PESEL
         public static bool IsValidPESEL(string input)
         {
-            // Wagi poszczególnych cyfr PESEL
             int[] weights = { 1, 3, 7, 9, 1, 3, 7, 9, 1, 3 };
 
-            // Sprawdzenie, czy długość podanego numeru PESEL jest równa 11
             if (input.Length != 11)
-            {
                 return false;
-            }
 
-            int controlSum = 0;
-            // Dla każdej cyfry z pierwszych 10 wykorzystywana jest waga z tablicy weights
-            // i obliczana jest suma kontrolna
-            foreach (var (digit, weight) in input[..10].Zip(weights))
-            {
-                // Sprawdzenie, czy dana cyfra jest liczbą
-                if (!int.TryParse(digit.ToString(), out int parsedDigit))
-                {
-                    return false;
-                }
-                controlSum += weight * parsedDigit;
-            }
-            // Obliczenie ostatniej cyfry numeru PESEL
+            int controlSum = CalculateControlSum(input, weights);
             int controlNumber = (10 - (controlSum % 10)) % 10;
-            // Sprawdzenie, czy obliczona cyfra kontrolna jest równa ostatniej cyfrze numeru PESEL
-            return controlNumber == int.Parse(input[^1].ToString());
+
+            int lastDigit = int.Parse(input[^1].ToString());
+
+            return controlNumber == lastDigit;
+        }
+
+        private static int CalculateControlSum(string input, int[] weights)
+        {
+            int controlSum = 0;
+            for (int i = 0; i < input.Length - 1; i++)
+            {
+                controlSum += weights[i] * int.Parse(input[i].ToString());
+            }
+            return controlSum;
         }
     }
 }

@@ -1,7 +1,9 @@
-﻿using InernetVotingApplication.Models;
+﻿using InternetVotingApplication.Models;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.Design;
+using System.Linq;
 using System.Threading.Tasks;
-namespace InernetVotingApplication.Services
+namespace InternetVotingApplication.Services
 {
     public class AdminService
     {
@@ -13,13 +15,18 @@ namespace InernetVotingApplication.Services
 
         public async Task<bool> AddCandidateAsync(Kandydat candidate)
         {
-            var existingCandidate = await _context.Kandydats
-                .FirstOrDefaultAsync(c => c.Imie == candidate.Imie && c.Nazwisko == candidate.Nazwisko && c.IdWybory == candidate.IdWybory);
+            bool isCandidateExists = await _context.Kandydats
+                .AnyAsync(x => x.Imie == candidate.Imie && x.Nazwisko == candidate.Nazwisko);
 
-            if (existingCandidate != null)
+            if (isCandidateExists)
             {
                 return false;
             }
+
+            //if (await _electionService.CheckIfElectionStarted(candidate.IdWybory) || !_electionService.CheckIfElectionEnded(candidate.IdWybory))
+            //{
+            //    return false;
+            //}
 
             await _context.AddAsync(candidate);
             await _context.SaveChangesAsync();
@@ -30,8 +37,10 @@ namespace InernetVotingApplication.Services
 
         public async Task<bool> AddElectionAsync(DataWyborow dataWyborow)
         {
-            bool electionExists = await _context.DataWyborows.AnyAsync(e => e.Opis == dataWyborow.Opis);
-            if (electionExists)
+            bool isElectionExists = await _context.DataWyborows
+                .AnyAsync(x => x.Opis == dataWyborow.Opis);
+
+            if (isElectionExists)
             {
                 return false;
             }

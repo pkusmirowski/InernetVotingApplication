@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 #nullable disable
 
-namespace InernetVotingApplication.Models
+namespace InternetVotingApplication.Models
 {
     [Table("Kandydat")]
     public partial class Kandydat

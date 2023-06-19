@@ -1,4 +1,4 @@
-# InernetVotingApplication
+# InternetVotingApplication
 Application for presidential elections with an internal blockchain that checks the correctness of the votes cast.
 
 Technologies used:

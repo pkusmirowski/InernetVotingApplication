@@ -1,20 +1,32 @@
-﻿using System.Security.Cryptography;
+﻿using System.Collections.Generic;
+using System.Security.Cryptography;
 using System.Text;
 
-namespace InernetVotingApplication.Blockchain
+namespace InternetVotingApplication.Blockchain
 {
     public static class HashHelper
     {
         public static string Hash(string input)
         {
+            return HashInternal(input);
+        }
+
+        private static string HashInternal(string str)
+        {
             using var sha = SHA256.Create();
-            var inputBytes = Encoding.UTF8.GetBytes(input);
+            var inputBytes = Encoding.UTF8.GetBytes(str);
             var hashBytes = sha.ComputeHash(inputBytes);
-            var result = new StringBuilder(hashBytes.Length * 2);
-            foreach (var b in hashBytes)
+            return GetStringFromHash(hashBytes);
+        }
+
+        private static string GetStringFromHash(IEnumerable<byte> hash)
+        {
+            var result = new StringBuilder();
+            foreach (var value in hash)
             {
-                result.Append(b.ToString("x2"));
+                result.Append(value.ToString("X2"));
             }
+
             return result.ToString();
         }
     }

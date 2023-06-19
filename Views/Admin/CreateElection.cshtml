@@ -1,9 +1,12 @@
-﻿@model InernetVotingApplication.Models.DataWyborow
+﻿@model InternetVotingApplication.Models.DataWyborow
 
 @{
     ViewData["Title"] = "Stwórz wybory";
 }
-
+<br />
+<br />
+<br />
+<br />
 <div class="container">
     <main id="main">
         <h2>Stwórz wybory</h2>
@@ -13,22 +16,22 @@
                 <form asp-action="CreateElection">
                     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                     <div class="form-group">
-                        <label asp-for="DataRozpoczecia" class="control-label">Data rozpoczęcia</label>
+                        <label asp-for="DataRozpoczecia" class="control-label"></label>
                         <input asp-for="DataRozpoczecia" class="form-control" />
                         <span asp-validation-for="DataRozpoczecia" class="text-danger"></span>
                     </div>
                     <div class="form-group">
-                        <label asp-for="DataZakonczenia" class="control-label">Data zakończenia</label>
+                        <label asp-for="DataZakonczenia" class="control-label"></label>
                         <input asp-for="DataZakonczenia" class="form-control" />
                         <span asp-validation-for="DataZakonczenia" class="text-danger"></span>
                     </div>
                     <div class="form-group">
-                        <label asp-for="Opis" class="control-label">Opis</label>
+                        <label asp-for="Opis" class="control-label"></label>
                         <input asp-for="Opis" class="form-control" />
                         <span asp-validation-for="Opis" class="text-danger"></span>
                     </div>
-                    <div class="form-group text-center">
-                        <button type="submit" class="btn btn-primary">Stwórz</button>
+                    <div class="form-group">
+                        <input type="submit" value="Stwórz" class="btn btn-primary" />
                     </div>
                 </form>
             </div>
@@ -42,6 +45,8 @@
         }
         <br />
         <p class="text-success"><b>@ViewBag.addElectionSuccessful</b></p>
-        @await Html.PartialAsync("_ValidationScriptsPartial")
+        @section Scripts {
+            @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+        }
     </main>
 </div>

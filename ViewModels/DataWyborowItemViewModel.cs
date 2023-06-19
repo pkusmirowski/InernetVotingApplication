@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace InernetVotingApplication.Models
+namespace InternetVotingApplication.Models
 {
     public class DataWyborowItemViewModel
     {

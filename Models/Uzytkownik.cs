@@ -1,4 +1,4 @@
-﻿using InernetVotingApplication.ExtensionMethods;
+﻿using InternetVotingApplication.ExtensionMethods;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -6,7 +6,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 #nullable disable
 
-namespace InernetVotingApplication.Models
+namespace InternetVotingApplication.Models
 {
     [Table("Uzytkownik")]
     public partial class Uzytkownik
@@ -59,7 +59,7 @@ namespace InernetVotingApplication.Models
         [Display(Name = "Potwierdź hasło")]
         public string ConfirmPassword { get; set; }
         [Column("jestAktywne")]
-        public bool JestAktywne { get; set; }
+        public int? JestAktywne { get; set; }
         [Column("kodAktywacyjny")]
         public Guid KodAktywacyjny { get; set; }
         [InverseProperty(nameof(Administrator.IdUzytkownikNavigation))]

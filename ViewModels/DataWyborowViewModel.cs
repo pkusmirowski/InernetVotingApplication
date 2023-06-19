@@ -1,7 +1,7 @@
-﻿using InernetVotingApplication.Models;
+﻿using InternetVotingApplication.Models;
 using System.Collections.Generic;
 
-namespace InernetVotingApplication.ViewModels
+namespace InternetVotingApplication.ViewModels
 {
     public class DataWyborowViewModel
     {

@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace InernetVotingApplication.Models
+namespace InternetVotingApplication.Models
 {
     public partial class InternetVotingContext : DbContext
     {

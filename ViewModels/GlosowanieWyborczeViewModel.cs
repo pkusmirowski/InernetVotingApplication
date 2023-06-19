@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace InernetVotingApplication.ViewModels
+namespace InternetVotingApplication.ViewModels
 {
     public class GlosowanieWyborczeViewModel
     {

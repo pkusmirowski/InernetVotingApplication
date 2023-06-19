@@ -1,12 +1,15 @@
-﻿@model InernetVotingApplication.ViewModels.GlosowanieWyborczeViewModel
+﻿@model InternetVotingApplication.ViewModels.GlosowanieWyborczeViewModel
 
 @{
     ViewData["Title"] = "Wyniki wyborów";
 }
-
+<br />
+<br />
+<br />
+<br />
 <div class="container">
     <main id="main">
-        <center>
+        <div class="text-center">
             @if (ViewBag.ID == 1)
             {
                 <p><b>Wybory się nie zaczęły.</b></p>
@@ -24,11 +27,11 @@
                 <table class="table table-striped">
                     <thead>
                         <tr>
-                            <th>Imię kandydata</th>
-                            <th>Nazwisko kandydata</th>
-                            <th>Opis wyborów</th>
-                            <th>Ilość uzyskanych głosów</th>
-                            <th>Procent uzyskanych głosów</th>
+                            <th scope="col">Imię kandydata</th>
+                            <th scope="col">Nazwisko kandydata</th>
+                            <th scope="col">Opis wyborów</th>
+                            <th scope="col">Ilość uzyskanych głosów</th>
+                            <th scope="col">Procent uzyskanych głosów</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -39,21 +42,12 @@
                                 <td>@result.CandidateSurname</td>
                                 <td>@result.ElectionDesc</td>
                                 <td>@result.CountedVotes</td>
-                                <td>
-                                    @if (result.CountedVotesPercentage > 50)
-                                    {
-                                        <span class="bg-success text-white font-weight-bold">@result.CountedVotesPercentage</span>
-                                    }
-                                    else
-                                    {
-                                        @result.CountedVotesPercentage
-                                    }
-                                </td>
+                                <td class="@(result.CountedVotesPercentage > 50 ? "bg-success text-white" : "")"><b>@result.CountedVotesPercentage</b></td>
                             </tr>
                         }
                     </tbody>
                 </table>
             }
-        </center>
+        </div>
     </main>
 </div>
