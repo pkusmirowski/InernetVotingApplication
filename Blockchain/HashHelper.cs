@@ -13,11 +13,14 @@ namespace InternetVotingApplication.Blockchain
 
         private static string HashInternal(string str)
         {
-            using var sha = SHA256.Create();
-            var inputBytes = Encoding.UTF8.GetBytes(str);
-            var hashBytes = sha.ComputeHash(inputBytes);
-            return GetStringFromHash(hashBytes);
+            using (var sha = SHA256.Create())
+            {
+                byte[] inputBytes = Encoding.UTF8.GetBytes(str);
+                byte[] hashBytes = sha.ComputeHash(inputBytes);
+                return GetStringFromHash(hashBytes);
+            }
         }
+
 
         private static string GetStringFromHash(IEnumerable<byte> hash)
         {
