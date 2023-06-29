@@ -103,41 +103,41 @@
                     <div class="col-lg-3 col-md-6 footer-contact">
                         <h3>Kontakt</h3>
                         <p>
-                            Lorem ipsum 40/50 <br>
+                            ul. Przykładowa 40/50 <br>
                             Warszawa, 55-555<br>
                             Polska <br><br>
                             <strong>Numer telefonu:</strong> +48 000000000<br>
-                            <strong>Adres E-mail:</strong> info@example.com<br>
+                            <strong>Adres E-mail:</strong> info@twojadomena.pl<br>
                         </p>
                     </div>
 
                     <div class="col-lg-3 col-md-6 footer-links">
                         <h4>Przydatne linki</h4>
                         <ul>
-                            <li><i class="bx bx-chevron-right"></i> <a asp-controller="Home" asp-action="Index">Strona główna</a>
-                            <li><i class="bx bx-chevron-right"></i> <a asp-controller="Account" asp-action="Register">Rejestracja</a>
-                            <li><i class="bx bx-chevron-right"></i> <a asp-controller="Account" asp-action="Login">Zaloguj się</a>
-                            <li><i class="bx bx-chevron-right"></i> <a asp-controller="Account" asp-action="PasswordRecovery">Przypomnij hasło</a>
-                            <li><i class="bx bx-chevron-right"></i> <a asp-area="" asp-controller="Home" asp-action="Privacy">Prywatność</a>
+                            <li><i class="bx bx-chevron-right"></i> <a href="/">Strona główna</a></li>
+                            <li><i class="bx bx-chevron-right"></i> <a href="/Account/Register">Rejestracja</a></li>
+                            <li><i class="bx bx-chevron-right"></i> <a href="/Account/Login">Zaloguj się</a></li>
+                            <li><i class="bx bx-chevron-right"></i> <a href="/Account/PasswordRecovery">Przypomnij hasło</a></li>
+                            <li><i class="bx bx-chevron-right"></i> <a href="/Home/Privacy">Prywatność</a></li>
                         </ul>
                     </div>
 
                     <div class="col-lg-3 col-md-6 footer-links">
                         <h4>Tagi</h4>
                         <ul>
-                            <li><i class="bx bx-chevron-right"></i> <a href="#">Lorem Ipsum</a></li>
-                            <li><i class="bx bx-chevron-right"></i> <a href="#">Lorem Ipsum</a></li>
-                            <li><i class="bx bx-chevron-right"></i> <a href="#">Lorem Ipsum</a></li>
-                            <li><i class="bx bx-chevron-right"></i> <a href="#">Lorem Ipsum</a></li>
-                            <li><i class="bx bx-chevron-right"></i> <a href="#">Lorem Ipsum</a></li>
+                            <li><i class="bx bx-chevron-right"></i> <a href="#">Przykład 1</a></li>
+                            <li><i class="bx bx-chevron-right"></i> <a href="#">Przykład 2</a></li>
+                            <li><i class="bx bx-chevron-right"></i> <a href="#">Przykład 3</a></li>
+                            <li><i class="bx bx-chevron-right"></i> <a href="#">Przykład 4</a></li>
+                            <li><i class="bx bx-chevron-right"></i> <a href="#">Przykład 5</a></li>
                         </ul>
                     </div>
 
                     <div class="col-lg-3 col-md-6 footer-links">
                         <h4>Media społecznościowe</h4>
                         <div class="social-links mt-3">
-                            <a href="test" class="facebook"><i class="bx bxl-facebook"></i></a>
-                            <a href="test" class="twitter"><i class="bx bxl-twitter"></i></a>
+                            <a href="https://www.facebook.com" class="facebook"><i class="bx bxl-facebook"></i></a>
+                            <a href="https://www.twitter.com" class="twitter"><i class="bx bxl-twitter"></i></a>
                         </div>
                     </div>
                 </div>
@@ -145,17 +145,14 @@
         </div>
         <div class="container py-4">
             <div class="copyright">
-                &copy; 2021 - AplikacjaDoGłosowańInternetowych <strong><span><a asp-area="" asp-controller="Home" asp-action="Privacy">Prywatność</a></span></strong>. All Rights Reserved
+                &copy; 2023 - AplikacjaDoGłosowańInternetowych <strong><span><a href="/Home/Privacy">Prywatność</a></span></strong>. All Rights Reserved
             </div>
             <div class="credits">
-                <!-- All the links in the footer should remain intact. -->
-                <!-- You can delete the links only if you purchased the pro version. -->
-                <!-- Licensing information: https://bootstrapmade.com/license/ -->
-                <!-- Purchase the pro version with working PHP/AJAX contact form: https://bootstrapmade.com/ninestars-free-bootstrap-3-theme-for-creative/ -->
-                Designed by <a href="https://bootstrapmade.com/">BootstrapMade</a>
+                Designed by <a href="https://bootstrapmade.com/">BootstrapMade</a> | Modified and Customized by WyboryPrezydenckie.pl
             </div>
         </div>
     </footer><!-- End Footer -->
+
     <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
@@ -164,7 +161,6 @@
 
     <!-- Vendor JS Files -->
     <script src="assets/vendor/aos/aos.js"></script>
-    <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script src="assets/vendor/glightbox/js/glightbox.min.js"></script>
     <script src="assets/vendor/isotope-layout/isotope.pkgd.min.js"></script>
     <script src="assets/vendor/php-email-form/validate.js"></script>
@@ -172,6 +168,7 @@
 
     <!-- Template Main JS File -->
     <script src="assets/js/main.js"></script>
+
     @RenderSection("Scripts", required: false)
 </body>
 </html>
