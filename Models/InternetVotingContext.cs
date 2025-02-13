@@ -1,7 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-#nullable disable
-
 namespace InternetVotingApplication.Models
 {
     public partial class InternetVotingContext : DbContext
@@ -21,6 +19,7 @@ namespace InternetVotingApplication.Models
         public virtual DbSet<GlosowanieWyborcze> GlosowanieWyborczes { get; set; }
         public virtual DbSet<Kandydat> Kandydats { get; set; }
         public virtual DbSet<Uzytkownik> Uzytkowniks { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Administrator>(entity =>
@@ -32,7 +31,10 @@ namespace InternetVotingApplication.Models
                     .HasConstraintName("FK_Administrator_Uzytkownik");
             });
 
-            modelBuilder.Entity<DataWyborow>(entity => entity.Property(e => e.Opis).IsUnicode(false));
+            modelBuilder.Entity<DataWyborow>(entity =>
+            {
+                entity.Property(e => e.Opis).IsUnicode(false);
+            });
 
             modelBuilder.Entity<GlosUzytkownika>(entity =>
             {
@@ -69,7 +71,6 @@ namespace InternetVotingApplication.Models
             modelBuilder.Entity<Kandydat>(entity =>
             {
                 entity.Property(e => e.Imie).IsUnicode(false);
-
                 entity.Property(e => e.Nazwisko).IsUnicode(false);
 
                 entity.HasOne(d => d.IdWyboryNavigation)
@@ -82,15 +83,10 @@ namespace InternetVotingApplication.Models
             modelBuilder.Entity<Uzytkownik>(entity =>
             {
                 entity.Property(e => e.Haslo).IsUnicode(false);
-
                 entity.Property(e => e.Imie).IsUnicode(false);
-
                 entity.Property(e => e.JestAktywne).HasDefaultValueSql("((1))");
-
                 entity.Property(e => e.Nazwisko).IsUnicode(false);
-
                 entity.Property(e => e.Email).IsUnicode(false);
-
                 entity.Property(e => e.Pesel).IsFixedLength(true);
             });
 

@@ -5,10 +5,10 @@ namespace InternetVotingApplication.ExtensionMethods
     public static class ArrayExtensions
     {
         /// <summary>
-        /// Metoda sprawdza, czy tablica jest pusta bądź jej długość wynosi 0 elementów.
+        /// Checks if the array is null or empty.
         /// </summary>
-        /// <param name="array">Tablica do testowania.</param>
-        /// <returns>True, jeśli tablica spełnia warunki. Fałsz, jeśli nie spełnia.</returns>
+        /// <param name="array">The array to check.</param>
+        /// <returns>True if the array is null or empty; otherwise, false.</returns>
         public static bool IsNullOrEmpty(this Array array)
         {
             return array == null || array.Length == 0;

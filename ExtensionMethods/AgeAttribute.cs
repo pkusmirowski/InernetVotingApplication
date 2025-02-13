@@ -6,28 +6,34 @@ namespace InternetVotingApplication.ExtensionMethods
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false)]
     public class AgeAttribute : ValidationAttribute
     {
-        private readonly int _age;
+        private readonly int _minimumAge;
 
-        public AgeAttribute(int age)
+        public AgeAttribute(int minimumAge)
         {
-            _age = age;
+            _minimumAge = minimumAge;
         }
 
         public override bool IsValid(object value)
         {
-            if (value is DateTime date)
+            if (value is DateTime birthDate)
             {
-                DateTime now = DateTime.Now;
+                var today = DateTime.Today;
+                var age = today.Year - birthDate.Year;
 
-                if ((now - date).TotalDays / 365.25 > 120)
+                if (birthDate > today.AddYears(-age))
                 {
-                    return false;
+                    age--;
                 }
 
-                return date.AddYears(_age) < now;
+                return age >= _minimumAge && age <= 120;
             }
 
             return false;
+        }
+
+        public override string FormatErrorMessage(string name)
+        {
+            return $"The {name} field requires a valid date of birth with an age between {_minimumAge} and 120 years.";
         }
     }
 }

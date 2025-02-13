@@ -1,3 +1,4 @@
+using InternetVotingApplication.Interfaces;
 using InternetVotingApplication.Models;
 using InternetVotingApplication.Services;
 using Microsoft.AspNetCore.Builder;
@@ -11,29 +12,33 @@ namespace InternetVotingApplication
 {
     public class Startup
     {
+        public IConfiguration Configuration { get; }
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
         }
 
-        public IConfiguration Configuration { get; }
-
         public void ConfigureServices(IServiceCollection services)
         {
             var connectionString = Configuration.GetConnectionString("InternetVotingDBConnection");
-            services.AddControllersWithViews();
             services.AddDbContext<InternetVotingContext>(options => options.UseSqlServer(connectionString));
-            services.AddTransient<UserService>();
-            services.AddTransient<AdminService>();
-            services.AddTransient<ElectionService>();
+            services.AddTransient<IUserService, UserService>();
+            services.AddTransient<IAdminService, AdminService>();
+            services.AddTransient<IElectionService, ElectionService>();
+            services.AddControllersWithViews();
+            services.AddRazorPages();
             services.AddDistributedMemoryCache();
             services.AddSession();
-            services.AddRazorPages();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            if (!env.IsDevelopment())
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+            else
             {
                 app.UseExceptionHandler("/Error");
                 app.UseHsts();
@@ -42,13 +47,15 @@ namespace InternetVotingApplication
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseRouting();
-            app.UseAuthorization();
             app.UseSession();
+            app.UseAuthorization();
+
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");
+                endpoints.MapRazorPages();
             });
         }
     }

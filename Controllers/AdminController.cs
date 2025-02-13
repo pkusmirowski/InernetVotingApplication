@@ -1,19 +1,18 @@
-﻿using InternetVotingApplication.Models;
-using InternetVotingApplication.Services;
+﻿using InternetVotingApplication.Interfaces;
+using InternetVotingApplication.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace InternetVotingApplication.Controllers
 {
     public class AdminController : Controller
     {
-        private readonly ElectionService _electionService;
-        private readonly AdminService _adminService;
+        private readonly IElectionService _electionService;
+        private readonly IAdminService _adminService;
 
-        public AdminController(ElectionService electionService, AdminService adminService)
+        public AdminController(IElectionService electionService, IAdminService adminService)
         {
             _electionService = electionService;
             _adminService = adminService;
@@ -21,14 +20,9 @@ namespace InternetVotingApplication.Controllers
 
         public IActionResult Panel()
         {
-            if (string.IsNullOrEmpty(HttpContext.Session.GetString("email")))
+            if (string.IsNullOrEmpty(HttpContext.Session.GetString("email")) || string.IsNullOrEmpty(HttpContext.Session.GetString("Admin")))
             {
-                return RedirectToAction("Login");
-            }
-
-            if (string.IsNullOrEmpty(HttpContext.Session.GetString("Admin")))
-            {
-                return RedirectToAction("Login");
+                return RedirectToAction("Login", "Account");
             }
 
             return View();
@@ -38,20 +32,14 @@ namespace InternetVotingApplication.Controllers
         {
             if (string.IsNullOrEmpty(HttpContext.Session.GetString("Admin")))
             {
-                return RedirectToAction("Login");
+                return RedirectToAction("Login", "Account");
             }
 
-            List<DataWyborow> electionIdList = new();
-            electionIdList = _electionService.ShowElectionByName();
-
-            ViewBag.IdWybory = (List<SelectListItem>)electionIdList.ConvertAll(a =>
+            var electionIdList = _electionService.ShowElectionByName();
+            ViewBag.IdWybory = electionIdList.ConvertAll(a => new SelectListItem
             {
-                return new SelectListItem()
-                {
-                    Text = a.Opis,
-                    Value = a.Id.ToString(),
-                    Selected = false
-                };
+                Text = a.Opis,
+                Value = a.Id.ToString()
             });
 
             return View();
@@ -60,29 +48,25 @@ namespace InternetVotingApplication.Controllers
         [HttpPost]
         public async Task<IActionResult> AddCandidateAsync(Kandydat kandydat)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                if (await _adminService.AddCandidateAsync(kandydat))
-                {
-                    ViewBag.addCandidateSuccessful = "Kandydat " + kandydat.Imie + " " + kandydat.Nazwisko + " został dodany do głosowania wyborczego!";
-                }
-                else
-                {
-                    ViewBag.Error = false;
-                }
+                return View();
             }
 
-            List<DataWyborow> electionIdList = new();
-            electionIdList = _electionService.ShowElectionByName();
-
-            ViewBag.IdWybory = electionIdList.ConvertAll(a =>
+            if (await _adminService.AddCandidateAsync(kandydat))
             {
-                return new SelectListItem()
-                {
-                    Text = a.Opis,
-                    Value = a.Id.ToString(),
-                    Selected = false
-                };
+                ViewBag.AddCandidateSuccessful = $"Kandydat {kandydat.Imie} {kandydat.Nazwisko} został dodany do głosowania wyborczego!";
+            }
+            else
+            {
+                ViewBag.Error = "Adding candidate failed. Please try again.";
+            }
+
+            var electionIdList = _electionService.ShowElectionByName();
+            ViewBag.IdWybory = electionIdList.ConvertAll(a => new SelectListItem
+            {
+                Text = a.Opis,
+                Value = a.Id.ToString()
             });
 
             return View();
@@ -92,7 +76,7 @@ namespace InternetVotingApplication.Controllers
         {
             if (string.IsNullOrEmpty(HttpContext.Session.GetString("Admin")))
             {
-                return RedirectToAction("Login");
+                return RedirectToAction("Login", "Account");
             }
 
             return View();
@@ -103,22 +87,25 @@ namespace InternetVotingApplication.Controllers
         {
             if (string.IsNullOrEmpty(HttpContext.Session.GetString("Admin")))
             {
-                return RedirectToAction("Login");
+                return RedirectToAction("Login", "Account");
             }
 
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                if (await _adminService.AddElectionAsync(dataWyborow))
-                {
-                    ViewBag.addElectionSuccessful = "Wybory zostały dodane!";
-                }
-                else
-                {
-                    ViewBag.Error = false;
-                }
+                return View();
+            }
+
+            if (await _adminService.AddElectionAsync(dataWyborow))
+            {
+                ViewBag.AddElectionSuccessful = "Wybory zostały dodane!";
+            }
+            else
+            {
+                ViewBag.Error = "Adding election failed. Please try again.";
             }
 
             return View();
         }
     }
 }
+

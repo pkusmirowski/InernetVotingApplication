@@ -1,4 +1,5 @@
 ﻿using InternetVotingApplication.ExtensionMethods;
+using InternetVotingApplication.Interfaces;
 using InternetVotingApplication.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -8,21 +9,13 @@ using BC = BCrypt.Net.BCrypt;
 
 namespace InternetVotingApplication.Services
 {
-    public class UserService
+    public class UserService(InternetVotingContext context) : IUserService
     {
-        private readonly InternetVotingContext _context;
-
-        public UserService(InternetVotingContext context)
-        {
-            _context = context;
-        }
+        private readonly InternetVotingContext _context = context;
 
         public async Task<bool> RegisterAsync(Uzytkownik user)
         {
-            var isExistingEmail = await _context.Uzytkowniks.AnyAsync(x => x.Email == user.Email);
-            var isExistingPesel = await _context.Uzytkowniks.AnyAsync(x => x.Pesel == user.Pesel);
-
-            if (isExistingEmail || isExistingPesel)
+            if (await _context.Uzytkowniks.AnyAsync(x => x.Email == user.Email || x.Pesel == user.Pesel))
             {
                 return false;
             }
@@ -43,47 +36,36 @@ namespace InternetVotingApplication.Services
             return true;
         }
 
-        //Zwraca
-        //0 - gdy user jest Adminem
-        //1 - gdu user jest Userem
-        //2 - gdy nie jest ani Adminem ani Userem
         public async Task<int> LoginAsync(Logowanie user)
         {
-            var queryActive = _context.Uzytkowniks.Where(u => u.Email == user.Email).Select(u => u.JestAktywne == 1);
-            var getUserId = await _context.Uzytkowniks.Where(u => u.Email == user.Email).Select(u => u.Id).FirstOrDefaultAsync();
-            var getUserStatus = await _context.Uzytkowniks.Where(u => u.JestAktywne == 1 && u.Email == user.Email).Select(u => u.JestAktywne).FirstOrDefaultAsync();
-            var checkIfAdmin = await _context.Administrators.AnyAsync(a => a.IdUzytkownik == getUserId);
+            var userAccount = await _context.Uzytkowniks
+                .Where(u => u.Email == user.Email)
+                .Select(u => new { u.Id, u.JestAktywne, u.Haslo })
+                .FirstOrDefaultAsync();
 
-            if (getUserStatus == 1 && !string.IsNullOrEmpty(user.Email) && !string.IsNullOrEmpty(user.Haslo) && await queryActive.FirstOrDefaultAsync() && await AuthenticateUser(user))
+            if (userAccount == null || userAccount.JestAktywne != 1 || !BC.Verify(user.Haslo, userAccount.Haslo))
             {
-                if (checkIfAdmin)
-                {
-                    return 0;
-                }
-                return 1;
+                return 2;
             }
 
-            return 2;
+            var isAdmin = await _context.Administrators.AnyAsync(a => a.IdUzytkownik == userAccount.Id);
+            return isAdmin ? 0 : 1;
         }
 
         public async Task<bool> AuthenticateUser(Logowanie user)
         {
-            var account = await _context.Uzytkowniks.SingleOrDefaultAsync(x => x.Email == user.Email);
+            var account = await _context.Uzytkowniks
+                .Where(x => x.Email == user.Email)
+                .Select(x => x.Haslo)
+                .FirstOrDefaultAsync();
 
-            return BC.Verify(user.Haslo, account.Haslo);
+            return account != null && BC.Verify(user.Haslo, account);
         }
 
         public bool ChangePassword(ChangePassword password, string userEmail)
         {
             var account = _context.Uzytkowniks.SingleOrDefault(x => x.Email == userEmail);
-            var verifyPassword = BC.Verify(password.Password, account.Haslo);
-
-            if (password.NewPassword != password.ConfirmNewPassword)
-            {
-                return false;
-            }
-
-            if (!verifyPassword)
+            if (account == null || !BC.Verify(password.Password, account.Haslo) || password.NewPassword != password.ConfirmNewPassword)
             {
                 return false;
             }
@@ -93,42 +75,41 @@ namespace InternetVotingApplication.Services
             _context.SaveChanges();
 
             Email.SendEmailChangePassword(userEmail);
-
             return true;
         }
 
         public bool GetUserByAcitvationCode(Guid activationCode)
         {
-            var user = _context.Uzytkowniks.FirstOrDefault(x => x.KodAktywacyjny == activationCode);
-
-            if (user != null)
+            var user = _context.Uzytkowniks.SingleOrDefault(x => x.KodAktywacyjny == activationCode);
+            if (user == null)
             {
-                user.JestAktywne = 1;
-                user.KodAktywacyjny = Guid.Empty;
-
-                _context.Update(user);
-                _context.SaveChanges();
-
-                return true;
+                return false;
             }
 
-            return false;
+            user.JestAktywne = 1;
+            user.KodAktywacyjny = Guid.Empty;
+
+            _context.Update(user);
+            _context.SaveChanges();
+
+            return true;
         }
 
         public async Task<bool> RecoverPassword(PasswordRecovery password)
         {
-            var user = await _context.Uzytkowniks.FirstOrDefaultAsync(x => x.Pesel == password.Pesel && x.Email == password.Email);
+            var user = await _context.Uzytkowniks
+                .SingleOrDefaultAsync(x => x.Pesel == password.Pesel && x.Email == password.Email);
 
-            if (user != null)
+            if (user == null)
             {
-                string newPassword = GeneratePassword.CreateRandomPassword(8);
-                user.Haslo = BC.HashPassword(newPassword);
-                await _context.SaveChangesAsync();
-                Email.SendNewPassword(newPassword, user);
-                return true;
+                return false;
             }
 
-            return false;
+            string newPassword = GeneratePassword.CreateRandomPassword(8);
+            user.Haslo = BC.HashPassword(newPassword);
+            await _context.SaveChangesAsync();
+            Email.SendNewPassword(newPassword, user);
+            return true;
         }
     }
 }

@@ -1,22 +1,18 @@
-﻿using InternetVotingApplication.Models;
-using InternetVotingApplication.Services;
+﻿using InternetVotingApplication.Interfaces;
+using InternetVotingApplication.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Threading.Tasks;
 
 namespace InternetVotingApplication.Controllers
 {
-    public class AccountController : Controller
+    public class AccountController(IUserService userService, IElectionService electionService, IAdminService adminService) : Controller
     {
-        private readonly UserService _userService;
-        private readonly ElectionService _electionService;
-        private readonly AdminService _adminService;
-        public AccountController(UserService userService, ElectionService electionService, AdminService adminService)
-        {
-            _userService = userService;
-            _electionService = electionService;
-            _adminService = adminService;
-        }
+        private readonly IUserService _userService = userService;
+        private readonly IElectionService _electionService = electionService;
+        private readonly IAdminService _adminService = adminService;
+
         public IActionResult Register()
         {
             if (HttpContext.Session.GetString("email") != null)
@@ -36,16 +32,18 @@ namespace InternetVotingApplication.Controllers
                 return RedirectToAction("Dashboard");
             }
 
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                if (await _userService.RegisterAsync(user))
-                {
-                    ViewBag.registrationSuccessful = "Uzytkownik " + user.Imie + " " + user.Nazwisko + " został zarejestrowany poprawnie! </br> Aktywuj swoje konto potwierdzając adres E-mail";
-                    return View();
-                }
-                ViewBag.Error = false;
                 return View();
             }
+
+            if (await _userService.RegisterAsync(user))
+            {
+                ViewBag.RegistrationSuccessful = $"Uzytkownik {user.Imie} {user.Nazwisko} został zarejestrowany poprawnie! </br> Aktywuj swoje konto potwierdzając adres E-mail";
+                return View();
+            }
+
+            ViewBag.Error = "Registration failed. Please try again.";
             return View();
         }
 
@@ -56,33 +54,24 @@ namespace InternetVotingApplication.Controllers
                 return RedirectToAction("Dashboard");
             }
 
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                var val = await _userService.LoginAsync(user);
-                if (val == 0 || val == 1)
-                {
-                    if (val == 0)
-                    {
-                        //Zapisanie admina w sesji
-                        string email = user.Email;
-                        HttpContext.Session.SetString("email", email);
-
-                        const string admin = "Admin";
-                        HttpContext.Session.SetString("Admin", admin);
-                        return RedirectToAction("Panel", "Admin");
-                    }
-                    else
-                    {
-                        //Zapisanie użytkownika w sesji
-                        string email = user.Email;
-                        HttpContext.Session.SetString("email", email);
-                        return RedirectToAction("Dashboard", "Election");
-                    }
-                }
-                ViewBag.Error = false;
                 return View();
             }
 
+            var loginResult = await _userService.LoginAsync(user);
+            if (loginResult == 0 || loginResult == 1)
+            {
+                HttpContext.Session.SetString("email", user.Email);
+                if (loginResult == 0)
+                {
+                    HttpContext.Session.SetString("Admin", "Admin");
+                    return RedirectToAction("Panel", "Admin");
+                }
+                return RedirectToAction("Dashboard", "Election");
+            }
+
+            ViewBag.Error = "Login failed. Please check your credentials.";
             return View();
         }
 
@@ -94,7 +83,7 @@ namespace InternetVotingApplication.Controllers
 
         public IActionResult ChangePassword()
         {
-            if (HttpContext.Session.GetString("email") != null)
+            if (HttpContext.Session.GetString("email") == null)
             {
                 return RedirectToAction("Login");
             }
@@ -106,33 +95,32 @@ namespace InternetVotingApplication.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult ChangePassword(ChangePassword user)
         {
-            if (string.IsNullOrEmpty(HttpContext.Session.GetString("email")))
+            if (HttpContext.Session.GetString("email") == null)
             {
                 return RedirectToAction("Login");
             }
 
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                if (_userService.ChangePassword(user, HttpContext.Session.GetString("email")))
-                {
-                    ViewBag.changePasswordSuccessful = "Hasło zostało zmienione poprawnie!";
-                    return View();
-                }
-                ViewBag.Error = false;
                 return View();
             }
+
+            if (_userService.ChangePassword(user, HttpContext.Session.GetString("email")))
+            {
+                ViewBag.ChangePasswordSuccessful = "Hasło zostało zmienione poprawnie!";
+                return View();
+            }
+
+            ViewBag.Error = "Password change failed. Please try again.";
             return View();
         }
 
-        public ActionResult Activation()
+        public IActionResult Activation()
         {
             ViewBag.Message = "Zły kod aktywacyjny.";
-            if (RouteData.Values["id"] != null)
+            if (RouteData.Values["id"] != null && _userService.GetUserByAcitvationCode(new Guid(RouteData.Values["id"].ToString())))
             {
-                if (_userService.GetUserByAcitvationCode(new(RouteData.Values["id"].ToString())))
-                {
-                    ViewBag.Message = "Aktywacja konta powiodła się.";
-                }
+                ViewBag.Message = "Aktywacja konta powiodła się.";
             }
 
             return View();
@@ -146,30 +134,27 @@ namespace InternetVotingApplication.Controllers
         [HttpPost]
         public async Task<IActionResult> PasswordRecoveryAsync(PasswordRecovery password)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                if (await _userService.RecoverPassword(password))
-                {
-                    ViewBag.Success = true;
-                    return View();
-                }
-                else
-                {
-                    ViewBag.Error = false;
-                }
+                return View();
             }
+
+            if (await _userService.RecoverPassword(password))
+            {
+                ViewBag.Success = "Password recovery successful. Please check your email.";
+                return View();
+            }
+
+            ViewBag.Error = "Password recovery failed. Please try again.";
             return View();
         }
 
-        public IActionResult Search(string Text)
+        public IActionResult Search(string text)
         {
-            if (string.IsNullOrEmpty(Text))
-            {
-                Text = "1";
-            }
-            var vm = _electionService.SearchVote(Text);
-
+            text ??= "1";
+            var vm = _electionService.SearchVote(text);
             return View(vm);
         }
     }
 }
+

@@ -1,7 +1,6 @@
-﻿using InternetVotingApplication.Services;
+﻿using InternetVotingApplication.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System;
 using System.Threading.Tasks;
 using Array = InternetVotingApplication.ExtensionMethods.ArrayExtensions;
 
@@ -9,17 +8,19 @@ namespace InternetVotingApplication.Controllers
 {
     public class ElectionController : Controller
     {
-        private readonly ElectionService _electionService;
-        private static readonly object obj = new();
-        public ElectionController(ElectionService electionService)
+        private readonly IElectionService _electionService;
+        private static readonly object _lock = new();
+
+        public ElectionController(IElectionService electionService)
         {
             _electionService = electionService;
         }
+
         public IActionResult Dashboard()
         {
             if (string.IsNullOrEmpty(HttpContext.Session.GetString("email")))
             {
-                return RedirectToAction("Login");
+                return RedirectToAction("Login", "Account");
             }
 
             var vm = _electionService.GetAllElections();
@@ -31,37 +32,37 @@ namespace InternetVotingApplication.Controllers
         {
             if (string.IsNullOrEmpty(HttpContext.Session.GetString("email")))
             {
-                return RedirectToAction("Login");
+                return RedirectToAction("Login", "Account");
             }
 
             if (!string.IsNullOrEmpty(HttpContext.Session.GetString("Admin")))
             {
-                return RedirectToAction("Panel");
+                return RedirectToAction("Panel", "Admin");
             }
 
-            if (_electionService.CheckElectionBlockchain(id))
+            if (!_electionService.CheckElectionBlockchain(id))
             {
-                if (!_electionService.CheckIfElectionEnded(id))
-                {
-                    return RedirectToAction("ElectionResult", new { @ver = 3, @result = id });
-                }
-
-                if (!_electionService.CheckIfElectionStarted(id))
-                {
-                    return RedirectToAction("ElectionResult", new { @ver = 1, @result = id });
-                }
-
-                if (await _electionService.CheckIfVoted(HttpContext.Session.GetString("email"), id).ConfigureAwait(false))
-                {
-                    return RedirectToAction("ElectionResult", new { @ver = 2, @result = id });
-                }
-
-                @ViewBag.ID = id;
-
-                var vm = _electionService.GetAllCandidates(id);
-                return View(vm);
+                return RedirectToAction("ElectionError");
             }
-            return RedirectToAction("ElectionError");
+
+            if (!_electionService.CheckIfElectionEnded(id))
+            {
+                return RedirectToAction("ElectionResult", new { ver = 3, result = id });
+            }
+
+            if (!_electionService.CheckIfElectionStarted(id))
+            {
+                return RedirectToAction("ElectionResult", new { ver = 1, result = id });
+            }
+
+            if (await _electionService.CheckIfVoted(HttpContext.Session.GetString("email"), id))
+            {
+                return RedirectToAction("ElectionResult", new { ver = 2, result = id });
+            }
+
+            ViewBag.ID = id;
+            var vm = _electionService.GetAllCandidates(id);
+            return View(vm);
         }
 
         [HttpPost]
@@ -69,7 +70,7 @@ namespace InternetVotingApplication.Controllers
         {
             if (string.IsNullOrEmpty(HttpContext.Session.GetString("email")))
             {
-                return RedirectToAction("Login");
+                return RedirectToAction("Login", "Account");
             }
 
             if (Array.IsNullOrEmpty(candidate) || Array.IsNullOrEmpty(election))
@@ -85,38 +86,25 @@ namespace InternetVotingApplication.Controllers
                 return RedirectToAction("ElectionResult");
             }
 
-            string ifAdded = "";
-
-            lock (obj)
+            string ifAdded;
+            lock (_lock)
             {
                 ifAdded = _electionService.AddVote(HttpContext.Session.GetString("email"), candidateId, electionId);
             }
 
-            string userHash = ifAdded;
             if (ifAdded.Length > 3)
             {
-                ifAdded = "True";
-            }
-            else
-            {
-                ifAdded = "False";
+                return RedirectToAction("Voted", new { hash = ifAdded });
             }
 
-            if (Convert.ToBoolean(ifAdded))
-            {
-                return RedirectToAction("Voted", new { hash = userHash });
-            }
-            else
-            {
-                return RedirectToAction("ElectionError");
-            }
+            return RedirectToAction("ElectionError");
         }
 
         public IActionResult ElectionError()
         {
             if (string.IsNullOrEmpty(HttpContext.Session.GetString("email")))
             {
-                return RedirectToAction("Login");
+                return RedirectToAction("Login", "Account");
             }
 
             return View();
@@ -126,10 +114,10 @@ namespace InternetVotingApplication.Controllers
         {
             if (string.IsNullOrEmpty(HttpContext.Session.GetString("email")))
             {
-                return RedirectToAction("Login");
+                return RedirectToAction("Login", "Account");
             }
 
-            @ViewBag.ID = hash;
+            ViewBag.ID = hash;
             return View();
         }
 
@@ -137,22 +125,23 @@ namespace InternetVotingApplication.Controllers
         {
             if (string.IsNullOrEmpty(HttpContext.Session.GetString("email")))
             {
-                return RedirectToAction("Login");
+                return RedirectToAction("Login", "Account");
             }
 
-            if (_electionService.CheckElectionBlockchain(result))
+            if (!_electionService.CheckElectionBlockchain(result))
             {
-                @ViewBag.ID = ver;
-
-                if (ver == 3)
-                {
-                    var vm = _electionService.GetElectionResult(result);
-                    return View(vm);
-                }
-
-                return View();
+                return RedirectToAction("ElectionError");
             }
-            return RedirectToAction("ElectionError");
+
+            ViewBag.ID = ver;
+
+            if (ver == 3)
+            {
+                var vm = _electionService.GetElectionResult(result);
+                return View(vm);
+            }
+
+            return View();
         }
     }
 }
