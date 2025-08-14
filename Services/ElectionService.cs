@@ -1,5 +1,4 @@
 ﻿using InternetVotingApplication.Blockchain;
-using InternetVotingApplication.ExtensionMethods;
 using InternetVotingApplication.Interfaces;
 using InternetVotingApplication.Models;
 using InternetVotingApplication.ViewModels;
@@ -11,9 +10,10 @@ using System.Threading.Tasks;
 
 namespace InternetVotingApplication.Services
 {
-    public class ElectionService(InternetVotingContext context) : IElectionService
+    public class ElectionService(InternetVotingContext context, IEmailService emailService) : IElectionService
     {
         private readonly InternetVotingContext _context = context;
+        private readonly IEmailService _emailService = emailService;
 
         public DataWyborowViewModel GetAllElections()
         {
@@ -102,7 +102,7 @@ namespace InternetVotingApplication.Services
 
             _context.AddRange(electionVoteDB, userVoiceDB);
             _context.SaveChanges();
-            Email.SendEmailVoteHash(electionVoteDB, userEmail);
+            _emailService.SendEmailVoteHash(electionVoteDB, userEmail);
 
             return electionVoteDB.Hash;
         }

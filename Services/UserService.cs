@@ -9,9 +9,10 @@ using BC = BCrypt.Net.BCrypt;
 
 namespace InternetVotingApplication.Services
 {
-    public class UserService(InternetVotingContext context) : IUserService
+    public class UserService(InternetVotingContext context, IEmailService emailService) : IUserService
     {
         private readonly InternetVotingContext _context = context;
+        private readonly IEmailService _emailService = emailService;
 
         public async Task<bool> RegisterAsync(Uzytkownik user)
         {
@@ -32,7 +33,7 @@ namespace InternetVotingApplication.Services
             _context.Uzytkowniks.Add(user);
             await _context.SaveChangesAsync();
 
-            Email.SendEmailAfterRegistration(user);
+            _emailService.SendEmailAfterRegistration(user);
             return true;
         }
 
@@ -74,7 +75,7 @@ namespace InternetVotingApplication.Services
             _context.Update(account);
             _context.SaveChanges();
 
-            Email.SendEmailChangePassword(userEmail);
+            _emailService.SendEmailChangePassword(userEmail);
             return true;
         }
 
@@ -108,7 +109,7 @@ namespace InternetVotingApplication.Services
             string newPassword = GeneratePassword.CreateRandomPassword(8);
             user.Haslo = BC.HashPassword(newPassword);
             await _context.SaveChangesAsync();
-            Email.SendNewPassword(newPassword, user);
+            _emailService.SendNewPassword(newPassword, user);
             return true;
         }
     }

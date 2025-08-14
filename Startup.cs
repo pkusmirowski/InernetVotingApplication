@@ -18,6 +18,7 @@ namespace InternetVotingApplication
         {
             var connectionString = Configuration.GetConnectionString("InternetVotingDBConnection");
             services.AddDbContext<InternetVotingContext>(options => options.UseSqlServer(connectionString));
+            services.AddTransient<IEmailService, EmailService>();
             services.AddTransient<IUserService, UserService>();
             services.AddTransient<IAdminService, AdminService>();
             services.AddTransient<IElectionService, ElectionService>();
