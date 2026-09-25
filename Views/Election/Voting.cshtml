@@ -1,54 +1,43 @@
-﻿@model InternetVotingApplication.ViewModels.KandydatViewModel
+@model KandydatViewModel
 @{
     ViewData["Title"] = "Głosowanie";
 }
-<br />
-<br />
-<br />
-<br />
-<div class="container">
-    <main id="main">
-        <div class="text-center">
-            <h2>Głosowanie</h2>
-            <form asp-action="VotingAdd" method="post">
-                <table class="table table-striped">
-                    <thead>
+<h2>@Model.ElectionName</h2>
+<p class="text-muted">Głosowanie trwa do @Model.DataZakonczenia.ToString("g"). Możesz oddać tylko jeden głos i nie można go zmienić.</p>
+<hr />
+@if (Model.Candidates.Count == 0)
+{
+    <div class="alert alert-warning" role="alert">Do tych wyborów nie dodano jeszcze kandydatów.</div>
+}
+else
+{
+    <form asp-action="Vote" method="post">
+        <input type="hidden" asp-for="ElectionId" />
+        <span asp-validation-for="SelectedCandidateId" class="text-danger d-block mb-2"></span>
+        <div class="table-responsive">
+            <table class="table table-striped align-middle">
+                <thead>
+                    <tr>
+                        <th scope="col">Wybór</th>
+                        <th scope="col">Imię</th>
+                        <th scope="col">Nazwisko</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var candidate in Model.Candidates)
+                    {
                         <tr>
-                            <th scope="col">Numer kandydata</th>
-                            <th scope="col">Imię</th>
-                            <th scope="col">Nazwisko</th>
-                            <th scope="col">Zaznacz kandydata</th>
+                            <td>
+                                <input class="form-check-input" type="radio" name="SelectedCandidateId" id="candidate-@candidate.Id" value="@candidate.Id" required />
+                            </td>
+                            <td><label class="form-check-label w-100" for="candidate-@candidate.Id">@candidate.Imie</label></td>
+                            <td><label class="form-check-label w-100" for="candidate-@candidate.Id">@candidate.Nazwisko</label></td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var election in Model.ElectionCandidates)
-                        {
-                            <tr>
-                                <td>@election.Id</td>
-                                <td>@election.Imie</td>
-                                <td>@election.Nazwisko</td>
-                                <td><input type="checkbox" name="candidate" value="@election.Id" onclick="MutExChkList(this);" /></td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-                <div class="form-group text-center">
-                    <input type="hidden" name="election" value="@ViewBag.ID" />
-                    <input type="submit" value="Zagłosuj" class="btn btn-primary" />
-                </div>
-            </form>
+                    }
+                </tbody>
+            </table>
         </div>
-    </main>
-</div>
-
-<script type="text/javascript">
-    function MutExChkList(chk) {
-        var chkList = chk.parentNode.parentNode.parentNode;
-        var chks = chkList.getElementsByTagName("input");
-        for (var i = 0; i < chks.length; i++) {
-            if (chks[i] != chk && chk.checked) {
-                chks[i].checked = false;
-            }
-        }
-    }
-</script>
+        <button type="submit" class="btn btn-primary">Zagłosuj</button>
+        <a class="btn btn-link" asp-action="Dashboard">Wróć</a>
+    </form>
+}

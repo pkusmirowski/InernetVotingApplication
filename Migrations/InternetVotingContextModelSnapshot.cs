@@ -17,10 +17,10 @@ namespace InternetVotingApplication.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.8")
+                .HasAnnotation("ProductVersion", "9.0.20")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
-            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
+            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
             modelBuilder.Entity("InternetVotingApplication.Models.Administrator", b =>
                 {
@@ -29,7 +29,7 @@ namespace InternetVotingApplication.Migrations
                         .HasColumnType("int")
                         .HasColumnName("id");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("IdUzytkownik")
                         .HasColumnType("int")
@@ -37,7 +37,8 @@ namespace InternetVotingApplication.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("IdUzytkownik");
+                    b.HasIndex("IdUzytkownik")
+                        .IsUnique();
 
                     b.ToTable("Administrator");
                 });
@@ -49,25 +50,59 @@ namespace InternetVotingApplication.Migrations
                         .HasColumnType("int")
                         .HasColumnName("id");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("DataRozpoczecia")
-                        .HasColumnType("datetime")
+                        .HasColumnType("datetime2")
                         .HasColumnName("dataRozpoczecia");
 
                     b.Property<DateTime>("DataZakonczenia")
-                        .HasColumnType("datetime")
+                        .HasColumnType("datetime2")
                         .HasColumnName("dataZakonczenia");
 
                     b.Property<string>("Opis")
                         .IsRequired()
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(max)")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)")
                         .HasColumnName("opis");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Opis")
+                        .IsUnique();
+
                     b.ToTable("DataWyborow");
+                });
+
+            modelBuilder.Entity("InternetVotingApplication.Models.GlosUzytkownika", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("DataOddania")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("dataOddania");
+
+                    b.Property<int>("IdUzytkownik")
+                        .HasColumnType("int")
+                        .HasColumnName("id_uzytkownik");
+
+                    b.Property<int>("IdWybory")
+                        .HasColumnType("int")
+                        .HasColumnName("id_wybory");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdWybory");
+
+                    b.HasIndex("IdUzytkownik", "IdWybory")
+                        .IsUnique();
+
+                    b.ToTable("GlosUzytkownika");
                 });
 
             modelBuilder.Entity("InternetVotingApplication.Models.GlosowanieWyborcze", b =>
@@ -77,17 +112,15 @@ namespace InternetVotingApplication.Migrations
                         .HasColumnType("int")
                         .HasColumnName("id");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<bool>("Glos")
-                        .HasColumnType("bit")
-                        .HasColumnName("glos");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Hash")
                         .IsRequired()
+                        .HasMaxLength(64)
                         .IsUnicode(false)
-                        .HasColumnType("varchar(max)")
-                        .HasColumnName("hash");
+                        .HasColumnType("char(64)")
+                        .HasColumnName("hash")
+                        .IsFixedLength();
 
                     b.Property<int>("IdKandydat")
                         .HasColumnType("int")
@@ -101,43 +134,33 @@ namespace InternetVotingApplication.Migrations
                         .HasColumnType("int")
                         .HasColumnName("id_wybory");
 
+                    b.Property<int>("Indeks")
+                        .HasColumnType("int")
+                        .HasColumnName("indeks");
+
+                    b.Property<string>("Nonce")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .IsUnicode(false)
+                        .HasColumnType("char(32)")
+                        .HasColumnName("nonce")
+                        .IsFixedLength();
+
+                    b.Property<DateTime>("ZnacznikCzasu")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("znacznikCzasu");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("Hash")
+                        .IsUnique();
 
                     b.HasIndex("IdKandydat");
 
-                    b.HasIndex("IdWybory");
+                    b.HasIndex("IdWybory", "Indeks")
+                        .IsUnique();
 
                     b.ToTable("GlosowanieWyborcze");
-                });
-
-            modelBuilder.Entity("InternetVotingApplication.Models.GlosUzytkownika", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<bool>("Glos")
-                        .HasColumnType("bit")
-                        .HasColumnName("glos");
-
-                    b.Property<int>("IdUzytkownik")
-                        .HasColumnType("int")
-                        .HasColumnName("id_uzytkownik");
-
-                    b.Property<int>("IdWybory")
-                        .HasColumnType("int")
-                        .HasColumnName("id_wybory");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("IdUzytkownik");
-
-                    b.HasIndex("IdWybory");
-
-                    b.ToTable("GlosUzytkownika");
                 });
 
             modelBuilder.Entity("InternetVotingApplication.Models.Kandydat", b =>
@@ -147,7 +170,7 @@ namespace InternetVotingApplication.Migrations
                         .HasColumnType("int")
                         .HasColumnName("id");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("IdWybory")
                         .HasColumnType("int")
@@ -156,20 +179,19 @@ namespace InternetVotingApplication.Migrations
                     b.Property<string>("Imie")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(50)")
+                        .HasColumnType("nvarchar(50)")
                         .HasColumnName("imie");
 
                     b.Property<string>("Nazwisko")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(50)")
+                        .HasColumnType("nvarchar(50)")
                         .HasColumnName("nazwisko");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("IdWybory");
+                    b.HasIndex("IdWybory", "Imie", "Nazwisko")
+                        .IsUnique();
 
                     b.ToTable("Kandydat");
                 });
@@ -181,7 +203,11 @@ namespace InternetVotingApplication.Migrations
                         .HasColumnType("int")
                         .HasColumnName("id");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("DataRejestracji")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("dataRejestracji");
 
                     b.Property<DateTime>("DataUrodzenia")
                         .HasColumnType("date")
@@ -189,49 +215,72 @@ namespace InternetVotingApplication.Migrations
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasMaxLength(89)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(89)")
+                        .HasMaxLength(254)
+                        .HasColumnType("nvarchar(254)")
                         .HasColumnName("email");
 
                     b.Property<string>("Haslo")
                         .IsRequired()
+                        .HasMaxLength(100)
                         .IsUnicode(false)
-                        .HasColumnType("varchar(max)")
+                        .HasColumnType("varchar(100)")
                         .HasColumnName("haslo");
 
                     b.Property<string>("Imie")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(50)")
+                        .HasColumnType("nvarchar(50)")
                         .HasColumnName("imie");
 
-                    b.Property<int?>("JestAktywne")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("jestAktywne")
-                        .HasDefaultValueSql("((1))");
+                    b.Property<bool>("JestAktywne")
+                        .HasColumnType("bit")
+                        .HasColumnName("jestAktywne");
 
-                    b.Property<Guid>("KodAktywacyjny")
+                    b.Property<Guid?>("KodAktywacyjny")
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("kodAktywacyjny");
 
                     b.Property<string>("Nazwisko")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(50)")
+                        .HasColumnType("nvarchar(50)")
                         .HasColumnName("nazwisko");
+
+                    b.Property<int>("NieudaneLogowania")
+                        .HasColumnType("int")
+                        .HasColumnName("nieudaneLogowania");
 
                     b.Property<string>("Pesel")
                         .IsRequired()
                         .HasMaxLength(11)
-                        .HasColumnType("nchar(11)")
+                        .IsUnicode(false)
+                        .HasColumnType("char(11)")
                         .HasColumnName("pesel")
                         .IsFixedLength();
 
+                    b.Property<Guid?>("TokenResetuHasla")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("tokenResetuHasla");
+
+                    b.Property<DateTime?>("TokenResetuWygasa")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("tokenResetuWygasa");
+
+                    b.Property<DateTime?>("ZablokowaneDo")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("zablokowaneDo");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("KodAktywacyjny");
+
+                    b.HasIndex("Pesel")
+                        .IsUnique();
+
+                    b.HasIndex("TokenResetuHasla");
 
                     b.ToTable("Uzytkownik");
                 });
@@ -241,29 +290,11 @@ namespace InternetVotingApplication.Migrations
                     b.HasOne("InternetVotingApplication.Models.Uzytkownik", "IdUzytkownikNavigation")
                         .WithMany("Administrators")
                         .HasForeignKey("IdUzytkownik")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_Administrator_Uzytkownik");
 
                     b.Navigation("IdUzytkownikNavigation");
-                });
-
-            modelBuilder.Entity("InternetVotingApplication.Models.GlosowanieWyborcze", b =>
-                {
-                    b.HasOne("InternetVotingApplication.Models.Kandydat", "IdKandydatNavigation")
-                        .WithMany("GlosowanieWyborczes")
-                        .HasForeignKey("IdKandydat")
-                        .IsRequired()
-                        .HasConstraintName("FK_GlosowanieWyborcze_Kandydat");
-
-                    b.HasOne("InternetVotingApplication.Models.DataWyborow", "IdWyboryNavigation")
-                        .WithMany("GlosowanieWyborczes")
-                        .HasForeignKey("IdWybory")
-                        .IsRequired()
-                        .HasConstraintName("FK_GlosowanieWyborcze_DataWyborow");
-
-                    b.Navigation("IdKandydatNavigation");
-
-                    b.Navigation("IdWyboryNavigation");
                 });
 
             modelBuilder.Entity("InternetVotingApplication.Models.GlosUzytkownika", b =>
@@ -271,16 +302,39 @@ namespace InternetVotingApplication.Migrations
                     b.HasOne("InternetVotingApplication.Models.Uzytkownik", "IdUzytkownikNavigation")
                         .WithMany("GlosUzytkownikas")
                         .HasForeignKey("IdUzytkownik")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_GlosUzytkownika_Uzytkownik");
 
                     b.HasOne("InternetVotingApplication.Models.DataWyborow", "IdWyboryNavigation")
                         .WithMany("GlosUzytkownikas")
                         .HasForeignKey("IdWybory")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_GlosUzytkownika_Wybory");
 
                     b.Navigation("IdUzytkownikNavigation");
+
+                    b.Navigation("IdWyboryNavigation");
+                });
+
+            modelBuilder.Entity("InternetVotingApplication.Models.GlosowanieWyborcze", b =>
+                {
+                    b.HasOne("InternetVotingApplication.Models.Kandydat", "IdKandydatNavigation")
+                        .WithMany("GlosowanieWyborczes")
+                        .HasForeignKey("IdKandydat")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_GlosowanieWyborcze_Kandydat");
+
+                    b.HasOne("InternetVotingApplication.Models.DataWyborow", "IdWyboryNavigation")
+                        .WithMany("GlosowanieWyborczes")
+                        .HasForeignKey("IdWybory")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_GlosowanieWyborcze_DataWyborow");
+
+                    b.Navigation("IdKandydatNavigation");
 
                     b.Navigation("IdWyboryNavigation");
                 });
@@ -290,6 +344,7 @@ namespace InternetVotingApplication.Migrations
                     b.HasOne("InternetVotingApplication.Models.DataWyborow", "IdWyboryNavigation")
                         .WithMany("Kandydats")
                         .HasForeignKey("IdWybory")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_Kandydat_DataWyborow");
 

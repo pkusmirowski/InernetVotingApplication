@@ -1,20 +1,22 @@
 using InternetVotingApplication;
-using Microsoft.AspNetCore.Builder;
+using InternetVotingApplication.Data;
 
-// Create the builder
 var builder = WebApplication.CreateBuilder(args);
 
-// Initialize Startup class
-var startup = new Startup(builder.Configuration);
-
-// Configure services
+var startup = new Startup(builder.Configuration, builder.Environment);
 startup.ConfigureServices(builder.Services);
 
-// Build the app
 var app = builder.Build();
 
-// Configure the app
-startup.Configure(app, app.Environment);
+startup.Configure(app);
 
-// Run the app
-app.Run();
+await DbInitializer.InitializeAsync(app.Services, app.Configuration);
+
+await app.RunAsync();
+
+/// <summary>
+/// Marker required by <c>WebApplicationFactory&lt;Program&gt;</c> in integration tests.
+/// </summary>
+public partial class Program
+{
+}

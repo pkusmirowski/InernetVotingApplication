@@ -1,16 +1,10 @@
-﻿@{
-    ViewData["Title"] = "Panel Administratora";
+@{
+    ViewData["Title"] = "Panel administratora";
 }
-
-<div class="container">
-    <main id="main">
-        <h2>Panel administratora</h2>
-        <hr />
-        <p>Możesz:</p>
-        <ol>
-            <li>Dodać kandydatów do wyborów</li>
-            <li>Stworzyć nowe wybory</li>
-            <li><i>Usunąć kandydata z wyborów (do zrobienia)</i></li>
-        </ol>
-    </main>
+<h2>Panel administratora</h2>
+<hr />
+<div class="list-group">
+    <a class="list-group-item list-group-item-action" asp-action="CreateElection">Stwórz nowe wybory</a>
+    <a class="list-group-item list-group-item-action" asp-action="AddCandidate">Dodaj kandydata do wyborów</a>
+    <a class="list-group-item list-group-item-action" asp-action="DeleteCandidate">Przeglądaj i usuwaj kandydatów</a>
 </div>

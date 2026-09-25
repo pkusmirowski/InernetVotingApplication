@@ -1,39 +1,39 @@
-﻿using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace InternetVotingApplication.ExtensionMethods
 {
+    /// <summary>
+    /// Validates that a date of birth corresponds to an age between <c>minimumAge</c> and 120 years.
+    /// </summary>
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false)]
-    public class AgeAttribute : ValidationAttribute
+    public sealed class AgeAttribute(int minimumAge) : ValidationAttribute
     {
-        private readonly int _minimumAge;
+        public int MinimumAge { get; } = minimumAge;
 
-        public AgeAttribute(int minimumAge)
+        public override bool IsValid(object? value)
         {
-            _minimumAge = minimumAge;
-        }
-
-        public override bool IsValid(object value)
-        {
-            if (value is DateTime birthDate)
+            if (value is not DateTime birthDate)
             {
-                var today = DateTime.Today;
-                var age = today.Year - birthDate.Year;
-
-                if (birthDate > today.AddYears(-age))
-                {
-                    age--;
-                }
-
-                return age >= _minimumAge && age <= 120;
+                return false;
             }
 
-            return false;
+            return IsValid(birthDate, DateTime.Today);
+        }
+
+        public bool IsValid(DateTime birthDate, DateTime today)
+        {
+            var age = today.Year - birthDate.Year;
+            if (birthDate.Date > today.AddYears(-age))
+            {
+                age--;
+            }
+
+            return age >= MinimumAge && age <= 120;
         }
 
         public override string FormatErrorMessage(string name)
         {
-            return $"The {name} field requires a valid date of birth with an age between {_minimumAge} and 120 years.";
+            return $"Pole {name} musi zawierać datę urodzenia osoby w wieku od {MinimumAge} do 120 lat.";
         }
     }
 }

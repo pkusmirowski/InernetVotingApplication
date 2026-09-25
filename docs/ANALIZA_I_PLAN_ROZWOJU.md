@@ -372,3 +372,44 @@ rozwiązaniem (np. Hyperledger, Ethereum testnet) w części teoretycznej.
 | `Startup.cs` / `Program.cs` | uwierzytelnianie cookie, `/Home/Error`, opcje sesji, nagłówki bezpieczeństwa |
 | `Migrations/` | `InitialCreate`, aktualny snapshot |
 | `README.md` | aktualna wersja .NET, instrukcja uruchomienia |
+
+---
+
+## 9. Stan realizacji (aktualizacja 2026-09-25)
+
+Zrealizowane w tej gałęzi (etap 0 i 1 oraz część etapu 2):
+
+- **Uwierzytelnianie i autoryzacja**: cookie authentication, role `Voter`/`Admin`, `[Authorize]` na kontrolerach,
+  polityka `AdminOnly`, globalny filtr anty-CSRF, logowanie tylko przez POST, wylogowanie przez POST,
+  blokada konta po nieudanych próbach, reset hasła jednorazowym linkiem z terminem ważności,
+  aktywacja z `Guid?` (kod czyszczony po użyciu), stała czasowo weryfikacja hasła dla nieistniejących kont.
+- **Głosowanie**: walidacja przynależności kandydata do wyborów i okna czasowego w serwisie, transakcja
+  `Serializable`, unikalne indeksy w bazie (użytkownik + wybory, wybory + indeks bloku, hash), obsługa
+  wyścigu przez `DbUpdateException`, radio zamiast checkboxów, hash przekazywany przez `TempData`.
+- **Łańcuch**: blok z indeksem, znacznikiem czasu, losowym nonce i separatorami pól (`v2|...`), weryfikacja O(n)
+  z listą niepoprawnych bloków i hashem głowy, wynik weryfikacji pokazywany na stronie wyników i w wyszukiwarce.
+- **Poprawki błędów**: komunikaty o błędach przez `ModelState`/`TempData` (zamiast `ViewBag.Error == false`),
+  procenty liczone zmiennoprzecinkowo i zaokrąglane, ścieżki `~/assets`, lokalne jQuery + jQuery Validation
+  (`wwwroot/lib`), strony `Error` i `HttpStatus` (404/403), poprawne przekierowania, wyszukiwarka z komunikatem
+  "nie znaleziono", kandydaci unikalni w obrębie wyborów, walidacja dat wyborów, usuwanie kandydatów bez głosów.
+- **Infrastruktura**: `IEmailSender` z kolejką i `BackgroundService`, `IOptions` dla SMTP/bezpieczeństwa/seedingu,
+  sekrety usunięte z kodu, `TimeProvider` w serwisach, `ILogger`, nagłówki bezpieczeństwa, `pl-PL`,
+  `Nullable` + `ImplicitUsings`, `.editorconfig`, usunięte nieużywane pakiety, projekt testowy xUnit
+  (62 testy: jednostkowe, serwisów na SQLite in-memory, integracyjne z pełnym przebiegiem rejestracja →
+  aktywacja → logowanie → głos → weryfikacja), GitHub Actions (build, test, format), `Dockerfile`,
+  `docker-compose.yml` (SQL Server + Mailpit + aplikacja), migracja `InitialCreate`, nowy README.
+
+Do wykonania ręcznie (usuwanie plików wymaga decyzji autora repozytorium):
+
+- Usunąć stare migracje `Migrations/20230619161930_init2*.cs` i `Migrations/20230619163326_init3*.cs`
+  (bez tego `dotnet ef database update` na pustej bazie zakończy się błędem, bo próbują zmienić kolumnę
+  w nieistniejącej tabeli). Istniejącą lokalną bazę należy utworzyć od nowa: schemat zmienił się
+  (nowe kolumny, indeksy, brak `glos`), a stare hashe głosów nie są zgodne z formatem `v2`.
+- Usunąć martwe pliki: `ExtensionMethods/GeneratePassword.cs`, `ExtensionMethods/ArrayExtensions.cs`,
+  `ExtensionMethods/GlosowanieWyborczeItemComparer.cs`, `Properties/serviceDependencies.json`,
+  katalogi `wwwroot/assets/vendor/{isotope-layout,glightbox,php-email-form}`,
+  `wwwroot/assets/img/{portfolio,clients,team}` oraz `.vs/` z indeksu gita (`git rm -r --cached .vs`).
+- Zrotować hasło konta SMTP, które było w historii repozytorium.
+
+Pozostałe punkty etapu 2 (podpisy bloków, drzewo Merkle, rozdzielenie uprawnienia od głosu, 2FA,
+lokalizacja, wykresy, Serilog) pozostają otwarte.

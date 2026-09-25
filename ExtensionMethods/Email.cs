@@ -1,56 +1,52 @@
-﻿using InternetVotingApplication.Models;
-using MailKit.Net.Smtp;
-using MailKit.Security;
-using MimeKit;
-using MimeKit.Text;
+using InternetVotingApplication.Services.Mail;
+using System.Net;
 
 namespace InternetVotingApplication.ExtensionMethods
 {
+    /// <summary>
+    /// Builds the e-mail messages sent by the application. Sending is done by <see cref="Interfaces.IEmailSender"/>.
+    /// All user-supplied values are HTML-encoded.
+    /// </summary>
     public static class Email
     {
-        private const string FromEmail = "aplikacjadoglosowania@gmail.com";
-        private const string SmtpServer = "smtp.ethereal.email";
-        private const int SmtpPort = 587;
-        private const string SmtpUser = "kariane91@ethereal.email";
-        private const string SmtpPass = "KwbBAKZ3Rbssk871tU";
-
-        public static void SendEmailAfterRegistration(Uzytkownik user)
+        public static EmailMessage AfterRegistration(string to, string firstName, string lastName, string activationLink)
         {
-            var body = $"<h2>Twoje konto <b>{user.Imie} {user.Nazwisko}</b> w aplikacji do głosowania zostało założone pomyślnie!</h2><br /><br />Naciśnij ten link aby aktywować konto<br /><a href='https://localhost:44342/Account/Activation/{user.KodAktywacyjny}'>Naciśnij aby aktywować konto.</a><br />";
-            SendEmail(user.Email, "Link aktywacyjny do konta w aplikacji do głosowania", body);
+            var body =
+                $"<h2>Twoje konto <b>{Enc(firstName)} {Enc(lastName)}</b> w aplikacji do głosowania zostało założone.</h2>" +
+                "<p>Aby je aktywować, kliknij poniższy link:</p>" +
+                $"<p><a href=\"{Enc(activationLink)}\">Aktywuj konto</a></p>" +
+                "<p>Jeśli to nie Ty zakładałeś konto, zignoruj tę wiadomość.</p>";
+            return new EmailMessage(to, "Aktywacja konta w aplikacji do głosowania", body);
         }
 
-        public static void SendEmailVoteHash(GlosowanieWyborcze electionVoteDB, string userEmail)
+        public static EmailMessage VoteReceipt(string to, string electionName, string hash)
         {
-            var body = $"<h2>Hash twojego głosu: <b>{electionVoteDB.Hash}</b></h2></br> <p>Możesz sprawdzić poprawność swojego głosu w wyszukiwarce znajdującej się na stronie</p>";
-            SendEmail(userEmail, "Dziękujemy za zagłosowanie w wyborach", body);
+            var body =
+                $"<h2>Dziękujemy za oddanie głosu w wyborach: {Enc(electionName)}</h2>" +
+                $"<p>Hash Twojego głosu: <b>{Enc(hash)}</b></p>" +
+                "<p>Możesz sprawdzić, czy Twój głos znajduje się w łańcuchu, korzystając z wyszukiwarki głosów w aplikacji.</p>";
+            return new EmailMessage(to, "Potwierdzenie oddania głosu", body);
         }
 
-        public static void SendEmailChangePassword(string userEmail)
+        public static EmailMessage PasswordChanged(string to)
         {
-            var body = "<h2>Twoje hasło zostało zmienione!</h2></br> <p>Jeśli otrzymałeś tą wiadomość a to nie ty dokonałeś zmiany hasła skontaktuj się z administratorem.</p>";
-            SendEmail(userEmail, "Pomyślna zmiana hasła!", body);
+            const string body =
+                "<h2>Twoje hasło zostało zmienione.</h2>" +
+                "<p>Jeśli to nie Ty zmieniałeś hasło, natychmiast skontaktuj się z administratorem.</p>";
+            return new EmailMessage(to, "Zmiana hasła", body);
         }
 
-        public static void SendNewPassword(string password, Uzytkownik user)
+        public static EmailMessage PasswordReset(string to, string resetLink, TimeSpan validFor)
         {
-            var body = $"<h2>Twoje hasło zostało zresetowane i zastąpione nowym.!</h2></br> <p>Nowe hasło: {password}</p></br><p>Pamiętaj aby po zalogowaniu się tym hasłem zmienić je na własne nowe!</p>";
-            SendEmail(user.Email, "Przypomnienie hasła!", body);
+            var minutes = (int)Math.Round(validFor.TotalMinutes);
+            var body =
+                "<h2>Reset hasła</h2>" +
+                $"<p>Aby ustawić nowe hasło, kliknij poniższy link. Link jest ważny przez {minutes} minut.</p>" +
+                $"<p><a href=\"{Enc(resetLink)}\">Ustaw nowe hasło</a></p>" +
+                "<p>Jeśli nie prosiłeś o reset hasła, zignoruj tę wiadomość. Twoje hasło pozostaje bez zmian.</p>";
+            return new EmailMessage(to, "Reset hasła w aplikacji do głosowania", body);
         }
 
-        private static void SendEmail(string toEmail, string subject, string body)
-        {
-            var email = new MimeMessage();
-            email.From.Add(MailboxAddress.Parse(FromEmail));
-            email.To.Add(MailboxAddress.Parse(toEmail));
-            email.Subject = subject;
-            email.Body = new TextPart(TextFormat.Html) { Text = body };
-
-            using var smtp = new SmtpClient();
-            smtp.Connect(SmtpServer, SmtpPort, SecureSocketOptions.StartTls);
-            smtp.Authenticate(SmtpUser, SmtpPass);
-            smtp.Send(email);
-            smtp.Disconnect(true);
-        }
+        private static string Enc(string? value) => WebUtility.HtmlEncode(value ?? string.Empty);
     }
 }

@@ -1,95 +1,91 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
 namespace InternetVotingApplication.Models
 {
-    public partial class InternetVotingContext : DbContext
+    public class InternetVotingContext(DbContextOptions<InternetVotingContext> options) : DbContext(options)
     {
-        public InternetVotingContext()
-        {
-        }
+        public DbSet<Administrator> Administrators => Set<Administrator>();
 
-        public InternetVotingContext(DbContextOptions<InternetVotingContext> options)
-            : base(options)
-        {
-        }
+        public DbSet<DataWyborow> DataWyborows => Set<DataWyborow>();
 
-        public virtual DbSet<Administrator> Administrators { get; set; }
-        public virtual DbSet<DataWyborow> DataWyborows { get; set; }
-        public virtual DbSet<GlosUzytkownika> GlosUzytkownikas { get; set; }
-        public virtual DbSet<GlosowanieWyborcze> GlosowanieWyborczes { get; set; }
-        public virtual DbSet<Kandydat> Kandydats { get; set; }
-        public virtual DbSet<Uzytkownik> Uzytkowniks { get; set; }
+        public DbSet<GlosUzytkownika> GlosUzytkownikas => Set<GlosUzytkownika>();
+
+        public DbSet<GlosowanieWyborcze> GlosowanieWyborczes => Set<GlosowanieWyborcze>();
+
+        public DbSet<Kandydat> Kandydats => Set<Kandydat>();
+
+        public DbSet<Uzytkownik> Uzytkowniks => Set<Uzytkownik>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Uzytkownik>(entity =>
+            {
+                entity.HasIndex(e => e.Email).IsUnique();
+                entity.HasIndex(e => e.Pesel).IsUnique();
+                entity.HasIndex(e => e.KodAktywacyjny);
+                entity.HasIndex(e => e.TokenResetuHasla);
+                entity.Property(e => e.Pesel).IsFixedLength().IsUnicode(false);
+                entity.Property(e => e.Haslo).IsUnicode(false);
+            });
+
             modelBuilder.Entity<Administrator>(entity =>
             {
+                entity.HasIndex(e => e.IdUzytkownik).IsUnique();
                 entity.HasOne(d => d.IdUzytkownikNavigation)
                     .WithMany(p => p.Administrators)
                     .HasForeignKey(d => d.IdUzytkownik)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .OnDelete(DeleteBehavior.Cascade)
                     .HasConstraintName("FK_Administrator_Uzytkownik");
             });
 
-            modelBuilder.Entity<DataWyborow>(entity => entity.Property(e => e.Opis).IsUnicode(false));
+            modelBuilder.Entity<DataWyborow>(entity => entity.HasIndex(e => e.Opis).IsUnique());
 
-            modelBuilder.Entity<GlosUzytkownika>(entity =>
+            modelBuilder.Entity<Kandydat>(entity =>
             {
-                entity.HasOne(d => d.IdUzytkownikNavigation)
-                    .WithMany(p => p.GlosUzytkownikas)
-                    .HasForeignKey(d => d.IdUzytkownik)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_GlosUzytkownika_Uzytkownik");
-
+                entity.HasIndex(e => new { e.IdWybory, e.Imie, e.Nazwisko }).IsUnique();
                 entity.HasOne(d => d.IdWyboryNavigation)
-                    .WithMany(p => p.GlosUzytkownikas)
+                    .WithMany(p => p.Kandydats)
                     .HasForeignKey(d => d.IdWybory)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_GlosUzytkownika_Wybory");
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .HasConstraintName("FK_Kandydat_DataWyborow");
             });
 
             modelBuilder.Entity<GlosowanieWyborcze>(entity =>
             {
-                entity.Property(e => e.Hash).IsUnicode(false);
+                entity.HasIndex(e => e.Hash).IsUnique();
+                entity.HasIndex(e => new { e.IdWybory, e.Indeks }).IsUnique();
+                entity.Property(e => e.Hash).IsFixedLength().IsUnicode(false);
+                entity.Property(e => e.Nonce).IsFixedLength().IsUnicode(false);
 
                 entity.HasOne(d => d.IdKandydatNavigation)
                     .WithMany(p => p.GlosowanieWyborczes)
                     .HasForeignKey(d => d.IdKandydat)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .OnDelete(DeleteBehavior.Restrict)
                     .HasConstraintName("FK_GlosowanieWyborcze_Kandydat");
 
                 entity.HasOne(d => d.IdWyboryNavigation)
                     .WithMany(p => p.GlosowanieWyborczes)
                     .HasForeignKey(d => d.IdWybory)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .OnDelete(DeleteBehavior.Restrict)
                     .HasConstraintName("FK_GlosowanieWyborcze_DataWyborow");
             });
 
-            modelBuilder.Entity<Kandydat>(entity =>
+            modelBuilder.Entity<GlosUzytkownika>(entity =>
             {
-                entity.Property(e => e.Imie).IsUnicode(false);
-                entity.Property(e => e.Nazwisko).IsUnicode(false);
+                entity.HasIndex(e => new { e.IdUzytkownik, e.IdWybory }).IsUnique();
+
+                entity.HasOne(d => d.IdUzytkownikNavigation)
+                    .WithMany(p => p.GlosUzytkownikas)
+                    .HasForeignKey(d => d.IdUzytkownik)
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .HasConstraintName("FK_GlosUzytkownika_Uzytkownik");
 
                 entity.HasOne(d => d.IdWyboryNavigation)
-                    .WithMany(p => p.Kandydats)
+                    .WithMany(p => p.GlosUzytkownikas)
                     .HasForeignKey(d => d.IdWybory)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_Kandydat_DataWyborow");
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .HasConstraintName("FK_GlosUzytkownika_Wybory");
             });
-
-            modelBuilder.Entity<Uzytkownik>(entity =>
-            {
-                entity.Property(e => e.Haslo).IsUnicode(false);
-                entity.Property(e => e.Imie).IsUnicode(false);
-                entity.Property(e => e.JestAktywne).HasDefaultValueSql("((1))");
-                entity.Property(e => e.Nazwisko).IsUnicode(false);
-                entity.Property(e => e.Email).IsUnicode(false);
-                entity.Property(e => e.Pesel).IsFixedLength(true);
-            });
-
-            OnModelCreatingPartial(modelBuilder);
         }
-
-        partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
     }
 }

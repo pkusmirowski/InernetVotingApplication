@@ -1,51 +1,66 @@
-﻿@model InternetVotingApplication.ViewModels.DataWyborowViewModel
+@model DataWyborowViewModel
 @{
     ViewData["Title"] = "Panel głosowania";
 }
-<br />
-<br />
-<br />
-<br />
-<div class="container">
-    <main id="main">
-        <center>
-            <h2>Panel głosowania</h2>
-            <table class="table table-striped">
-                <thead>
+<h2>Panel głosowania</h2>
+<hr />
+@if (Model.Elections.Count == 0)
+{
+    <p>Nie ma jeszcze żadnych wyborów.</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped align-middle">
+            <thead>
+                <tr>
+                    <th scope="col">Wybory</th>
+                    <th scope="col">Rozpoczęcie</th>
+                    <th scope="col">Zakończenie</th>
+                    <th scope="col">Kandydaci</th>
+                    <th scope="col">Status</th>
+                    <th scope="col"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var election in Model.Elections)
+                {
                     <tr>
-                        <th scope="col">Numer głosowania</th>
-                        <th scope="col">Data rozpoczęcia</th>
-                        <th scope="col">Data zakończenia</th>
-                        <th scope="col">Opis głosowania</th>
-                        <th scope="col">Link</th>
+                        <td>@election.Opis</td>
+                        <td>@election.DataRozpoczecia.ToString("g")</td>
+                        <td>@election.DataZakonczenia.ToString("g")</td>
+                        <td>@election.CandidateCount</td>
+                        <td>
+                            @switch (election.Status)
+                            {
+                                case ElectionStatus.Upcoming:
+                                    <span class="badge bg-secondary">Nie rozpoczęte</span>
+                                    break;
+                                case ElectionStatus.Ongoing:
+                                    <span class="badge bg-success">Trwają</span>
+                                    break;
+                                default:
+                                    <span class="badge bg-dark">Zakończone</span>
+                                    break;
+                            }
+                            @if (election.HasVoted)
+                            {
+                                <span class="badge bg-info text-dark">Głos oddany</span>
+                            }
+                        </td>
+                        <td>
+                            @if (election.Status == ElectionStatus.Ongoing && !election.HasVoted)
+                            {
+                                <a class="btn btn-sm btn-primary" asp-action="Voting" asp-route-id="@election.Id">Zagłosuj</a>
+                            }
+                            else
+                            {
+                                <a class="btn btn-sm btn-outline-secondary" asp-action="ElectionResult" asp-route-id="@election.Id">Szczegóły</a>
+                            }
+                        </td>
                     </tr>
-                </thead>
-                <tbody>
-                    @foreach (var election in Model.ElectionDates)
-                    {
-                        <tr>
-                            <td>@election.Id</td>
-                            <td>@election.DataRozpoczecia</td>
-                            <td>@election.DataZakonczenia</td>
-                            <td>@election.Opis</td>
-                            <td>
-                                @if (election.Type == 1)
-                                {
-                                    <a asp-controller="Election" asp-action="Voting" asp-route-id="@election.Id">Sprawdź wyniki głosowania</a>
-                                }
-                                else if (election.Type == 2)
-                                {
-                                    <a asp-controller="Election" asp-action="Voting" asp-route-id="@election.Id">Wybory jeszcze się nie rozpoczęły</a>
-                                }
-                                else
-                                {
-                                    <a asp-controller="Election" asp-action="Voting" asp-route-id="@election.Id">Przejdź do głosowania</a>
-                                }
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </center>
-    </main>
-</div>
+                }
+            </tbody>
+        </table>
+    </div>
+}

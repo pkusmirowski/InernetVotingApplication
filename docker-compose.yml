@@ -1,0 +1,45 @@
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "Voting!Passw0rd"
+      MSSQL_PID: Developer
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql-data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P 'Voting!Passw0rd' -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__InternetVotingDBConnection: "Server=db,1433;Database=InternetVoting;User Id=sa;Password=Voting!Passw0rd;MultipleActiveResultSets=True;TrustServerCertificate=True;"
+      Database__ApplyMigrationsOnStartup: "true"
+      Smtp__Host: mailpit
+      Smtp__Port: "1025"
+      Smtp__SecureSocket: None
+      Smtp__FromAddress: no-reply@internetvoting.local
+      # Comma-separated list is not supported by the binder; use indexed keys:
+      # Seeding__AdminEmails__0: admin@example.com
+    ports:
+      - "8080:8080"
+
+volumes:
+  mssql-data:

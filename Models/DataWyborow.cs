@@ -1,41 +1,44 @@
-﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace InternetVotingApplication.Models
 {
+    /// <summary>
+    /// An election: a named voting window with its own candidates and its own hash chain.
+    /// </summary>
     [Table("DataWyborow")]
-    public partial class DataWyborow
+    public class DataWyborow
     {
-        public DataWyborow()
-        {
-            GlosUzytkownikas = new HashSet<GlosUzytkownika>();
-            GlosowanieWyborczes = new HashSet<GlosowanieWyborcze>();
-            Kandydats = new HashSet<Kandydat>();
-        }
-
         [Key]
         [Column("id")]
         public int Id { get; set; }
 
-        [Column("dataRozpoczecia", TypeName = "datetime")]
+        [Column("dataRozpoczecia")]
         public DateTime DataRozpoczecia { get; set; }
 
-        [Column("dataZakonczenia", TypeName = "datetime")]
+        [Column("dataZakonczenia")]
         public DateTime DataZakonczenia { get; set; }
 
-        [Required]
         [Column("opis")]
-        public string Opis { get; set; }
+        [StringLength(200)]
+        public string Opis { get; set; } = null!;
 
-        [InverseProperty(nameof(GlosUzytkownika.IdWyboryNavigation))]
-        public virtual ICollection<GlosUzytkownika> GlosUzytkownikas { get; set; }
+        public ICollection<GlosUzytkownika> GlosUzytkownikas { get; set; } = new HashSet<GlosUzytkownika>();
 
-        [InverseProperty(nameof(GlosowanieWyborcze.IdWyboryNavigation))]
-        public virtual ICollection<GlosowanieWyborcze> GlosowanieWyborczes { get; set; }
+        public ICollection<GlosowanieWyborcze> GlosowanieWyborczes { get; set; } = new HashSet<GlosowanieWyborcze>();
 
-        [InverseProperty(nameof(Kandydat.IdWyboryNavigation))]
-        public virtual ICollection<Kandydat> Kandydats { get; set; }
+        public ICollection<Kandydat> Kandydats { get; set; } = new HashSet<Kandydat>();
+
+        public ElectionStatus GetStatus(DateTime now) => GetStatus(DataRozpoczecia, DataZakonczenia, now);
+
+        public static ElectionStatus GetStatus(DateTime start, DateTime end, DateTime now)
+        {
+            if (now < start)
+            {
+                return ElectionStatus.Upcoming;
+            }
+
+            return now > end ? ElectionStatus.Ended : ElectionStatus.Ongoing;
+        }
     }
 }

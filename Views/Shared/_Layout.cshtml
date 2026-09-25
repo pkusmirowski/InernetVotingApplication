@@ -1,174 +1,132 @@
-﻿@using Microsoft.AspNetCore.Http;
 <!DOCTYPE html>
 <html lang="pl">
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <title>@ViewData["Title"] - Aplikacja do głosowań internetowych</title>
-    <meta content="" name="description">
-    <meta content="" name="keywords">
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" />
-    <!-- Favicons -->
-    <link href="/assets/img/favicon.png" rel="icon">
-    <link href="/assets/img/apple-touch-icon.png" rel="apple-touch-icon">
+    <meta content="Aplikacja do głosowań internetowych z wewnętrznym łańcuchem hashy weryfikującym oddane głosy" name="description">
 
-    <!-- Google Fonts -->
+    <link href="~/assets/img/favicon.png" rel="icon">
+    <link href="~/assets/img/apple-touch-icon.png" rel="apple-touch-icon">
+
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Raleway:300,300i,400,400i,600,600i,700,700i" rel="stylesheet">
 
-    <!-- Vendor CSS Files -->
-    <link href="/assets/vendor/aos/aos.css" rel="stylesheet">
-    <link href="/assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
-    <link href="/assets/vendor/boxicons/css/boxicons.min.css" rel="stylesheet">
-    <link href="/assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
-    <link href="/assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
-
-    <!-- Template Main CSS File -->
-    <link href="~/assets/css/style.css" rel="stylesheet">
-
-    <!-- =======================================================
-    * Template Name: Ninestars - v4.3.0
-    * Template URL: https://bootstrapmade.com/ninestars-free-bootstrap-3-theme-for-creative/
-    * Author: BootstrapMade.com
-    * License: https://bootstrapmade.com/license/
-    ======================================================== -->
+    <link href="~/assets/vendor/aos/aos.css" rel="stylesheet">
+    <link href="~/assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="~/assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+    <link href="~/assets/vendor/boxicons/css/boxicons.min.css" rel="stylesheet">
+    <link href="~/assets/css/style.css" rel="stylesheet" asp-append-version="true">
+    <link href="~/assets/css/site.css" rel="stylesheet" asp-append-version="true">
 </head>
 <body>
     <header id="header" class="fixed-top d-flex align-items-center">
         <div class="container d-flex align-items-center justify-content-between">
             <div class="logo">
                 <h1 class="text-light"><span><a class="nav-link text-dark" asp-controller="Home" asp-action="Index">Wybory Prezydenckie</a></span></h1>
-                <!-- <a href="index.html"><img src="assets/img/logo.png" alt="" class="img-fluid"></a> -->
             </div>
             <nav id="navbar" class="navbar">
                 <ul>
                     <li><a class="nav-link text-dark" asp-controller="Home" asp-action="Index">Strona główna</a></li>
-                    @if (Context.Session.GetString("email") == null)
+                    @if (User.Identity?.IsAuthenticated != true)
                     {
-                        <li>
-                            <a class="nav-link scrollto" asp-controller="Account" asp-action="Register">Rejestracja</a>
-                        </li>
-                        <li>
-                            <a class="nav-link scrollto" asp-controller="Account" asp-action="Login">Zaloguj się</a>
-                        </li>
-                        <li>
-                            <a class="nav-link scrollto" asp-controller="Account" asp-action="PasswordRecovery">Przypomnij hasło</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link scrollto" asp-controller="Account" asp-action="Search">Sprawdź głos</a>
-                        </li>
+                        <li><a class="nav-link" asp-controller="Account" asp-action="Register">Rejestracja</a></li>
+                        <li><a class="nav-link" asp-controller="Account" asp-action="Login">Zaloguj się</a></li>
+                        <li><a class="nav-link" asp-controller="Account" asp-action="PasswordRecovery">Przypomnij hasło</a></li>
+                        <li><a class="nav-link" asp-controller="Account" asp-action="Search">Sprawdź głos</a></li>
                     }
-                    else if (!(Context.Session.GetString("Admin") == null))
+                    else if (User.IsInRole(Roles.Admin))
                     {
-
+                        <li><a class="nav-link" asp-controller="Admin" asp-action="Panel">Panel administratora</a></li>
+                        <li><a class="nav-link" asp-controller="Admin" asp-action="CreateElection">Stwórz wybory</a></li>
+                        <li><a class="nav-link" asp-controller="Admin" asp-action="AddCandidate">Dodaj kandydata</a></li>
+                        <li><a class="nav-link" asp-controller="Admin" asp-action="DeleteCandidate">Kandydaci</a></li>
+                        <li><a class="nav-link" asp-controller="Account" asp-action="ChangePassword">Zmiana hasła</a></li>
                         <li>
-                            <a class="nav-link scrollto" asp-controller="Admin" asp-action="AddCandidate">Dodaj kandydata</a>
-                        </li>
-                        <li>
-                            <a class="nav-link scrollto" asp-controller="Admin" asp-action="CreateElection">Stwórz wybory</a>
-                        </li>
-                        <li>
-                            <a class="nav-link scrollto" asp-controller="Account" asp-action="Logout">Wyloguj się</a>
+                            <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                                <button type="submit" class="nav-link btn btn-link">Wyloguj się</button>
+                            </form>
                         </li>
                     }
                     else
                     {
+                        <li><a class="nav-link" asp-controller="Election" asp-action="Dashboard">Panel głosowania</a></li>
+                        <li><a class="nav-link" asp-controller="Account" asp-action="ChangePassword">Zmiana hasła</a></li>
+                        <li><a class="nav-link" asp-controller="Account" asp-action="Search">Sprawdź głos</a></li>
                         <li>
-                            <a class="nav-link scrollto" asp-controller="Election" asp-action="Dashboard">Panel głosowania</a>
+                            <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                                <button type="submit" class="nav-link btn btn-link">Wyloguj się</button>
+                            </form>
                         </li>
-                        <li>
-                            <a class="nav-link scrollto" asp-controller="Account" asp-action="ChangePassword">Zmiana hasła</a>
-                        </li>
-                        <li>
-                            <a class="nav-link scrollto" asp-controller="Account" asp-action="Search">Sprawdź głos</a>
-                        </li>
-                        <li>
-                            <a class="nav-link scrollto" asp-controller="Account" asp-action="Logout">Wyloguj się</a>
-                        </li>
-
                     }
-                    <li><a class="nav-link scrollto" asp-controller="Home" asp-action="Privacy">Prywatność</a></li>
-                    <li><a class="nav-link scrollto" asp-controller="Home" asp-action="Contact">Kontakt</a></li>
+                    <li><a class="nav-link" asp-controller="Home" asp-action="Privacy">Prywatność</a></li>
+                    <li><a class="nav-link" asp-controller="Home" asp-action="Contact">Kontakt</a></li>
                 </ul>
                 <i class="bi bi-list mobile-nav-toggle"></i>
-            </nav><!-- .navbar -->
-            </div>
+            </nav>
+        </div>
     </header>
-    @RenderBody()
+
+    @if (ViewData["FullWidth"] is true)
+    {
+        @RenderBody()
+    }
+    else
+    {
+        <main id="main" class="page-content">
+            <div class="container">
+                @RenderBody()
+            </div>
+        </main>
+    }
+
     <footer id="footer">
         <div class="footer-top">
             <div class="container">
                 <div class="row">
-                    <div class="col-lg-3 col-md-6 footer-contact">
+                    <div class="col-lg-4 col-md-6 footer-contact">
                         <h3>Kontakt</h3>
                         <p>
                             ul. Przykładowa 40/50 <br>
                             Warszawa, 55-555<br>
                             Polska <br><br>
                             <strong>Numer telefonu:</strong> +48 000000000<br>
-                            <strong>Adres E-mail:</strong> info@twojadomena.pl<br>
+                            <strong>Adres e-mail:</strong> info@twojadomena.pl<br>
                         </p>
                     </div>
-
-                    <div class="col-lg-3 col-md-6 footer-links">
+                    <div class="col-lg-4 col-md-6 footer-links">
                         <h4>Przydatne linki</h4>
                         <ul>
-                            <li><i class="bx bx-chevron-right"></i> <a href="/">Strona główna</a></li>
-                            <li><i class="bx bx-chevron-right"></i> <a href="/Account/Register">Rejestracja</a></li>
-                            <li><i class="bx bx-chevron-right"></i> <a href="/Account/Login">Zaloguj się</a></li>
-                            <li><i class="bx bx-chevron-right"></i> <a href="/Account/PasswordRecovery">Przypomnij hasło</a></li>
-                            <li><i class="bx bx-chevron-right"></i> <a href="/Home/Privacy">Prywatność</a></li>
+                            <li><i class="bx bx-chevron-right"></i> <a asp-controller="Home" asp-action="Index">Strona główna</a></li>
+                            <li><i class="bx bx-chevron-right"></i> <a asp-controller="Account" asp-action="Register">Rejestracja</a></li>
+                            <li><i class="bx bx-chevron-right"></i> <a asp-controller="Account" asp-action="Login">Zaloguj się</a></li>
+                            <li><i class="bx bx-chevron-right"></i> <a asp-controller="Account" asp-action="PasswordRecovery">Przypomnij hasło</a></li>
+                            <li><i class="bx bx-chevron-right"></i> <a asp-controller="Account" asp-action="Search">Sprawdź głos</a></li>
+                            <li><i class="bx bx-chevron-right"></i> <a asp-controller="Home" asp-action="Privacy">Prywatność</a></li>
                         </ul>
                     </div>
-
-                    <div class="col-lg-3 col-md-6 footer-links">
-                        <h4>Tagi</h4>
-                        <ul>
-                            <li><i class="bx bx-chevron-right"></i> <a href="#">Przykład 1</a></li>
-                            <li><i class="bx bx-chevron-right"></i> <a href="#">Przykład 2</a></li>
-                            <li><i class="bx bx-chevron-right"></i> <a href="#">Przykład 3</a></li>
-                            <li><i class="bx bx-chevron-right"></i> <a href="#">Przykład 4</a></li>
-                            <li><i class="bx bx-chevron-right"></i> <a href="#">Przykład 5</a></li>
-                        </ul>
-                    </div>
-
-                    <div class="col-lg-3 col-md-6 footer-links">
-                        <h4>Media społecznościowe</h4>
-                        <div class="social-links mt-3">
-                            <a href="https://www.facebook.com" class="facebook"><i class="bx bxl-facebook"></i></a>
-                            <a href="https://www.twitter.com" class="twitter"><i class="bx bxl-twitter"></i></a>
-                        </div>
+                    <div class="col-lg-4 col-md-6 footer-links">
+                        <h4>O aplikacji</h4>
+                        <p>Każdy oddany głos jest blokiem w łańcuchu hashy SHA-256 danych wyborów. Wyborca otrzymuje hash swojego głosu i może w każdej chwili sprawdzić, czy jest on obecny w nienaruszonym łańcuchu.</p>
                     </div>
                 </div>
             </div>
         </div>
         <div class="container py-4">
             <div class="copyright">
-                &copy; 2023 - AplikacjaDoGłosowańInternetowych <strong><span><a href="/Home/Privacy">Prywatność</a></span></strong>. All Rights Reserved
+                &copy; @DateTime.Now.Year - Aplikacja do głosowań internetowych <strong><span><a asp-controller="Home" asp-action="Privacy">Prywatność</a></span></strong>
             </div>
             <div class="credits">
-                Designed by <a href="https://bootstrapmade.com/">BootstrapMade</a> | Modified and Customized by WyboryPrezydenckie.pl
+                Szablon: <a href="https://bootstrapmade.com/">BootstrapMade</a>
             </div>
         </div>
-    </footer><!-- End Footer -->
+    </footer>
 
     <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
 
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="~/assets/vendor/aos/aos.js"></script>
+    <script src="~/assets/js/main.js" asp-append-version="true"></script>
 
-    <!-- Vendor JS Files -->
-    <script src="assets/vendor/aos/aos.js"></script>
-    <script src="assets/vendor/glightbox/js/glightbox.min.js"></script>
-    <script src="assets/vendor/isotope-layout/isotope.pkgd.min.js"></script>
-    <script src="assets/vendor/php-email-form/validate.js"></script>
-    <script src="assets/vendor/swiper/swiper-bundle.min.js"></script>
-
-    <!-- Template Main JS File -->
-    <script src="assets/js/main.js"></script>
-
-    @RenderSection("Scripts", required: false)
+    @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

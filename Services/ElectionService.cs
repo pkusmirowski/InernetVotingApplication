@@ -1,253 +1,257 @@
-﻿using InternetVotingApplication.Blockchain;
+using InternetVotingApplication.Blockchain;
 using InternetVotingApplication.ExtensionMethods;
 using InternetVotingApplication.Interfaces;
 using InternetVotingApplication.Models;
 using InternetVotingApplication.ViewModels;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Data;
 
 namespace InternetVotingApplication.Services
 {
-    public class ElectionService(InternetVotingContext context) : IElectionService
+    public class ElectionService(
+        InternetVotingContext context,
+        IEmailSender emailSender,
+        TimeProvider timeProvider,
+        ILogger<ElectionService> logger) : IElectionService
     {
-        private readonly InternetVotingContext _context = context;
-
-        public DataWyborowViewModel GetAllElections()
+        public async Task<DataWyborowViewModel> GetElectionListAsync(int userId)
         {
-            var electionDates = _context.DataWyborows.Select(x => new DataWyborowItemViewModel
-            {
-                Id = x.Id,
-                DataRozpoczecia = x.DataRozpoczecia,
-                DataZakonczenia = x.DataZakonczenia,
-                Opis = x.Opis,
-                Type = GetElectionType(x.Id)
-            }).ToList();
+            var now = Now();
+            var elections = await context.DataWyborows
+                .OrderByDescending(e => e.DataRozpoczecia)
+                .Select(e => new
+                {
+                    e.Id,
+                    e.Opis,
+                    e.DataRozpoczecia,
+                    e.DataZakonczenia,
+                    CandidateCount = e.Kandydats.Count,
+                    HasVoted = e.GlosUzytkownikas.Any(g => g.IdUzytkownik == userId),
+                })
+                .ToListAsync();
 
             return new DataWyborowViewModel
             {
-                ElectionDates = electionDates
+                Elections = elections.Select(e => new DataWyborowItemViewModel
+                {
+                    Id = e.Id,
+                    Opis = e.Opis,
+                    DataRozpoczecia = e.DataRozpoczecia,
+                    DataZakonczenia = e.DataZakonczenia,
+                    CandidateCount = e.CandidateCount,
+                    HasVoted = e.HasVoted,
+                    Status = DataWyborow.GetStatus(e.DataRozpoczecia, e.DataZakonczenia, now),
+                }).ToList(),
             };
         }
 
-        private int GetElectionType(int electionId)
+        public async Task<ElectionStatus?> GetElectionStatusAsync(int electionId)
         {
-            if (!CheckIfElectionEnded(electionId))
-            {
-                return 1;
-            }
-            else if (!CheckIfElectionStarted(electionId))
-            {
-                return 2;
-            }
-            else
-            {
-                return 3;
-            }
+            var election = await context.DataWyborows.AsNoTracking().SingleOrDefaultAsync(e => e.Id == electionId);
+            return election?.GetStatus(Now());
         }
 
-        public KandydatViewModel GetAllCandidates(int id)
+        public async Task<KandydatViewModel?> GetVotingPageAsync(int electionId)
         {
-            var electionCandidates = _context.Kandydats
-                .Where(x => x.IdWybory == id)
-                .Select(x => new KandydatItemViewModel
-                {
-                    Id = x.Id,
-                    Imie = x.Imie,
-                    Nazwisko = x.Nazwisko,
-                    IdWybory = x.IdWybory
-                }).ToList();
+            var election = await context.DataWyborows.AsNoTracking().SingleOrDefaultAsync(e => e.Id == electionId);
+            if (election == null)
+            {
+                return null;
+            }
+
+            var candidates = await context.Kandydats
+                .Where(k => k.IdWybory == electionId)
+                .OrderBy(k => k.Nazwisko)
+                .ThenBy(k => k.Imie)
+                .Select(k => new KandydatItemViewModel { Id = k.Id, Imie = k.Imie, Nazwisko = k.Nazwisko })
+                .ToListAsync();
 
             return new KandydatViewModel
             {
-                ElectionCandidates = electionCandidates
+                ElectionId = election.Id,
+                ElectionName = election.Opis,
+                DataZakonczenia = election.DataZakonczenia,
+                Candidates = candidates,
             };
         }
 
-        public string AddVote(string user, int candidateId, int electionId)
+        public Task<bool> HasVotedAsync(int userId, int electionId)
         {
-            var listOfPreviousElectionVotes = VerifyElectionBlockchain(electionId);
-            if (listOfPreviousElectionVotes.Any(c => !c.JestPoprawny))
+            return context.GlosUzytkownikas.AnyAsync(g => g.IdUzytkownik == userId && g.IdWybory == electionId);
+        }
+
+        public async Task<VoteOutcome> CastVoteAsync(int userId, int electionId, int candidateId)
+        {
+            var now = Now();
+
+            await using var transaction = await context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+
+            var election = await context.DataWyborows.SingleOrDefaultAsync(e => e.Id == electionId);
+            if (election == null)
             {
-                return "0";
+                return new VoteOutcome(VoteStatus.ElectionNotFound);
             }
 
-            var electionVoteDB = new GlosowanieWyborcze
+            switch (election.GetStatus(now))
             {
+                case ElectionStatus.Upcoming:
+                    return new VoteOutcome(VoteStatus.ElectionNotStarted, ElectionName: election.Opis);
+                case ElectionStatus.Ended:
+                    return new VoteOutcome(VoteStatus.ElectionEnded, ElectionName: election.Opis);
+                default:
+                    break;
+            }
+
+            if (!await context.Kandydats.AnyAsync(k => k.Id == candidateId && k.IdWybory == electionId))
+            {
+                return new VoteOutcome(VoteStatus.CandidateNotInElection, ElectionName: election.Opis);
+            }
+
+            if (await HasVotedAsync(userId, electionId))
+            {
+                return new VoteOutcome(VoteStatus.AlreadyVoted, ElectionName: election.Opis);
+            }
+
+            var chain = await LoadChainAsync(electionId);
+            var verification = BlockChainHelper.VerifyBlockChain(chain);
+            if (!verification.IsValid)
+            {
+                logger.LogError("Hash chain of election {ElectionId} is corrupted; invalid blocks: {Blocks}", electionId, string.Join(',', verification.InvalidBlockIds));
+                return new VoteOutcome(VoteStatus.ChainCorrupted, ElectionName: election.Opis);
+            }
+
+            var head = chain.Count == 0 ? null : chain[^1];
+            var block = new GlosowanieWyborcze
+            {
+                Indeks = chain.Count,
                 IdKandydat = candidateId,
                 IdWybory = electionId,
-                Glos = true,
-                IdPoprzednie = listOfPreviousElectionVotes.LastOrDefault()?.Id,
-                Hash = HashHelper.Hash(BlockHelper.VoteData(candidateId, electionId, true, listOfPreviousElectionVotes.LastOrDefault()?.Hash))
+                IdPoprzednie = head?.Id,
+                ZnacznikCzasu = now,
+                Nonce = BlockHelper.NewNonce(),
             };
+            block.Hash = BlockHelper.ComputeHash(block, head?.Hash);
 
-            var userId = _context.Uzytkowniks
-                .Where(u => u.Email == user)
-                .Select(u => u.Id)
-                .FirstOrDefault();
+            context.GlosowanieWyborczes.Add(block);
+            context.GlosUzytkownikas.Add(new GlosUzytkownika { IdUzytkownik = userId, IdWybory = electionId, DataOddania = now });
 
-            var userEmail = _context.Uzytkowniks
-                .Where(u => u.Email == user)
-                .Select(u => u.Email)
-                .FirstOrDefault();
-
-            var userVoiceDB = new GlosUzytkownika
+            try
             {
-                IdUzytkownik = userId,
-                IdWybory = electionId,
-                Glos = true
-            };
-
-            _context.AddRange(electionVoteDB, userVoiceDB);
-            _context.SaveChanges();
-            Email.SendEmailVoteHash(electionVoteDB, userEmail);
-
-            return electionVoteDB.Hash;
-        }
-
-        public bool CheckIfElectionEnded(int electionId)
-        {
-            var electionDate = _context.DataWyborows
-                .Where(dw => dw.Id == electionId)
-                .Select(dw => dw.DataZakonczenia)
-                .FirstOrDefault();
-
-            return electionDate >= DateTime.Now;
-        }
-
-        public bool CheckIfElectionStarted(int electionId)
-        {
-            var electionDate = _context.DataWyborows
-                .Where(dw => dw.Id == electionId)
-                .Select(dw => dw.DataRozpoczecia)
-                .FirstOrDefault();
-
-            return electionDate <= DateTime.Now;
-        }
-
-        public bool CheckElectionBlockchain(int electionId)
-        {
-            return VerifyElectionBlockchain(electionId).All(c => c.JestPoprawny);
-        }
-
-        private List<GlosowanieWyborcze> VerifyElectionBlockchain(int electionId)
-        {
-            var listOfPreviousElectionVotes = _context.GlosowanieWyborczes
-                .Where(r => r.IdWybory == electionId)
-                .ToList();
-
-            BlockChainHelper.VerifyBlockChain(listOfPreviousElectionVotes);
-            return listOfPreviousElectionVotes;
-        }
-
-        public async Task<bool> CheckIfVoted(string user, int election)
-        {
-            var userId = await _context.Uzytkowniks
-                .Where(u => u.Email == user)
-                .Select(u => u.Id)
-                .FirstOrDefaultAsync();
-
-            return await _context.GlosUzytkownikas
-                .AnyAsync(g => g.IdUzytkownik == userId && g.IdWybory == election && g.Glos);
-        }
-
-        public GlosowanieWyborczeViewModel SearchVote(string text)
-        {
-            var electionCandidates = _context.GlosowanieWyborczes
-                .Where(x => x.Hash == text)
-                .Select(x => new GlosowanieWyborczeItemViewModel
-                {
-                    IdKandydat = x.IdKandydat,
-                    IdWybory = x.IdWybory,
-                    Hash = x.Hash
-                }).FirstOrDefault();
-
-            if (electionCandidates == null)
-            {
-                electionCandidates = new GlosowanieWyborczeItemViewModel
-                {
-                    IdWybory = -1,
-                    IdKandydat = -1
-                };
+                await context.SaveChangesAsync();
+                await transaction.CommitAsync();
             }
-            else
+            catch (DbUpdateException ex)
             {
-                electionCandidates = GetCandidateInfo(electionCandidates);
+                // A concurrent request of the same voter (unique index on user + election) or of another
+                // voter (unique index on election + block index) won the race.
+                logger.LogWarning(ex, "Vote of user {UserId} in election {ElectionId} rejected by a unique constraint", userId, electionId);
+                await transaction.RollbackAsync();
+                return new VoteOutcome(VoteStatus.AlreadyVoted, ElectionName: election.Opis);
             }
+
+            var email = await context.Uzytkowniks.Where(u => u.Id == userId).Select(u => u.Email).SingleAsync();
+            await emailSender.SendAsync(Email.VoteReceipt(email, election.Opis, block.Hash));
+            logger.LogInformation("Vote recorded in election {ElectionId}, block {Index}", electionId, block.Indeks);
+
+            return new VoteOutcome(VoteStatus.Success, block.Hash, election.Opis);
+        }
+
+        public async Task<GlosowanieWyborczeViewModel?> GetResultsAsync(int electionId)
+        {
+            var election = await context.DataWyborows.AsNoTracking().SingleOrDefaultAsync(e => e.Id == electionId);
+            if (election == null)
+            {
+                return null;
+            }
+
+            var rows = await context.Kandydats
+                .Where(k => k.IdWybory == electionId)
+                .Select(k => new GlosowanieWyborczeItemViewModel
+                {
+                    IdKandydat = k.Id,
+                    CandidateName = k.Imie,
+                    CandidateSurname = k.Nazwisko,
+                    CountedVotes = k.GlosowanieWyborczes.Count,
+                })
+                .ToListAsync();
+
+            var total = rows.Sum(r => r.CountedVotes);
+            foreach (var row in rows)
+            {
+                row.CountedVotesPercentage = total == 0 ? 0 : Math.Round(100.0 * row.CountedVotes / total, 2);
+            }
+
+            var verification = await VerifyChainAsync(electionId);
 
             return new GlosowanieWyborczeViewModel
             {
-                SearchCandidate = electionCandidates
-            };
-        }
-        public GlosowanieWyborczeViewModel GetElectionResult(int id)
-        {
-            var electionResult = _context.GlosowanieWyborczes
-                .Where(x => x.IdWybory == id)
-                .Select(x => new GlosowanieWyborczeItemViewModel
-                {
-                    IdKandydat = x.IdKandydat,
-                    IdWybory = x.IdWybory,
-                }).ToList();
-
-            foreach (var result in electionResult)
-            {
-                var candidateInfo = GetCandidateInfo(result);
-                candidateInfo.CountedVotes = CountVotes(id, candidateInfo.IdKandydat);
-                result.CandidateName = candidateInfo.CandidateName;
-                result.CandidateSurname = candidateInfo.CandidateSurname;
-                result.ElectionDesc = candidateInfo.ElectionDesc;
-                result.CountedVotes = candidateInfo.CountedVotes;
-            }
-
-            electionResult = electionResult.Distinct(new ItemEqualityComparer()).ToList();
-
-            var allElectionVotes = electionResult.Sum(x => x.CountedVotes);
-
-            foreach (var result in electionResult)
-            {
-                result.CountedVotesPercentage = (result.CountedVotes / allElectionVotes) * 100;
-            }
-
-            return new GlosowanieWyborczeViewModel
-            {
-                GetElectionVotes = electionResult
+                ElectionId = election.Id,
+                ElectionName = election.Opis,
+                DataRozpoczecia = election.DataRozpoczecia,
+                DataZakonczenia = election.DataZakonczenia,
+                Status = election.GetStatus(Now()),
+                TotalVotes = total,
+                Rows = rows.OrderByDescending(r => r.CountedVotes).ThenBy(r => r.CandidateSurname).ToList(),
+                ChainValid = verification.IsValid,
+                BlockCount = verification.BlockCount,
+                HeadHash = verification.HeadHash,
             };
         }
 
-        public int CountVotes(int election, int candidate)
+        public async Task<VoteSearchViewModel> SearchVoteAsync(string hash)
         {
-            return _context.GlosowanieWyborczes
-                .Count(g => g.IdKandydat == candidate && g.IdWybory == election);
-        }
+            var normalized = (hash ?? string.Empty).Trim().ToUpperInvariant();
+            var result = new VoteSearchViewModel { Hash = normalized, Searched = normalized.Length > 0 };
+            if (normalized.Length != 64)
+            {
+                return result;
+            }
 
-        private GlosowanieWyborczeItemViewModel GetCandidateInfo(GlosowanieWyborczeItemViewModel candidate)
-        {
-            var candidateInfo = _context.Kandydats
-                .Where(k => k.Id == candidate.IdKandydat)
-                .Select(k => new
+            var block = await context.GlosowanieWyborczes
+                .AsNoTracking()
+                .Where(g => g.Hash == normalized)
+                .Select(g => new
                 {
-                    k.Imie,
-                    k.Nazwisko
-                }).FirstOrDefault();
+                    g.IdWybory,
+                    g.Indeks,
+                    g.ZnacznikCzasu,
+                    g.IdKandydatNavigation.Imie,
+                    g.IdKandydatNavigation.Nazwisko,
+                    ElectionName = g.IdWyboryNavigation.Opis,
+                })
+                .SingleOrDefaultAsync();
 
-            var electionDesc = _context.DataWyborows
-                .Where(dw => dw.Id == candidate.IdWybory)
-                .Select(dw => dw.Opis)
-                .FirstOrDefault();
+            if (block == null)
+            {
+                return result;
+            }
 
-            candidate.CandidateName = candidateInfo?.Imie;
-            candidate.CandidateSurname = candidateInfo?.Nazwisko;
-            candidate.ElectionDesc = electionDesc;
-
-            return candidate;
+            var verification = await VerifyChainAsync(block.IdWybory);
+            result.Found = true;
+            result.CandidateName = block.Imie;
+            result.CandidateSurname = block.Nazwisko;
+            result.ElectionName = block.ElectionName;
+            result.BlockIndex = block.Indeks;
+            result.Timestamp = block.ZnacznikCzasu;
+            result.ChainValid = verification.IsValid;
+            return result;
         }
 
-        public List<DataWyborow> ShowElectionByName()
+        public async Task<ChainVerificationResult> VerifyChainAsync(int electionId)
         {
-            return _context.DataWyborows.ToList();
+            var chain = await LoadChainAsync(electionId);
+            return BlockChainHelper.VerifyBlockChain(chain);
         }
+
+        private Task<List<GlosowanieWyborcze>> LoadChainAsync(int electionId)
+        {
+            return context.GlosowanieWyborczes
+                .AsNoTracking()
+                .Where(g => g.IdWybory == electionId)
+                .OrderBy(g => g.Indeks)
+                .ToListAsync();
+        }
+
+        private DateTime Now() => timeProvider.GetLocalNow().DateTime;
     }
 }

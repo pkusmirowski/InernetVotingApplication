@@ -1,0 +1,36 @@
+/* Application-specific overrides for the Ninestars template. */
+.page-content {
+    padding-top: 110px;
+    min-height: 70vh;
+}
+
+.page-content h2 {
+    font-weight: 600;
+}
+
+#navbar .btn-link.nav-link {
+    padding: 10px 0 10px 30px;
+    color: #45505b;
+    text-decoration: none;
+}
+
+#navbar .btn-link.nav-link:hover {
+    color: #0563bb;
+}
+
+.hash-value {
+    font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    word-break: break-all;
+}
+
+.results-bar {
+    height: 1.25rem;
+    background: #e9ecef;
+    border-radius: .25rem;
+    overflow: hidden;
+}
+
+.results-bar > div {
+    height: 100%;
+    background: #0563bb;
+}

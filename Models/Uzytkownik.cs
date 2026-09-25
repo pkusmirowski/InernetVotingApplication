@@ -1,79 +1,67 @@
-﻿using InternetVotingApplication.ExtensionMethods;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace InternetVotingApplication.Models
 {
+    /// <summary>
+    /// Registered voter account. Form input is bound to <see cref="ViewModels.RegisterViewModel"/>,
+    /// never directly to this entity.
+    /// </summary>
     [Table("Uzytkownik")]
-    public partial class Uzytkownik
+    public class Uzytkownik
     {
-        public Uzytkownik()
-        {
-            Administrators = new HashSet<Administrator>();
-            GlosUzytkownikas = new HashSet<GlosUzytkownika>();
-        }
-
         [Key]
         [Column("id")]
         public int Id { get; set; }
 
-        [Required(ErrorMessage = "Wpisz swoje imię")]
         [Column("imie")]
         [StringLength(50)]
-        [Display(Name = "Imię")]
-        public string Imie { get; set; }
+        public string Imie { get; set; } = null!;
 
-        [Required(ErrorMessage = "Wpisz swoje nazwisko")]
         [Column("nazwisko")]
         [StringLength(50)]
-        [Display(Name = "Nazwisko")]
-        public string Nazwisko { get; set; }
+        public string Nazwisko { get; set; } = null!;
 
-        [Required(ErrorMessage = "Wpisz swój numer PESEL")]
         [Column("pesel")]
         [StringLength(11)]
-        [Display(Name = "PESEL")]
-        public string Pesel { get; set; }
+        public string Pesel { get; set; } = null!;
 
-        [Required(ErrorMessage = "Wpisz swój adres Email")]
         [Column("email")]
-        [StringLength(89)]
-        [Display(Name = "Adres Email")]
-        public string Email { get; set; }
+        [StringLength(254)]
+        public string Email { get; set; } = null!;
 
-        [Required(ErrorMessage = "Wpisz swoją datę urodzenia")]
         [Column("dataUrodzenia", TypeName = "date")]
-        [Display(Name = "Data urodzenia")]
-        [DataType(DataType.Date)]
-        [Age(18, ErrorMessage = "Musisz być pełnoletni!")]
         public DateTime DataUrodzenia { get; set; }
 
-        [Required(ErrorMessage = "Podaj hasło")]
+        /// <summary>BCrypt hash of the password.</summary>
         [Column("haslo")]
-        [DataType(DataType.Password)]
-        [Display(Name = "Hasło")]
-        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[#$^+=!*()@%&]).{8,}$",
-         ErrorMessage = "Hasło musi zawierać: małą i dużą literę, cyfrę, specjalny symbol, 8 znaków")]
-        public string Haslo { get; set; }
-
-        [NotMapped]
-        [Compare("Haslo", ErrorMessage = "Hasła się nie zgadzają!")]
-        [DataType(DataType.Password)]
-        [Display(Name = "Potwierdź hasło")]
-        public string ConfirmPassword { get; set; }
+        [StringLength(100)]
+        public string Haslo { get; set; } = null!;
 
         [Column("jestAktywne")]
-        public int? JestAktywne { get; set; }
+        public bool JestAktywne { get; set; }
 
+        /// <summary>Activation code sent by e-mail; cleared once the account is activated.</summary>
         [Column("kodAktywacyjny")]
-        public Guid KodAktywacyjny { get; set; }
+        public Guid? KodAktywacyjny { get; set; }
 
-        [InverseProperty(nameof(Administrator.IdUzytkownikNavigation))]
-        public virtual ICollection<Administrator> Administrators { get; set; }
+        [Column("tokenResetuHasla")]
+        public Guid? TokenResetuHasla { get; set; }
 
-        [InverseProperty(nameof(GlosUzytkownika.IdUzytkownikNavigation))]
-        public virtual ICollection<GlosUzytkownika> GlosUzytkownikas { get; set; }
+        [Column("tokenResetuWygasa")]
+        public DateTime? TokenResetuWygasa { get; set; }
+
+        [Column("nieudaneLogowania")]
+        public int NieudaneLogowania { get; set; }
+
+        [Column("zablokowaneDo")]
+        public DateTime? ZablokowaneDo { get; set; }
+
+        [Column("dataRejestracji")]
+        public DateTime DataRejestracji { get; set; }
+
+        public ICollection<Administrator> Administrators { get; set; } = new HashSet<Administrator>();
+
+        public ICollection<GlosUzytkownika> GlosUzytkownikas { get; set; } = new HashSet<GlosUzytkownika>();
     }
 }

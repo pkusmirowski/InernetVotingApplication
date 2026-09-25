@@ -1,49 +1,44 @@
-﻿@model InternetVotingApplication.ViewModels.GlosowanieWyborczeViewModel
-
+@model VoteSearchViewModel
 @{
-    ViewData["Title"] = "Wyszukiwarka";
+    ViewData["Title"] = "Sprawdź głos";
 }
-<br />
-<br />
-<br />
-
-<div class="container">
-    <main id="main">
-        <h2>Wprowadź hash swojego głosu aby sprawdzić jego poprawność</h2>
-        <h3>Jeśli twój głos zostanie znaleziony, zobaczysz go poniżej</h3>
-        <hr />
-
-        <form method="get">
-            <div class="input-group">
-                <input class="form-control" asp-for="Text" />
-                <div class="input-group-append">
-                    <button type="submit" class="btn btn-primary">Szukaj</button>
-                </div>
-            </div>
-        </form>
-
-        @if (Model.SearchCandidate.IdKandydat != 0 && Model.SearchCandidate.IdWybory != 0)
-        {
-            <div class="table-responsive">
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Imię kandydata</th>
-                            <th>Nazwisko kandydata</th>
-                            <th>Opis wyborów</th>
-                            <th>Hash</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>@Model.SearchCandidate.CandidateName</td>
-                            <td>@Model.SearchCandidate.CandidateSurname</td>
-                            <td>@Model.SearchCandidate.ElectionDesc</td>
-                            <td>@Model.SearchCandidate.Hash</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        }
-    </main>
-</div>
+<h2>Sprawdź swój głos</h2>
+<p>Wprowadź hash otrzymany po oddaniu głosu. Jeśli głos znajduje się w łańcuchu, zobaczysz jego dane oraz wynik weryfikacji integralności całego łańcucha wyborów.</p>
+<hr />
+<form asp-action="Search" method="get" class="mb-4">
+    <div class="input-group">
+        <input class="form-control hash-value" asp-for="Hash" name="hash" placeholder="64 znaki szesnastkowe" />
+        <button type="submit" class="btn btn-primary">Szukaj</button>
+    </div>
+</form>
+@if (Model.Searched)
+{
+    if (Model.Found)
+    {
+        <div class="alert @(Model.ChainValid ? "alert-success" : "alert-danger")" role="alert">
+            @if (Model.ChainValid)
+            {
+                <span>Głos został znaleziony, a łańcuch tych wyborów jest nienaruszony.</span>
+            }
+            else
+            {
+                <span>Głos został znaleziony, ale łańcuch tych wyborów <b>nie przechodzi weryfikacji</b>. Skontaktuj się z administratorem.</span>
+            }
+        </div>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <tbody>
+                    <tr><th scope="row">Wybory</th><td>@Model.ElectionName</td></tr>
+                    <tr><th scope="row">Kandydat</th><td>@Model.CandidateName @Model.CandidateSurname</td></tr>
+                    <tr><th scope="row">Numer bloku</th><td>@Model.BlockIndex</td></tr>
+                    <tr><th scope="row">Czas zapisu</th><td>@Model.Timestamp.ToString("g")</td></tr>
+                    <tr><th scope="row">Hash</th><td class="hash-value">@Model.Hash</td></tr>
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-warning" role="alert">Nie znaleziono głosu o podanym hashu.</div>
+    }
+}

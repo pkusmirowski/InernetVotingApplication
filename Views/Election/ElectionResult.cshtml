@@ -1,53 +1,65 @@
-﻿@model InternetVotingApplication.ViewModels.GlosowanieWyborczeViewModel
-
+@model GlosowanieWyborczeViewModel
 @{
     ViewData["Title"] = "Wyniki wyborów";
 }
-<br />
-<br />
-<br />
-<br />
-<div class="container">
-    <main id="main">
-        <div class="text-center">
-            @if (ViewBag.ID == 1)
+<h2>@Model.ElectionName</h2>
+<p class="text-muted">@Model.DataRozpoczecia.ToString("g") &ndash; @Model.DataZakonczenia.ToString("g")</p>
+<hr />
+@switch (Model.Status)
+{
+    case ElectionStatus.Upcoming:
+        <div class="alert alert-secondary" role="alert">Wybory jeszcze się nie rozpoczęły. Wróć po dacie rozpoczęcia, aby oddać głos.</div>
+        break;
+    case ElectionStatus.Ongoing:
+        if (Model.HasVoted)
+        {
+            <div class="alert alert-info" role="alert">Oddałeś już swój głos w tych wyborach. Wyniki będą dostępne po ich zakończeniu.</div>
+        }
+        else
+        {
+            <div class="alert alert-info" role="alert">Wybory trwają. Wyniki będą dostępne po ich zakończeniu.</div>
+            <a class="btn btn-primary" asp-action="Voting" asp-route-id="@Model.ElectionId">Zagłosuj</a>
+        }
+        break;
+    default:
+        <div class="alert @(Model.ChainValid ? "alert-success" : "alert-danger")" role="alert">
+            @if (Model.ChainValid)
             {
-                <p><b>Wybory się nie zaczęły.</b></p>
-                <p>Sprawdź datę i wróć, aby oddać głos, gdy się zaczną!</p>
-            }
-            else if (ViewBag.ID == 2)
-            {
-                <p><b>Oddałeś już swój głos w tych wyborach. Jeśli zgubiłeś hash swojego głosu, znajdziesz go na swojej poczcie e-mail.</b></p>
-                <p><b>Wybory jeszcze trwają.</b></p>
-                <p>Wróć, gdy się zakończą, aby poznać wyniki!</p>
+                <span>Łańcuch głosów jest nienaruszony (@Model.BlockCount bloków).</span>
             }
             else
             {
-                <h2>WYNIKI WYBORÓW</h2>
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th scope="col">Imię kandydata</th>
-                            <th scope="col">Nazwisko kandydata</th>
-                            <th scope="col">Opis wyborów</th>
-                            <th scope="col">Ilość uzyskanych głosów</th>
-                            <th scope="col">Procent uzyskanych głosów</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var result in Model.GetElectionVotes)
-                        {
-                            <tr>
-                                <td>@result.CandidateName</td>
-                                <td>@result.CandidateSurname</td>
-                                <td>@result.ElectionDesc</td>
-                                <td>@result.CountedVotes</td>
-                                <td class="@(result.CountedVotesPercentage > 50 ? "bg-success text-white" : "")"><b>@result.CountedVotesPercentage</b></td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+                <span><b>Łańcuch głosów nie przechodzi weryfikacji.</b> Wyniki mogą być niewiarygodne.</span>
             }
         </div>
-    </main>
-</div>
+        @if (Model.HeadHash != null)
+        {
+            <p class="small text-muted">Hash ostatniego bloku: <span class="hash-value">@Model.HeadHash</span></p>
+        }
+        <p>Oddane głosy: <b>@Model.TotalVotes</b></p>
+        <div class="table-responsive">
+            <table class="table table-striped align-middle">
+                <thead>
+                    <tr>
+                        <th scope="col">Kandydat</th>
+                        <th scope="col">Głosy</th>
+                        <th scope="col">Procent</th>
+                        <th scope="col" class="w-25"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in Model.Rows)
+                    {
+                        <tr class="@(Model.TotalVotes > 0 && row.CountedVotesPercentage > 50 ? "table-success" : "")">
+                            <td>@row.CandidateName @row.CandidateSurname</td>
+                            <td>@row.CountedVotes</td>
+                            <td>@row.CountedVotesPercentage.ToString("0.##") %</td>
+                            <td><div class="results-bar"><div style="width: @row.CountedVotesPercentage.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)%"></div></div></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        break;
+}
+<a class="btn btn-link" asp-action="Dashboard">Wróć do panelu</a>

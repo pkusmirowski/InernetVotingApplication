@@ -1,5 +1,62 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+@model CandidateListViewModel
 @{
+    ViewData["Title"] = "Kandydaci";
+}
+<h2>Kandydaci</h2>
+<hr />
+<partial name="_StatusMessage" />
+<form asp-action="DeleteCandidate" method="get" class="row g-2 mb-3">
+    <div class="col-auto">
+        <select name="electionId" class="form-select" asp-items="@(new SelectList(Model.Elections, "Id", "Opis", Model.SelectedElectionId))">
+            <option value="">Wszystkie wybory</option>
+        </select>
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-outline-primary">Filtruj</button>
+    </div>
+</form>
+@if (Model.Candidates.Count == 0)
+{
+    <p>Brak kandydatów.</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped align-middle">
+            <thead>
+                <tr>
+                    <th scope="col">Wybory</th>
+                    <th scope="col">Imię</th>
+                    <th scope="col">Nazwisko</th>
+                    <th scope="col">Głosy</th>
+                    <th scope="col"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var candidate in Model.Candidates)
+                {
+                    <tr>
+                        <td>@candidate.ElectionName</td>
+                        <td>@candidate.Imie</td>
+                        <td>@candidate.Nazwisko</td>
+                        <td>@candidate.VoteCount</td>
+                        <td class="text-end">
+                            @if (candidate.VoteCount == 0)
+                            {
+                                <form asp-action="DeleteCandidate" method="post" class="d-inline" onsubmit="return confirm('Usunąć kandydata @candidate.Imie @candidate.Nazwisko?');">
+                                    <input type="hidden" name="id" value="@candidate.Id" />
+                                    <input type="hidden" name="electionId" value="@Model.SelectedElectionId" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Usuń</button>
+                                </form>
+                            }
+                            else
+                            {
+                                <span class="text-muted small">Nie można usunąć: oddano głosy</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 }

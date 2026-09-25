@@ -1,11 +1,18 @@
-﻿using InternetVotingApplication.Models;
-using System.Threading.Tasks;
+using InternetVotingApplication.Models;
+using InternetVotingApplication.ViewModels;
 
 namespace InternetVotingApplication.Interfaces
 {
     public interface IAdminService
     {
-        Task<bool> AddCandidateAsync(Kandydat candidate);
-        Task<bool> AddElectionAsync(DataWyborow dataWyborow);
+        Task<AddElectionStatus> AddElectionAsync(ElectionFormViewModel model);
+
+        Task<AddCandidateStatus> AddCandidateAsync(CandidateFormViewModel model);
+
+        Task<IReadOnlyList<ElectionOptionViewModel>> GetElectionOptionsAsync();
+
+        Task<CandidateListViewModel> GetCandidatesAsync(int? electionId);
+
+        Task<DeleteCandidateStatus> DeleteCandidateAsync(int candidateId);
     }
 }

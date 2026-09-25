@@ -1,4 +1,4 @@
-﻿namespace InternetVotingApplication.ExtensionMethods
+namespace InternetVotingApplication.ExtensionMethods
 {
     public static class PeselValidation
     {

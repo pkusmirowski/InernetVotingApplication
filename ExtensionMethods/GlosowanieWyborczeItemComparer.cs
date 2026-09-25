@@ -1,11 +1,11 @@
-﻿using InternetVotingApplication.ViewModels;
+using InternetVotingApplication.ViewModels;
 using System.Collections.Generic;
 
 namespace InternetVotingApplication.ExtensionMethods
 {
     internal class ItemEqualityComparer : IEqualityComparer<GlosowanieWyborczeItemViewModel>
     {
-        public bool Equals(GlosowanieWyborczeItemViewModel x, GlosowanieWyborczeItemViewModel y)
+        public bool Equals(GlosowanieWyborczeItemViewModel? x, GlosowanieWyborczeItemViewModel? y)
         {
             if (x == null || y == null)
             {

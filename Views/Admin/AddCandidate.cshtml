@@ -1,51 +1,35 @@
-﻿@model InternetVotingApplication.Models.Kandydat
-
+@model CandidateFormViewModel
 @{
     ViewData["Title"] = "Dodaj kandydata";
 }
-<br />
-<br />
-<br />
-<br />
-<div class="container">
-    <main id="main">
-        <h2>Dodaj kandydata</h2>
-        <hr />
-        <div class="row">
-            <div class="col-md-4">
-                <form asp-action="AddCandidate">
-                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-                    <div class="form-group">
-                        <label asp-for="Imie" class="control-label"></label>
-                        <input asp-for="Imie" class="form-control" />
-                        <span asp-validation-for="Imie" class="text-danger"></span>
-                    </div>
-                    <div class="form-group">
-                        <label asp-for="Nazwisko" class="control-label"></label>
-                        <input asp-for="Nazwisko" class="form-control" />
-                        <span asp-validation-for="Nazwisko" class="text-danger"></span>
-                    </div>
-                    <div class="form-group">
-                        <p>Nazwa wyborów</p>
-                        <select asp-for="IdWybory" class="form-control" asp-items="ViewBag.IdWybory"></select>
-                    </div>
-                    <div class="form-group">
-                        <input type="submit" value="Stwórz" class="btn btn-primary" />
-                    </div>
-                </form>
+<h2>Dodaj kandydata</h2>
+<hr />
+<partial name="_StatusMessage" />
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="AddCandidate" method="post">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+            <div class="form-group mb-3">
+                <label asp-for="IdWybory" class="form-label"></label>
+                <select asp-for="IdWybory" class="form-select" asp-items="ViewBag.Elections">
+                    <option value="">-- wybierz wybory --</option>
+                </select>
+                <span asp-validation-for="IdWybory" class="text-danger"></span>
             </div>
-        </div>
-        @if (ViewBag.Error == false)
-        {
-            <br />
-            <div class="alert alert-danger" role="alert">
-                <b>Błąd. Kandydat nie został dodany! Możliwe, że już bierze udział w wyborach.</b>
+            <div class="form-group mb-3">
+                <label asp-for="Imie" class="form-label"></label>
+                <input asp-for="Imie" class="form-control" />
+                <span asp-validation-for="Imie" class="text-danger"></span>
             </div>
-        }
-        <br />
-        <p class="text-success"><b>@ViewBag.addCandidateSuccessful</b></p>
-        @section Scripts {
-            @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-        }
-    </main>
+            <div class="form-group mb-3">
+                <label asp-for="Nazwisko" class="form-label"></label>
+                <input asp-for="Nazwisko" class="form-control" />
+                <span asp-validation-for="Nazwisko" class="text-danger"></span>
+            </div>
+            <button type="submit" class="btn btn-primary">Dodaj</button>
+        </form>
+    </div>
 </div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

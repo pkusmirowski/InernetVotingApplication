@@ -1,0 +1,10 @@
+@{
+    ViewData["Title"] = "Błąd";
+}
+<h2>Wystąpił błąd</h2>
+<hr />
+<p>Przetwarzanie żądania nie powiodło się. Spróbuj ponownie później.</p>
+@if (ViewBag.RequestId is string requestId && !string.IsNullOrEmpty(requestId))
+{
+    <p class="text-muted small">Identyfikator żądania: <code>@requestId</code></p>
+}

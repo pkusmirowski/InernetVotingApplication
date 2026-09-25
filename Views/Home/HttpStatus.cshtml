@@ -1,0 +1,19 @@
+@model int
+@{
+    ViewData["Title"] = $"Błąd {Model}";
+}
+<h2>@Model</h2>
+<hr />
+@switch (Model)
+{
+    case 404:
+        <p>Strona, której szukasz, nie istnieje.</p>
+        break;
+    case 403:
+        <p>Nie masz uprawnień do tej strony.</p>
+        break;
+    default:
+        <p>Żądanie nie mogło zostać zrealizowane.</p>
+        break;
+}
+<a class="btn btn-primary" asp-controller="Home" asp-action="Index">Wróć na stronę główną</a>

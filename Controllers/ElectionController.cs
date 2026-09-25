@@ -1,147 +1,117 @@
-﻿using InternetVotingApplication.Interfaces;
-using Microsoft.AspNetCore.Http;
+using InternetVotingApplication.ExtensionMethods;
+using InternetVotingApplication.Interfaces;
+using InternetVotingApplication.Models;
+using InternetVotingApplication.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
-using Array = InternetVotingApplication.ExtensionMethods.ArrayExtensions;
 
 namespace InternetVotingApplication.Controllers
 {
-    public class ElectionController : Controller
+    [Authorize]
+    public class ElectionController(IElectionService electionService) : Controller
     {
-        private readonly IElectionService _electionService;
-        private static readonly object _lock = new();
+        private const string ReceiptHashKey = "VoteReceiptHash";
+        private const string ReceiptElectionKey = "VoteReceiptElection";
 
-        public ElectionController(IElectionService electionService)
+        [HttpGet]
+        public async Task<IActionResult> Dashboard()
         {
-            _electionService = electionService;
-        }
-
-        public IActionResult Dashboard()
-        {
-            if (string.IsNullOrEmpty(HttpContext.Session.GetString("email")))
-            {
-                return RedirectToAction("Login", "Account");
-            }
-
-            var vm = _electionService.GetAllElections();
+            var vm = await electionService.GetElectionListAsync(User.GetUserId());
             return View(vm);
         }
 
         [HttpGet]
-        public async Task<IActionResult> VotingAsync(int id)
+        public async Task<IActionResult> Voting(int id)
         {
-            if (string.IsNullOrEmpty(HttpContext.Session.GetString("email")))
-            {
-                return RedirectToAction("Login", "Account");
-            }
-
-            if (!string.IsNullOrEmpty(HttpContext.Session.GetString("Admin")))
+            if (User.IsInRole(Roles.Admin))
             {
                 return RedirectToAction("Panel", "Admin");
             }
 
-            if (!_electionService.CheckElectionBlockchain(id))
+            var status = await electionService.GetElectionStatusAsync(id);
+            if (status == null)
             {
-                return RedirectToAction("ElectionError");
+                return NotFound();
             }
 
-            if (!_electionService.CheckIfElectionEnded(id))
+            if (status != ElectionStatus.Ongoing || await electionService.HasVotedAsync(User.GetUserId(), id))
             {
-                return RedirectToAction("ElectionResult", new { ver = 3, result = id });
+                return RedirectToAction(nameof(ElectionResult), new { id });
             }
 
-            if (!_electionService.CheckIfElectionStarted(id))
-            {
-                return RedirectToAction("ElectionResult", new { ver = 1, result = id });
-            }
-
-            if (await _electionService.CheckIfVoted(HttpContext.Session.GetString("email"), id))
-            {
-                return RedirectToAction("ElectionResult", new { ver = 2, result = id });
-            }
-
-            ViewBag.ID = id;
-            var vm = _electionService.GetAllCandidates(id);
-            return View(vm);
+            var vm = await electionService.GetVotingPageAsync(id);
+            return vm == null ? NotFound() : View(vm);
         }
 
         [HttpPost]
-        public async Task<IActionResult> VotingAddAsync(int[] candidate, int[] election)
+        public async Task<IActionResult> Vote(KandydatViewModel model)
         {
-            if (string.IsNullOrEmpty(HttpContext.Session.GetString("email")))
+            if (User.IsInRole(Roles.Admin))
             {
-                return RedirectToAction("Login", "Account");
+                return RedirectToAction("Panel", "Admin");
             }
 
-            if (Array.IsNullOrEmpty(candidate) || Array.IsNullOrEmpty(election))
+            if (!ModelState.IsValid || model.SelectedCandidateId is null)
             {
-                return RedirectToAction("Dashboard");
+                return await RedisplayVotingPageAsync(model.ElectionId, "Wybierz kandydata, na którego chcesz zagłosować.");
             }
 
-            int candidateId = candidate[0];
-            int electionId = election[0];
-
-            if (await _electionService.CheckIfVoted(HttpContext.Session.GetString("email"), electionId))
+            var outcome = await electionService.CastVoteAsync(User.GetUserId(), model.ElectionId, model.SelectedCandidateId.Value);
+            switch (outcome.Status)
             {
-                return RedirectToAction("ElectionResult");
+                case VoteStatus.Success:
+                    TempData[ReceiptHashKey] = outcome.Hash;
+                    TempData[ReceiptElectionKey] = outcome.ElectionName;
+                    return RedirectToAction(nameof(Voted));
+                case VoteStatus.ElectionNotFound:
+                    return NotFound();
+                case VoteStatus.CandidateNotInElection:
+                    return await RedisplayVotingPageAsync(model.ElectionId, "Wybrany kandydat nie bierze udziału w tych wyborach.");
+                case VoteStatus.ChainCorrupted:
+                    return View("ElectionError", outcome.ElectionName);
+                case VoteStatus.AlreadyVoted:
+                case VoteStatus.ElectionNotStarted:
+                case VoteStatus.ElectionEnded:
+                default:
+                    return RedirectToAction(nameof(ElectionResult), new { id = model.ElectionId });
             }
-
-            string ifAdded;
-            lock (_lock)
-            {
-                ifAdded = _electionService.AddVote(HttpContext.Session.GetString("email"), candidateId, electionId);
-            }
-
-            if (ifAdded.Length > 3)
-            {
-                return RedirectToAction("Voted", new { hash = ifAdded });
-            }
-
-            return RedirectToAction("ElectionError");
         }
 
-        public IActionResult ElectionError()
+        [HttpGet]
+        public IActionResult Voted()
         {
-            if (string.IsNullOrEmpty(HttpContext.Session.GetString("email")))
+            if (TempData[ReceiptHashKey] is not string hash || TempData[ReceiptElectionKey] is not string election)
             {
-                return RedirectToAction("Login", "Account");
+                return RedirectToAction(nameof(Dashboard));
             }
 
-            return View();
+            return View(new VoteReceiptViewModel(hash, election));
         }
 
-        public IActionResult Voted(string hash)
+        [HttpGet]
+        public async Task<IActionResult> ElectionResult(int id)
         {
-            if (string.IsNullOrEmpty(HttpContext.Session.GetString("email")))
+            var vm = await electionService.GetResultsAsync(id);
+            if (vm == null)
             {
-                return RedirectToAction("Login", "Account");
+                return NotFound();
             }
 
-            ViewBag.ID = hash;
-            return View();
+            vm.HasVoted = await electionService.HasVotedAsync(User.GetUserId(), id);
+            return View(vm);
         }
 
-        public IActionResult ElectionResult(int ver, int result)
+        private async Task<IActionResult> RedisplayVotingPageAsync(int electionId, string error)
         {
-            if (string.IsNullOrEmpty(HttpContext.Session.GetString("email")))
+            var vm = await electionService.GetVotingPageAsync(electionId);
+            if (vm == null)
             {
-                return RedirectToAction("Login", "Account");
+                return NotFound();
             }
 
-            if (!_electionService.CheckElectionBlockchain(result))
-            {
-                return RedirectToAction("ElectionError");
-            }
-
-            ViewBag.ID = ver;
-
-            if (ver == 3)
-            {
-                var vm = _electionService.GetElectionResult(result);
-                return View(vm);
-            }
-
-            return View();
+            ModelState.Clear();
+            ModelState.AddModelError(nameof(KandydatViewModel.SelectedCandidateId), error);
+            return View("Voting", vm);
         }
     }
 }

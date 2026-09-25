@@ -1,10 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace InternetVotingApplication.Models
 {
     [Table("Administrator")]
-    public partial class Administrator
+    public class Administrator
     {
         [Key]
         [Column("id")]
@@ -14,7 +14,6 @@ namespace InternetVotingApplication.Models
         public int IdUzytkownik { get; set; }
 
         [ForeignKey(nameof(IdUzytkownik))]
-        [InverseProperty(nameof(Uzytkownik.Administrators))]
-        public virtual Uzytkownik IdUzytkownikNavigation { get; set; }
+        public Uzytkownik IdUzytkownikNavigation { get; set; } = null!;
     }
 }

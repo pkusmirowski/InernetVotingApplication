@@ -1,17 +1,13 @@
-﻿namespace InternetVotingApplication.ViewModels
+namespace InternetVotingApplication.ViewModels
 {
+    /// <summary>One row of the results table.</summary>
     public class GlosowanieWyborczeItemViewModel
     {
         public int IdKandydat { get; set; }
-        public int IdWybory { get; set; }
 
-        public bool Glos { get; set; }
+        public string CandidateName { get; set; } = string.Empty;
 
-        public string Hash { get; set; }
-
-        public string CandidateName { get; set; }
-        public string CandidateSurname { get; set; }
-        public string ElectionDesc { get; set; }
+        public string CandidateSurname { get; set; } = string.Empty;
 
         public int CountedVotes { get; set; }
 
