@@ -1,4 +1,3 @@
-using InternetVotingApplication.Blockchain;
 using InternetVotingApplication.Models;
 using InternetVotingApplication.ViewModels;
 
@@ -6,6 +5,7 @@ namespace InternetVotingApplication.Interfaces
 {
     public sealed record VoteOutcome(VoteStatus Status, string? Hash = null, string? ElectionName = null);
 
+    /// <summary>Voter-facing operations: listing elections and casting a vote.</summary>
     public interface IElectionService
     {
         Task<DataWyborowViewModel> GetElectionListAsync(int userId);
@@ -17,11 +17,5 @@ namespace InternetVotingApplication.Interfaces
         Task<bool> HasVotedAsync(int userId, int electionId);
 
         Task<VoteOutcome> CastVoteAsync(int userId, int electionId, int candidateId);
-
-        Task<GlosowanieWyborczeViewModel?> GetResultsAsync(int electionId);
-
-        Task<VoteSearchViewModel> SearchVoteAsync(string hash);
-
-        Task<ChainVerificationResult> VerifyChainAsync(int electionId);
     }
 }

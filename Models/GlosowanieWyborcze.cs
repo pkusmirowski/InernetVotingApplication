@@ -39,6 +39,16 @@ namespace InternetVotingApplication.Models
         [StringLength(64)]
         public string Hash { get; set; } = null!;
 
+        /// <summary>ECDSA P-256 signature of <see cref="Hash"/> made with the server signing key (base64).</summary>
+        [Column("podpis")]
+        [StringLength(128)]
+        public string Podpis { get; set; } = null!;
+
+        /// <summary>Identifier of the key that produced <see cref="Podpis"/> (SHA-256 fingerprint prefix of the public key).</summary>
+        [Column("idKlucza")]
+        [StringLength(16)]
+        public string IdKlucza { get; set; } = null!;
+
         [ForeignKey(nameof(IdKandydat))]
         public Kandydat IdKandydatNavigation { get; set; } = null!;
 

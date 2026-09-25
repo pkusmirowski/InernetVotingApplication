@@ -110,6 +110,18 @@ namespace InternetVotingApplication.Tests.Integration
 
             var receiptMail = _factory.Emails.Sent.Single(m => m.Subject.Contains("Potwierdzenie", StringComparison.Ordinal));
             Assert.Contains(hash, receiptMail.HtmlBody, StringComparison.Ordinal);
+
+            // AnchorEveryBlocks=1 in the test configuration: the first block triggers an anchor to the committee.
+            var anchorMail = _factory.Emails.Sent.Single(m => m.To == "komisja@example.com");
+            Assert.Contains(hash, anchorMail.HtmlBody, StringComparison.Ordinal);
+
+            // The public export verifies with the independent tool.
+            var exportJson = await anonymous.GetStringAsync(new Uri($"/Election/Export/{electionId}", UriKind.Relative));
+            var report = ChainVerifier.Verifier.Verify(ChainVerifier.Verifier.Parse(exportJson));
+            Assert.True(report.IsValid, string.Join("; ", report.Errors));
+            Assert.Equal(1, report.BlockCount);
+            Assert.Equal(1, report.AnchorsMatched);
+            Assert.Equal(hash, report.HeadHash);
         }
     }
 }

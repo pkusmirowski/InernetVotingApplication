@@ -22,19 +22,21 @@
         }
         break;
     default:
-        <div class="alert @(Model.ChainValid ? "alert-success" : "alert-danger")" role="alert">
-            @if (Model.ChainValid)
-            {
-                <span>Łańcuch głosów jest nienaruszony (@Model.BlockCount bloków).</span>
-            }
-            else
-            {
-                <span><b>Łańcuch głosów nie przechodzi weryfikacji.</b> Wyniki mogą być niewiarygodne.</span>
-            }
-        </div>
+        @if (Model.LastVerification is null)
+        {
+            <div class="alert alert-secondary" role="alert">Łańcuch głosów nie został jeszcze zweryfikowany.</div>
+        }
+        else if (Model.LastVerification.IsValid)
+        {
+            <div class="alert alert-success" role="alert">Łańcuch głosów jest nienaruszony: @Model.LastVerification.BlockCount bloków, hashe i podpisy poprawne (weryfikacja @Model.LastVerification.Date.ToString("g")).</div>
+        }
+        else
+        {
+            <div class="alert alert-danger" role="alert"><b>Łańcuch głosów nie przechodzi weryfikacji</b> (@Model.LastVerification.Date.ToString("g")). Wyniki mogą być niewiarygodne. @Model.LastVerification.Details</div>
+        }
         @if (Model.HeadHash != null)
         {
-            <p class="small text-muted">Hash ostatniego bloku: <span class="hash-value">@Model.HeadHash</span></p>
+            <p class="small text-muted">Hash ostatniego bloku: <span class="hash-value">@Model.HeadHash</span> &middot; <a asp-action="Chain" asp-route-id="@Model.ElectionId">szczegóły łańcucha i eksport</a></p>
         }
         <p>Oddane głosy: <b>@Model.TotalVotes</b></p>
         <div class="table-responsive">

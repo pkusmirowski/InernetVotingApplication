@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\InternetVotingApplication.csproj" />
+    <ProjectReference Include="..\..\tools\ChainVerifier\ChainVerifier.csproj" />
   </ItemGroup>
 
   <ItemGroup>

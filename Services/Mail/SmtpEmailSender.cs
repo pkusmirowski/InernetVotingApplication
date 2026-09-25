@@ -8,9 +8,9 @@ using MimeKit.Text;
 namespace InternetVotingApplication.Services.Mail
 {
     /// <summary>
-    /// Delivers messages over SMTP with MailKit. Used only by <see cref="EmailDispatcher"/>.
+    /// Delivers messages over SMTP with MailKit. Used only by <see cref="EmailDispatcher"/> through <see cref="ISmtpTransport"/>.
     /// </summary>
-    public sealed class SmtpEmailSender(IOptions<SmtpOptions> options, ILogger<SmtpEmailSender> logger)
+    public sealed class SmtpEmailSender(IOptions<SmtpOptions> options, ILogger<SmtpEmailSender> logger) : ISmtpTransport
     {
         public async Task SendAsync(EmailMessage message, CancellationToken cancellationToken = default)
         {

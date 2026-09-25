@@ -10,4 +10,10 @@ namespace InternetVotingApplication
     {
         public const string AdminOnly = "AdminOnly";
     }
+
+    public static class RateLimitPolicies
+    {
+        /// <summary>Sign-in, registration and password recovery: a small fixed window per client address.</summary>
+        public const string Auth = "auth";
+    }
 }

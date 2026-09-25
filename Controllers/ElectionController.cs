@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace InternetVotingApplication.Controllers
 {
     [Authorize]
-    public class ElectionController(IElectionService electionService) : Controller
+    public class ElectionController(IElectionService electionService, IResultsService resultsService, IChainService chainService) : Controller
     {
         private const string ReceiptHashKey = "VoteReceiptHash";
         private const string ReceiptElectionKey = "VoteReceiptElection";
@@ -67,6 +67,8 @@ namespace InternetVotingApplication.Controllers
                     return NotFound();
                 case VoteStatus.CandidateNotInElection:
                     return await RedisplayVotingPageAsync(model.ElectionId, "Wybrany kandydat nie bierze udziału w tych wyborach.");
+                case VoteStatus.Conflict:
+                    return await RedisplayVotingPageAsync(model.ElectionId, "Serwer jest chwilowo zajęty. Twój głos nie został zapisany, spróbuj ponownie.");
                 case VoteStatus.ChainCorrupted:
                     return View("ElectionError", outcome.ElectionName);
                 case VoteStatus.AlreadyVoted:
@@ -91,7 +93,7 @@ namespace InternetVotingApplication.Controllers
         [HttpGet]
         public async Task<IActionResult> ElectionResult(int id)
         {
-            var vm = await electionService.GetResultsAsync(id);
+            var vm = await resultsService.GetResultsAsync(id);
             if (vm == null)
             {
                 return NotFound();
@@ -99,6 +101,41 @@ namespace InternetVotingApplication.Controllers
 
             vm.HasVoted = await electionService.HasVotedAsync(User.GetUserId(), id);
             return View(vm);
+        }
+
+        /// <summary>Public page: chain head, verification log, anchors, public key and (after the end) results.</summary>
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> Chain(int id)
+        {
+            var vm = await chainService.GetChainPageAsync(id);
+            if (vm == null)
+            {
+                return NotFound();
+            }
+
+            if (vm.Status == ElectionStatus.Ended)
+            {
+                vm.Results = await resultsService.GetResultsAsync(id);
+            }
+
+            return View(vm);
+        }
+
+        /// <summary>Public JSON export for independent verification (see tools/ChainVerifier).</summary>
+        [HttpGet]
+        [AllowAnonymous]
+        [Produces("application/json")]
+        public async Task<IActionResult> Export(int id)
+        {
+            var export = await chainService.ExportAsync(id);
+            if (export == null)
+            {
+                return NotFound();
+            }
+
+            Response.Headers.ContentDisposition = $"attachment; filename=\"election-{id}-chain.json\"";
+            return Json(export);
         }
 
         private async Task<IActionResult> RedisplayVotingPageAsync(int electionId, string error)

@@ -18,7 +18,7 @@
         <div class="alert @(Model.ChainValid ? "alert-success" : "alert-danger")" role="alert">
             @if (Model.ChainValid)
             {
-                <span>Głos został znaleziony, a łańcuch tych wyborów jest nienaruszony.</span>
+                <span>Głos został znaleziony, a łańcuch tych wyborów jest nienaruszony (weryfikacja @(Model.VerifiedAt?.ToString("g"))).</span>
             }
             else
             {
@@ -33,6 +33,8 @@
                     <tr><th scope="row">Numer bloku</th><td>@Model.BlockIndex</td></tr>
                     <tr><th scope="row">Czas zapisu</th><td>@Model.Timestamp.ToString("g")</td></tr>
                     <tr><th scope="row">Hash</th><td class="hash-value">@Model.Hash</td></tr>
+                    <tr><th scope="row">Podpis bloku</th><td class="hash-value small">@Model.Signature</td></tr>
+                    <tr><th scope="row">Łańcuch</th><td><a asp-controller="Election" asp-action="Chain" asp-route-id="@Model.ElectionId">stan łańcucha, kotwice i eksport</a></td></tr>
                 </tbody>
             </table>
         </div>

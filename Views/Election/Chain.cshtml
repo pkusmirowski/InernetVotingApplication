@@ -1,0 +1,97 @@
+@model ChainViewModel
+@{
+    ViewData["Title"] = "Łańcuch głosów";
+}
+<h2>Łańcuch głosów: @Model.ElectionName</h2>
+<p class="text-muted">@Model.DataRozpoczecia.ToString("g") &ndash; @Model.DataZakonczenia.ToString("g")</p>
+<hr />
+<div class="row g-4">
+    <div class="col-lg-6">
+        <h4>Stan łańcucha</h4>
+        <table class="table table-sm">
+            <tbody>
+                <tr><th scope="row">Status wyborów</th><td>@(Model.Status switch { ElectionStatus.Upcoming => "nie rozpoczęte", ElectionStatus.Ongoing => "trwają", _ => "zakończone" })</td></tr>
+                <tr><th scope="row">Liczba bloków</th><td>@Model.BlockCount</td></tr>
+                <tr><th scope="row">Hash głowy</th><td class="hash-value">@(Model.HeadHash ?? "(pusty łańcuch)")</td></tr>
+                <tr>
+                    <th scope="row">Ostatnia weryfikacja</th>
+                    <td>
+                        @if (Model.LastVerification is null)
+                        {
+                            <span class="text-muted">jeszcze nie wykonano</span>
+                        }
+                        else
+                        {
+                            <span class="badge @(Model.LastVerification.IsValid ? "bg-success" : "bg-danger")">@(Model.LastVerification.IsValid ? "poprawny" : "NIEPOPRAWNY")</span>
+                            <span>@Model.LastVerification.Date.ToString("g"), @Model.LastVerification.BlockCount bloków (@Model.LastVerification.Trigger)</span>
+                            @if (!string.IsNullOrEmpty(Model.LastVerification.Details))
+                            {
+                                <div class="small text-danger">@Model.LastVerification.Details</div>
+                            }
+                        }
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <a class="btn btn-outline-primary btn-sm" asp-action="Export" asp-route-id="@Model.ElectionId">Pobierz eksport JSON</a>
+        <p class="small text-muted mt-2">Eksport zawiera wszystkie bloki, listę kandydatów, kotwice i klucz publiczny. Można go zweryfikować niezależnie od aplikacji narzędziem <code>tools/ChainVerifier</code>.</p>
+    </div>
+    <div class="col-lg-6">
+        <h4>Klucz publiczny podpisów bloków</h4>
+        <p class="small">Identyfikator klucza: <code>@Model.KeyId</code></p>
+        <pre class="small bg-light p-2 border rounded">@Model.PublicKeyPem</pre>
+    </div>
+</div>
+
+<h4 class="mt-4">Kotwice</h4>
+<p class="small text-muted">Kotwica to podpisany stan głowy łańcucha wysłany poza system (do komisji). Porównanie kotwicy z bieżącym łańcuchem pozwala wykryć przepisanie historii.</p>
+@if (Model.Anchors.Count == 0)
+{
+    <p>Nie opublikowano jeszcze kotwic.</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-sm table-striped">
+            <thead>
+                <tr><th>Czas</th><th>Powód</th><th>Bloki</th><th>Hash głowy</th><th>Podpis</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var anchor in Model.Anchors)
+                {
+                    <tr>
+                        <td>@anchor.Date.ToString("g")</td>
+                        <td>@anchor.Reason</td>
+                        <td>@anchor.BlockCount</td>
+                        <td class="hash-value small">@(anchor.HeadHash ?? "(pusty)")</td>
+                        <td class="hash-value small">@anchor.Signature</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@if (Model.Results != null)
+{
+    <h4 class="mt-4">Wyniki</h4>
+    <p>Oddane głosy: <b>@Model.Results.TotalVotes</b></p>
+    <div class="table-responsive">
+        <table class="table table-striped align-middle">
+            <thead>
+                <tr><th scope="col">Kandydat</th><th scope="col">Głosy</th><th scope="col">Procent</th><th scope="col" class="w-25"></th></tr>
+            </thead>
+            <tbody>
+                @foreach (var row in Model.Results.Rows)
+                {
+                    <tr>
+                        <td>@row.CandidateName @row.CandidateSurname</td>
+                        <td>@row.CountedVotes</td>
+                        <td>@row.CountedVotesPercentage.ToString("0.##") %</td>
+                        <td><div class="results-bar"><div style="width: @row.CountedVotesPercentage.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)%"></div></div></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

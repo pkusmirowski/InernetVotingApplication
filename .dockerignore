@@ -5,3 +5,5 @@
 .git/
 docs/
 tests/
+tools/
+App_Data/

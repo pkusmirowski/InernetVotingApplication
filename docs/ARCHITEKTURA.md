@@ -267,6 +267,26 @@ i najbardziej wartościowy naukowo (kompromis między weryfikowalnością a tajn
 
 ---
 
+## 4a. Stan realizacji planu etapu 2 (2026-09-25)
+
+Wykonane (szczegóły w `docs/PLAN_ETAP_2.md`):
+
+1. Stan głowy w `DataWyborow` + weryfikacja przyrostowa przy głosie + pełna weryfikacja w tle
+   (`ChainVerificationWorker`, tabela `WeryfikacjaLancucha`). Krytyczna sekcja czyta dwa wiersze zamiast
+   całego łańcucha; konflikt współbieżny rozstrzyga token `Wersja` z ponowieniem.
+2. Podpis bloków ECDSA P-256 (`IBlockSigner`, `EcdsaBlockSigner`, `SigningKeyProvider`), klucz poza bazą,
+   klucz publiczny na stronie łańcucha i w eksporcie.
+3. Kotwice (`KotwicaLancucha`, `IChainService.PublishAnchorAsync`): co N bloków, po zakończeniu wyborów
+   i ręcznie; e-mail do komisji przez outbox.
+4. Publiczna strona `/Election/Chain/{id}` i eksport `/Election/Export/{id}`; niezależny weryfikator
+   `tools/ChainVerifier` wykrywa podmianę głosu, przepisanie historii (przez kotwicę) i skrócenie łańcucha.
+5. Outbox poczty (`WiadomoscEmail`, `EmailDispatcher` z ponawianiem i back-offem).
+6. `ElectionService` rozbity na `ElectionService`, `ResultsService`, `ChainService`; dziennik audytu;
+   panel wyborów administratora; rate limiting; `/health`; Serilog.
+
+Nadal otwarte: tajność głosu (3.2, wymaga mieszania lub ślepych podpisów), przeniesienie modeli formularzy
+i walidatorów do właściwych folderów (3.6, wymaga usuwania plików), UTC w bazie, wiele węzłów weryfikujących.
+
 ## 5. Podsumowanie
 
 | Aspekt | Ocena | Komentarz |
@@ -275,14 +295,14 @@ i najbardziej wartościowy naukowo (kompromis między weryfikowalnością a tajn
 | Dobór technologii | dobra | ASP.NET Core 9, EF Core, SQL Server; adekwatne i wspierane |
 | Testowalność | dobra | trzy poziomy testów bez zewnętrznych zależności |
 | Bezpieczeństwo aplikacyjne | dobra | auth frameworka, CSRF, lockout, sekrety poza kodem |
-| Integralność rejestru | słaba | jedna domena zaufania; łańcuch bez podpisu i kotwicy |
-| Tajność głosu | słaba | korelacja przez kolejność zapisu w jednej transakcji |
-| Skalowalność | dostateczna | weryfikacja O(n) na każdy głos; do poprawy stanem głowy |
-| Odporność operacyjna | dostateczna | kolejka w pamięci, brak health checks i metryk |
+| Integralność rejestru | dobra (po etapie 2) | podpisy ECDSA, kotwice poza systemem, weryfikacja niezależnym narzędziem; nadal jedna baza |
+| Tajność głosu | słaba | korelacja przez kolejność zapisu w jednej transakcji; nierozwiązane |
+| Skalowalność | dobra (po etapie 2) | głos czyta głowę i ostatni blok; pełna weryfikacja w tle |
+| Odporność operacyjna | dobra (po etapie 2) | outbox z ponawianiem, `/health`, Serilog, rate limiting |
 | Spójność struktury | dostateczna | pozostałości pierwotnego układu folderów i nazw |
 
-Architektura jest **poprawna jako aplikacja webowa** i wystarczająca dla pracy inżynierskiej.
-**Nie jest jeszcze odpowiednia do obietnicy systemu** (weryfikowalne i tajne głosowanie), bo cały
-mechanizm zaufania działa wewnątrz jednej domeny administracyjnej. Dwa kroki, które najbardziej
-zmieniają ten obraz, to podpis bloków kluczem poza bazą oraz publikacja hasha głowy łańcucha; trzecim
-jest rozdzielenie tożsamości od głosu tokenem urny.
+Architektura jest **poprawna jako aplikacja webowa** i po etapie 2 realizuje **weryfikowalność**:
+podpisy kluczem poza bazą, kotwice wysyłane poza system i niezależny weryfikator sprawiają, że przepisanie
+historii wymaga jednocześnie dostępu do bazy, do klucza i do skrzynek odbiorców kotwic, a i wtedy pozostaje
+wykrywalne przez porównanie z zachowanymi kotwicami. **Tajność głosu** pozostaje ograniczeniem konstrukcyjnym
+jednej bazy i jest opisana jako kierunek badawczy (mixnet, ślepe podpisy).

@@ -32,6 +32,12 @@ namespace InternetVotingApplication.Tests.Integration
                     ["Database:ApplyMigrationsOnStartup"] = "false",
                     ["Database:EnsureCreatedOnStartup"] = "true",
                     ["Smtp:Enabled"] = "false",
+                    ["Signing:PrivateKeyPem"] = InternetVotingApplication.Blockchain.EcdsaBlockSigner.GeneratePrivateKeyPem(),
+                    ["Chain:AnchorEveryBlocks"] = "1",
+                    ["Chain:AnchorRecipients:0"] = "komisja@example.com",
+                    ["Chain:VerificationInterval"] = "01:00:00",
+                    ["Mail:PollInterval"] = "01:00:00",
+                    ["RateLimiting:AuthPermitLimit"] = "1000",
                 });
             });
 

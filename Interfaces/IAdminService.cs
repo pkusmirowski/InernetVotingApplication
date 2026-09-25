@@ -5,14 +5,16 @@ namespace InternetVotingApplication.Interfaces
 {
     public interface IAdminService
     {
-        Task<AddElectionStatus> AddElectionAsync(ElectionFormViewModel model);
+        Task<AddElectionStatus> AddElectionAsync(ElectionFormViewModel model, int? actorUserId = null);
 
-        Task<AddCandidateStatus> AddCandidateAsync(CandidateFormViewModel model);
+        Task<AddCandidateStatus> AddCandidateAsync(CandidateFormViewModel model, int? actorUserId = null);
 
         Task<IReadOnlyList<ElectionOptionViewModel>> GetElectionOptionsAsync();
 
         Task<CandidateListViewModel> GetCandidatesAsync(int? electionId);
 
-        Task<DeleteCandidateStatus> DeleteCandidateAsync(int candidateId);
+        Task<DeleteCandidateStatus> DeleteCandidateAsync(int candidateId, int? actorUserId = null);
+
+        Task<IReadOnlyList<AuditEntryViewModel>> GetAuditLogAsync(int take);
     }
 }

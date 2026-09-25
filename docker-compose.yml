@@ -36,10 +36,19 @@ services:
       Smtp__Port: "1025"
       Smtp__SecureSocket: None
       Smtp__FromAddress: no-reply@internetvoting.local
+      # Development convenience only: generates a key inside the container volume. In production pass
+      # Signing__PrivateKeyPem (PKCS#8 PEM) from a secret store instead.
+      Signing__AutoGenerateKey: "true"
+      Signing__KeyFilePath: /app/App_Data/signing-key.pem
+      Chain__AnchorEveryBlocks: "10"
+      Chain__AnchorRecipients__0: komisja@internetvoting.local
       # Comma-separated list is not supported by the binder; use indexed keys:
       # Seeding__AdminEmails__0: admin@example.com
     ports:
       - "8080:8080"
+    volumes:
+      - app-data:/app/App_Data
 
 volumes:
   mssql-data:
+  app-data:

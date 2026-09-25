@@ -8,7 +8,7 @@ namespace InternetVotingApplication.Tests.Services
     {
         private readonly SqliteDatabase _db = new();
 
-        private static AdminService CreateService(InternetVotingContext context) => new(context, TestData.Logger<AdminService>());
+        private static AdminService CreateService(InternetVotingContext context) => new(context, TestData.Audit(context, TestData.Clock()), TestData.Logger<AdminService>());
 
         [Fact]
         public async Task Add_election_validates_dates_and_uniqueness()
@@ -17,8 +17,11 @@ namespace InternetVotingApplication.Tests.Services
             var service = CreateService(context);
             var model = new ElectionFormViewModel { Opis = " Wybory 2026 ", DataRozpoczecia = TestData.Now, DataZakonczenia = TestData.Now.AddDays(1) };
 
-            Assert.Equal(AddElectionStatus.Success, await service.AddElectionAsync(model));
+            Assert.Equal(AddElectionStatus.Success, await service.AddElectionAsync(model, actorUserId: 7));
             Assert.Equal("Wybory 2026", context.DataWyborows.Single().Opis);
+            var audit = Assert.Single(context.DziennikAudytu);
+            Assert.Equal("ElectionCreated", audit.Akcja);
+            Assert.Equal(7, audit.IdUzytkownik);
             Assert.Equal(AddElectionStatus.Duplicate, await service.AddElectionAsync(model));
             Assert.Equal(AddElectionStatus.InvalidDates, await service.AddElectionAsync(new ElectionFormViewModel { Opis = "X", DataRozpoczecia = TestData.Now, DataZakonczenia = TestData.Now }));
         }
@@ -48,7 +51,7 @@ namespace InternetVotingApplication.Tests.Services
             var voted = new Kandydat { Imie = "A", Nazwisko = "A", IdWyboryNavigation = election };
             var fresh = new Kandydat { Imie = "B", Nazwisko = "B", IdWyboryNavigation = election };
             context.AddRange(election, voted, fresh);
-            context.GlosowanieWyborczes.Add(new GlosowanieWyborcze { IdKandydatNavigation = voted, IdWyboryNavigation = election, Indeks = 0, Nonce = new string('0', 32), Hash = new string('0', 64), ZnacznikCzasu = TestData.Now });
+            context.GlosowanieWyborczes.Add(new GlosowanieWyborcze { IdKandydatNavigation = voted, IdWyboryNavigation = election, Indeks = 0, Nonce = new string('0', 32), Hash = new string('0', 64), Podpis = "x", IdKlucza = "k", ZnacznikCzasu = TestData.Now });
             await context.SaveChangesAsync();
             var service = CreateService(context);
 

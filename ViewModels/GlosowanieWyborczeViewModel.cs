@@ -21,7 +21,10 @@ namespace InternetVotingApplication.ViewModels
 
         public IReadOnlyList<GlosowanieWyborczeItemViewModel> Rows { get; set; } = [];
 
-        public bool ChainValid { get; set; }
+        /// <summary>Result of the most recent full verification (null when the chain has never been verified).</summary>
+        public ChainVerificationViewModel? LastVerification { get; set; }
+
+        public bool ChainValid => LastVerification?.IsValid ?? false;
 
         public int BlockCount { get; set; }
 

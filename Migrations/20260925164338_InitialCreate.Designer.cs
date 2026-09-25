@@ -63,11 +63,27 @@ namespace InternetVotingApplication.Migrations
                         .HasColumnType("datetime2")
                         .HasColumnName("dataZakonczenia");
 
+                    b.Property<string>("HashGlowy")
+                        .HasMaxLength(64)
+                        .IsUnicode(false)
+                        .HasColumnType("char(64)")
+                        .HasColumnName("hashGlowy")
+                        .IsFixedLength();
+
+                    b.Property<int>("LiczbaBlokow")
+                        .HasColumnType("int")
+                        .HasColumnName("liczbaBlokow");
+
                     b.Property<string>("Opis")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)")
                         .HasColumnName("opis");
+
+                    b.Property<int>("Wersja")
+                        .IsConcurrencyToken()
+                        .HasColumnType("int")
+                        .HasColumnName("wersja");
 
                     b.HasKey("Id");
 
@@ -75,6 +91,41 @@ namespace InternetVotingApplication.Migrations
                         .IsUnique();
 
                     b.ToTable("DataWyborow");
+                });
+
+            modelBuilder.Entity("InternetVotingApplication.Models.DziennikAudytu", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Akcja")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)")
+                        .HasColumnName("akcja");
+
+                    b.Property<DateTime>("Data")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("data");
+
+                    b.Property<int?>("IdUzytkownik")
+                        .HasColumnType("int")
+                        .HasColumnName("id_uzytkownik");
+
+                    b.Property<string>("Szczegoly")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)")
+                        .HasColumnName("szczegoly");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Data");
+
+                    b.ToTable("DziennikAudytu");
                 });
 
             modelBuilder.Entity("InternetVotingApplication.Models.GlosUzytkownika", b =>
@@ -129,6 +180,13 @@ namespace InternetVotingApplication.Migrations
                         .HasColumnType("int")
                         .HasColumnName("id_kandydat");
 
+                    b.Property<string>("IdKlucza")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(16)")
+                        .HasColumnName("idKlucza");
+
                     b.Property<int?>("IdPoprzednie")
                         .HasColumnType("int")
                         .HasColumnName("id_poprzednie");
@@ -148,6 +206,13 @@ namespace InternetVotingApplication.Migrations
                         .HasColumnType("char(32)")
                         .HasColumnName("nonce")
                         .IsFixedLength();
+
+                    b.Property<string>("Podpis")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(128)")
+                        .HasColumnName("podpis");
 
                     b.Property<DateTime>("ZnacznikCzasu")
                         .HasColumnType("datetime2")
@@ -197,6 +262,58 @@ namespace InternetVotingApplication.Migrations
                         .IsUnique();
 
                     b.ToTable("Kandydat");
+                });
+
+            modelBuilder.Entity("InternetVotingApplication.Models.KotwicaLancucha", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("Data")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("data");
+
+                    b.Property<string>("HashGlowy")
+                        .HasMaxLength(64)
+                        .IsUnicode(false)
+                        .HasColumnType("char(64)")
+                        .HasColumnName("hashGlowy")
+                        .IsFixedLength();
+
+                    b.Property<int>("IdWybory")
+                        .HasColumnType("int")
+                        .HasColumnName("id_wybory");
+
+                    b.Property<int>("LiczbaBlokow")
+                        .HasColumnType("int")
+                        .HasColumnName("liczbaBlokow");
+
+                    b.Property<string>("Odbiorcy")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("odbiorcy");
+
+                    b.Property<string>("Podpis")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)")
+                        .HasColumnName("podpis");
+
+                    b.Property<string>("Powod")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)")
+                        .HasColumnName("powod");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdWybory", "Data");
+
+                    b.ToTable("KotwicaLancucha");
                 });
 
             modelBuilder.Entity("InternetVotingApplication.Models.Uzytkownik", b =>
@@ -288,6 +405,110 @@ namespace InternetVotingApplication.Migrations
                     b.ToTable("Uzytkownik");
                 });
 
+            modelBuilder.Entity("InternetVotingApplication.Models.WeryfikacjaLancucha", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("Data")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("data");
+
+                    b.Property<string>("HashGlowy")
+                        .HasMaxLength(64)
+                        .IsUnicode(false)
+                        .HasColumnType("char(64)")
+                        .HasColumnName("hashGlowy")
+                        .IsFixedLength();
+
+                    b.Property<int>("IdWybory")
+                        .HasColumnType("int")
+                        .HasColumnName("id_wybory");
+
+                    b.Property<int>("LiczbaBlokow")
+                        .HasColumnType("int")
+                        .HasColumnName("liczbaBlokow");
+
+                    b.Property<bool>("Poprawny")
+                        .HasColumnType("bit")
+                        .HasColumnName("poprawny");
+
+                    b.Property<string>("Szczegoly")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)")
+                        .HasColumnName("szczegoly");
+
+                    b.Property<string>("Wyzwalacz")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)")
+                        .HasColumnName("wyzwalacz");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdWybory", "Data");
+
+                    b.ToTable("WeryfikacjaLancucha");
+                });
+
+            modelBuilder.Entity("InternetVotingApplication.Models.WiadomoscEmail", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("NastepnaProba")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("nastepnaProba");
+
+                    b.Property<string>("Odbiorca")
+                        .IsRequired()
+                        .HasMaxLength(254)
+                        .HasColumnType("nvarchar(254)")
+                        .HasColumnName("odbiorca");
+
+                    b.Property<string>("OstatniBlad")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)")
+                        .HasColumnName("ostatniBlad");
+
+                    b.Property<int>("Proby")
+                        .HasColumnType("int")
+                        .HasColumnName("proby");
+
+                    b.Property<string>("Temat")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)")
+                        .HasColumnName("temat");
+
+                    b.Property<string>("Tresc")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("tresc");
+
+                    b.Property<DateTime>("Utworzono")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("utworzono");
+
+                    b.Property<DateTime?>("Wyslano")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("wyslano");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Wyslano", "NastepnaProba");
+
+                    b.ToTable("WiadomoscEmail");
+                });
+
             modelBuilder.Entity("InternetVotingApplication.Models.Administrator", b =>
                 {
                     b.HasOne("InternetVotingApplication.Models.Uzytkownik", "IdUzytkownikNavigation")
@@ -354,6 +575,30 @@ namespace InternetVotingApplication.Migrations
                     b.Navigation("IdWyboryNavigation");
                 });
 
+            modelBuilder.Entity("InternetVotingApplication.Models.KotwicaLancucha", b =>
+                {
+                    b.HasOne("InternetVotingApplication.Models.DataWyborow", "IdWyboryNavigation")
+                        .WithMany("Kotwice")
+                        .HasForeignKey("IdWybory")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_KotwicaLancucha_DataWyborow");
+
+                    b.Navigation("IdWyboryNavigation");
+                });
+
+            modelBuilder.Entity("InternetVotingApplication.Models.WeryfikacjaLancucha", b =>
+                {
+                    b.HasOne("InternetVotingApplication.Models.DataWyborow", "IdWyboryNavigation")
+                        .WithMany("Weryfikacje")
+                        .HasForeignKey("IdWybory")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_WeryfikacjaLancucha_DataWyborow");
+
+                    b.Navigation("IdWyboryNavigation");
+                });
+
             modelBuilder.Entity("InternetVotingApplication.Models.DataWyborow", b =>
                 {
                     b.Navigation("GlosUzytkownikas");
@@ -361,6 +606,10 @@ namespace InternetVotingApplication.Migrations
                     b.Navigation("GlosowanieWyborczes");
 
                     b.Navigation("Kandydats");
+
+                    b.Navigation("Kotwice");
+
+                    b.Navigation("Weryfikacje");
                 });
 
             modelBuilder.Entity("InternetVotingApplication.Models.Kandydat", b =>

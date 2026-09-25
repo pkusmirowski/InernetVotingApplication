@@ -23,5 +23,11 @@ namespace InternetVotingApplication.ViewModels
         public DateTime Timestamp { get; set; }
 
         public bool ChainValid { get; set; }
+
+        public DateTime? VerifiedAt { get; set; }
+
+        public string? Signature { get; set; }
+
+        public int ElectionId { get; set; }
     }
 }

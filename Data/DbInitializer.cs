@@ -53,6 +53,7 @@ namespace InternetVotingApplication.Data
             foreach (var user in users.Where(u => !u.IsAdmin))
             {
                 context.Administrators.Add(new Administrator { IdUzytkownik = user.Id });
+                context.DziennikAudytu.Add(new DziennikAudytu { Data = DateTime.Now, Akcja = "AdminPromoted", Szczegoly = user.Email, IdUzytkownik = user.Id });
                 logger.LogInformation("Promoted {Email} to administrator", user.Email);
             }
 

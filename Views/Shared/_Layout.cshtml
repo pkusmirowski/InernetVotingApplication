@@ -37,9 +37,9 @@
                     else if (User.IsInRole(Roles.Admin))
                     {
                         <li><a class="nav-link" asp-controller="Admin" asp-action="Panel">Panel administratora</a></li>
-                        <li><a class="nav-link" asp-controller="Admin" asp-action="CreateElection">Stwórz wybory</a></li>
+                        <li><a class="nav-link" asp-controller="Admin" asp-action="Elections">Wybory</a></li>
                         <li><a class="nav-link" asp-controller="Admin" asp-action="AddCandidate">Dodaj kandydata</a></li>
-                        <li><a class="nav-link" asp-controller="Admin" asp-action="DeleteCandidate">Kandydaci</a></li>
+                        <li><a class="nav-link" asp-controller="Admin" asp-action="Audit">Audyt</a></li>
                         <li><a class="nav-link" asp-controller="Account" asp-action="ChangePassword">Zmiana hasła</a></li>
                         <li>
                             <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">

@@ -16,6 +16,14 @@ namespace InternetVotingApplication.Models
 
         public DbSet<Uzytkownik> Uzytkowniks => Set<Uzytkownik>();
 
+        public DbSet<KotwicaLancucha> Kotwice => Set<KotwicaLancucha>();
+
+        public DbSet<WiadomoscEmail> WiadomosciEmail => Set<WiadomoscEmail>();
+
+        public DbSet<DziennikAudytu> DziennikAudytu => Set<DziennikAudytu>();
+
+        public DbSet<WeryfikacjaLancucha> Weryfikacje => Set<WeryfikacjaLancucha>();
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Uzytkownik>(entity =>
@@ -38,7 +46,37 @@ namespace InternetVotingApplication.Models
                     .HasConstraintName("FK_Administrator_Uzytkownik");
             });
 
-            modelBuilder.Entity<DataWyborow>(entity => entity.HasIndex(e => e.Opis).IsUnique());
+            modelBuilder.Entity<DataWyborow>(entity =>
+            {
+                entity.HasIndex(e => e.Opis).IsUnique();
+                entity.Property(e => e.HashGlowy).IsFixedLength().IsUnicode(false);
+            });
+
+            modelBuilder.Entity<KotwicaLancucha>(entity =>
+            {
+                entity.HasIndex(e => new { e.IdWybory, e.Data });
+                entity.Property(e => e.HashGlowy).IsFixedLength().IsUnicode(false);
+                entity.HasOne(d => d.IdWyboryNavigation)
+                    .WithMany(p => p.Kotwice)
+                    .HasForeignKey(d => d.IdWybory)
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .HasConstraintName("FK_KotwicaLancucha_DataWyborow");
+            });
+
+            modelBuilder.Entity<WeryfikacjaLancucha>(entity =>
+            {
+                entity.HasIndex(e => new { e.IdWybory, e.Data });
+                entity.Property(e => e.HashGlowy).IsFixedLength().IsUnicode(false);
+                entity.HasOne(d => d.IdWyboryNavigation)
+                    .WithMany(p => p.Weryfikacje)
+                    .HasForeignKey(d => d.IdWybory)
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .HasConstraintName("FK_WeryfikacjaLancucha_DataWyborow");
+            });
+
+            modelBuilder.Entity<WiadomoscEmail>(entity => entity.HasIndex(e => new { e.Wyslano, e.NastepnaProba }));
+
+            modelBuilder.Entity<DziennikAudytu>(entity => entity.HasIndex(e => e.Data));
 
             modelBuilder.Entity<Kandydat>(entity =>
             {
@@ -56,6 +94,8 @@ namespace InternetVotingApplication.Models
                 entity.HasIndex(e => new { e.IdWybory, e.Indeks }).IsUnique();
                 entity.Property(e => e.Hash).IsFixedLength().IsUnicode(false);
                 entity.Property(e => e.Nonce).IsFixedLength().IsUnicode(false);
+                entity.Property(e => e.Podpis).IsUnicode(false);
+                entity.Property(e => e.IdKlucza).IsUnicode(false);
 
                 entity.HasOne(d => d.IdKandydatNavigation)
                     .WithMany(p => p.GlosowanieWyborczes)

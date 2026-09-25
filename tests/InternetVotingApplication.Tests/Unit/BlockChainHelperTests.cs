@@ -22,6 +22,8 @@ namespace InternetVotingApplication.Tests.Unit
                     Nonce = BlockHelper.NewNonce(),
                 };
                 block.Hash = BlockHelper.ComputeHash(block, previous?.Hash);
+                block.Podpis = TestData.Signer.Sign(block.Hash);
+                block.IdKlucza = TestData.Signer.KeyId;
                 chain.Add(block);
                 previous = block;
             }
@@ -91,6 +93,35 @@ namespace InternetVotingApplication.Tests.Unit
             var result = BlockChainHelper.VerifyBlockChain(chain);
 
             Assert.False(result.IsValid);
+        }
+
+        [Fact]
+        public void Signatures_are_verified_when_a_signer_is_supplied()
+        {
+            var chain = BuildChain(3);
+            Assert.True(BlockChainHelper.VerifyBlockChain(chain, TestData.Signer).IsValid);
+
+            chain[1].Podpis = chain[0].Podpis;
+            var result = BlockChainHelper.VerifyBlockChain(chain, TestData.Signer);
+
+            Assert.False(result.IsValid);
+            Assert.True(result.HashesValid);
+            Assert.Equal([chain[1].Id], result.InvalidSignatureBlockIds);
+
+            var otherKey = EcdsaBlockSigner.Generate();
+            Assert.False(BlockChainHelper.VerifyBlockChain(chain, otherKey).SignaturesValid);
+        }
+
+        [Fact]
+        public void Head_state_check_detects_mismatch()
+        {
+            var chain = BuildChain(2);
+            var election = new DataWyborow { LiczbaBlokow = 2, HashGlowy = chain[1].Hash };
+            Assert.True(BlockChainHelper.HeadMatches(election, chain[1]));
+            Assert.False(BlockChainHelper.HeadMatches(election, chain[0]));
+            Assert.False(BlockChainHelper.HeadMatches(new DataWyborow(), chain[1]));
+            Assert.True(BlockChainHelper.HeadMatches(new DataWyborow(), null));
+            Assert.False(BlockChainHelper.HeadMatches(election, null));
         }
 
         [Fact]

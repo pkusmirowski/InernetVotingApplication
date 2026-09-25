@@ -37,7 +37,10 @@ namespace InternetVotingApplication.Models
         ElectionEnded,
         CandidateNotInElection,
         AlreadyVoted,
-        ChainCorrupted
+        ChainCorrupted,
+
+        /// <summary>Lost the optimistic-concurrency race several times in a row; the voter should retry.</summary>
+        Conflict
     }
 
     public enum AddCandidateStatus

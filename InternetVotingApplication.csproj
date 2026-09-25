@@ -10,12 +10,14 @@
     <UserSecretsId>internet-voting-application</UserSecretsId>
     <RootNamespace>InternetVotingApplication</RootNamespace>
     <!-- The test project lives below the web project root; keep its sources out of this compilation. -->
-    <DefaultItemExcludes>$(DefaultItemExcludes);tests/**;docs/**</DefaultItemExcludes>
+    <DefaultItemExcludes>$(DefaultItemExcludes);tests/**;tools/**;docs/**;App_Data/**</DefaultItemExcludes>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.2.1" />
     <PackageReference Include="MailKit" Version="4.18.0" />
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="9.0.20" />
+    <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.20" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.20">
       <PrivateAssets>all</PrivateAssets>

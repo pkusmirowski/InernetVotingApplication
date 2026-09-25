@@ -12,10 +12,11 @@ namespace InternetVotingApplication.Tests.Services
         private readonly FakeEmailSender _email = new();
         private readonly FakeTimeProvider _clock = TestData.Clock();
 
-        private ElectionService CreateService(InternetVotingContext context)
-        {
-            return new ElectionService(context, _email, _clock, TestData.Logger<ElectionService>());
-        }
+        private ElectionService CreateService(InternetVotingContext context) => TestData.Election(context, _clock, _email);
+
+        private ResultsService CreateResults(InternetVotingContext context) => TestData.Results(context, _clock, _email);
+
+        private ChainService CreateChain(InternetVotingContext context) => TestData.Chain(context, _clock, _email);
 
         private async Task<(Uzytkownik User, DataWyborow Election, Kandydat A, Kandydat B)> SeedAsync(InternetVotingContext context)
         {
@@ -49,9 +50,16 @@ namespace InternetVotingApplication.Tests.Services
             var participation = Assert.Single(context.GlosUzytkownikas);
             Assert.Equal(user.Id, participation.IdUzytkownik);
 
+            Assert.True(TestData.Signer.Verify(block.Hash, block.Podpis));
+            Assert.Equal(TestData.Signer.KeyId, block.IdKlucza);
+
+            var updated = await context.DataWyborows.AsNoTracking().SingleAsync(e => e.Id == election.Id);
+            Assert.Equal(1, updated.LiczbaBlokow);
+            Assert.Equal(block.Hash, updated.HashGlowy);
+
             var mail = Assert.Single(_email.Sent);
             Assert.Contains(outcome.Hash!, mail.HtmlBody, StringComparison.Ordinal);
-            Assert.True((await service.VerifyChainAsync(election.Id)).IsValid);
+            Assert.True((await CreateChain(context).VerifyAndStoreAsync(election.Id, "Test")).IsValid);
         }
 
         [Fact]
@@ -92,7 +100,7 @@ namespace InternetVotingApplication.Tests.Services
             using var context = _db.CreateContext();
             var (user, election, a, _) = await SeedAsync(context);
             var clock = new FakeTimeProvider(new DateTimeOffset(election.DataRozpoczecia.AddHours(-1), TimeSpan.Zero));
-            var service = new ElectionService(context, _email, clock, TestData.Logger<ElectionService>());
+            var service = TestData.Election(context, clock, _email);
 
             Assert.Equal(VoteStatus.ElectionNotStarted, (await service.CastVoteAsync(user.Id, election.Id, a.Id)).Status);
 
@@ -118,24 +126,34 @@ namespace InternetVotingApplication.Tests.Services
             await service.CastVoteAsync(second.Id, election.Id, b.Id);
             await service.CastVoteAsync(third.Id, election.Id, a.Id);
 
+            var chain = CreateChain(context);
             var blocks = await context.GlosowanieWyborczes.OrderBy(g => g.Indeks).ToListAsync();
             Assert.Equal([0, 1, 2], blocks.Select(x => x.Indeks));
             Assert.Equal(blocks[0].Id, blocks[1].IdPoprzednie);
             Assert.Equal(blocks[1].Id, blocks[2].IdPoprzednie);
-            Assert.True((await service.VerifyChainAsync(election.Id)).IsValid);
+            Assert.True((await chain.VerifyAndStoreAsync(election.Id, "Test")).IsValid);
 
             // Someone with database access flips a vote.
             blocks[1].IdKandydat = a.Id;
             await context.SaveChangesAsync();
 
-            var verification = await service.VerifyChainAsync(election.Id);
+            var verification = await chain.VerifyAndStoreAsync(election.Id, "Test");
             Assert.False(verification.IsValid);
             Assert.Contains(blocks[1].Id, verification.InvalidBlockIds);
+            var stored = await chain.GetLastVerificationAsync(election.Id);
+            Assert.NotNull(stored);
+            Assert.False(stored.IsValid);
+            Assert.Contains("ChainCorrupted", context.DziennikAudytu.Select(d => d.Akcja));
 
+            // The cheap head check on the voting path catches a tampered head block.
+            blocks[2].IdKandydat = b.Id;
+            await context.SaveChangesAsync();
+            context.ChangeTracker.Clear();
             var fourth = TestData.User(email: "zofia@example.com", pesel: "90010112349");
             context.Uzytkowniks.Add(fourth);
             await context.SaveChangesAsync();
             Assert.Equal(VoteStatus.ChainCorrupted, (await service.CastVoteAsync(fourth.Id, election.Id, a.Id)).Status);
+            Assert.Equal(3, await context.GlosowanieWyborczes.CountAsync());
         }
 
         [Fact]
@@ -154,13 +172,14 @@ namespace InternetVotingApplication.Tests.Services
             await service.CastVoteAsync(second.Id, election.Id, a.Id);
             await service.CastVoteAsync(third.Id, election.Id, b.Id);
 
-            var results = await service.GetResultsAsync(election.Id);
+            var results = await CreateResults(context).GetResultsAsync(election.Id);
 
             Assert.NotNull(results);
             Assert.Equal(3, results.TotalVotes);
             Assert.Equal(3, results.Rows.Count);
             Assert.Equal(3, results.BlockCount);
             Assert.True(results.ChainValid);
+            Assert.NotNull(results.LastVerification);
             var rowA = results.Rows.Single(r => r.IdKandydat == a.Id);
             var rowB = results.Rows.Single(r => r.IdKandydat == b.Id);
             var rowIdle = results.Rows.Single(r => r.IdKandydat == idle.Id);
@@ -179,18 +198,22 @@ namespace InternetVotingApplication.Tests.Services
             var service = CreateService(context);
             var outcome = await service.CastVoteAsync(user.Id, election.Id, a.Id);
 
-            var found = await service.SearchVoteAsync(" " + outcome.Hash!.ToLowerInvariant() + " ");
+            var results = CreateResults(context);
+            var found = await results.SearchVoteAsync(" " + outcome.Hash!.ToLowerInvariant() + " ");
             Assert.True(found.Searched);
             Assert.True(found.Found);
             Assert.True(found.ChainValid);
             Assert.Equal("Adam", found.CandidateName);
             Assert.Equal(election.Opis, found.ElectionName);
 
-            var missing = await service.SearchVoteAsync(HashHelper.Hash("nope"));
+            Assert.Equal(outcome.Hash, found.Hash);
+            Assert.False(string.IsNullOrEmpty(found.Signature));
+
+            var missing = await results.SearchVoteAsync(HashHelper.Hash("nope"));
             Assert.True(missing.Searched);
             Assert.False(missing.Found);
 
-            Assert.False((await service.SearchVoteAsync("")).Searched);
+            Assert.False((await results.SearchVoteAsync("")).Searched);
         }
 
         [Fact]

@@ -1,23 +1,32 @@
 using InternetVotingApplication.Blockchain;
+using InternetVotingApplication.Configuration;
 using InternetVotingApplication.ExtensionMethods;
 using InternetVotingApplication.Interfaces;
 using InternetVotingApplication.Models;
 using InternetVotingApplication.ViewModels;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using System.Data;
 
 namespace InternetVotingApplication.Services
 {
+    /// <summary>Voter-facing operations: listing elections and appending a vote block to the chain.</summary>
     public class ElectionService(
         InternetVotingContext context,
+        IBlockSigner signer,
+        IChainService chainService,
         IEmailSender emailSender,
+        IOptions<ChainOptions> chainOptions,
         TimeProvider timeProvider,
         ILogger<ElectionService> logger) : IElectionService
     {
+        private const int MaxAttempts = 3;
+
         public async Task<DataWyborowViewModel> GetElectionListAsync(int userId)
         {
             var now = Now();
             var elections = await context.DataWyborows
+                .AsNoTracking()
                 .OrderByDescending(e => e.DataRozpoczecia)
                 .Select(e => new
                 {
@@ -60,6 +69,7 @@ namespace InternetVotingApplication.Services
             }
 
             var candidates = await context.Kandydats
+                .AsNoTracking()
                 .Where(k => k.IdWybory == electionId)
                 .OrderBy(k => k.Nazwisko)
                 .ThenBy(k => k.Imie)
@@ -82,6 +92,32 @@ namespace InternetVotingApplication.Services
 
         public async Task<VoteOutcome> CastVoteAsync(int userId, int electionId, int candidateId)
         {
+            for (int attempt = 1; attempt <= MaxAttempts; attempt++)
+            {
+                var (outcome, retry) = await TryCastVoteAsync(userId, electionId, candidateId);
+                if (!retry)
+                {
+                    if (outcome.Status == VoteStatus.Success)
+                    {
+                        await PublishPeriodicAnchorIfDueAsync(electionId);
+                    }
+
+                    return outcome;
+                }
+
+                context.ChangeTracker.Clear();
+                logger.LogInformation("Vote of user {UserId} in election {ElectionId} lost a concurrency race (attempt {Attempt})", userId, electionId, attempt);
+            }
+
+            return new VoteOutcome(VoteStatus.Conflict);
+        }
+
+        /// <summary>
+        /// Appends one block. Only the election row and the last block are read: the stored head state is the
+        /// integrity check on the hot path, the full chain verification runs in the background.
+        /// </summary>
+        private async Task<(VoteOutcome Outcome, bool Retry)> TryCastVoteAsync(int userId, int electionId, int candidateId)
+        {
             var now = Now();
 
             await using var transaction = await context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
@@ -89,167 +125,142 @@ namespace InternetVotingApplication.Services
             var election = await context.DataWyborows.SingleOrDefaultAsync(e => e.Id == electionId);
             if (election == null)
             {
-                return new VoteOutcome(VoteStatus.ElectionNotFound);
+                return (new VoteOutcome(VoteStatus.ElectionNotFound), false);
             }
 
             switch (election.GetStatus(now))
             {
                 case ElectionStatus.Upcoming:
-                    return new VoteOutcome(VoteStatus.ElectionNotStarted, ElectionName: election.Opis);
+                    return (new VoteOutcome(VoteStatus.ElectionNotStarted, ElectionName: election.Opis), false);
                 case ElectionStatus.Ended:
-                    return new VoteOutcome(VoteStatus.ElectionEnded, ElectionName: election.Opis);
+                    return (new VoteOutcome(VoteStatus.ElectionEnded, ElectionName: election.Opis), false);
                 default:
                     break;
             }
 
             if (!await context.Kandydats.AnyAsync(k => k.Id == candidateId && k.IdWybory == electionId))
             {
-                return new VoteOutcome(VoteStatus.CandidateNotInElection, ElectionName: election.Opis);
+                return (new VoteOutcome(VoteStatus.CandidateNotInElection, ElectionName: election.Opis), false);
             }
 
             if (await HasVotedAsync(userId, electionId))
             {
-                return new VoteOutcome(VoteStatus.AlreadyVoted, ElectionName: election.Opis);
+                return (new VoteOutcome(VoteStatus.AlreadyVoted, ElectionName: election.Opis), false);
             }
 
-            var chain = await LoadChainAsync(electionId);
-            var verification = BlockChainHelper.VerifyBlockChain(chain);
-            if (!verification.IsValid)
+            var head = await context.GlosowanieWyborczes
+                .AsNoTracking()
+                .Where(g => g.IdWybory == electionId)
+                .OrderByDescending(g => g.Indeks)
+                .FirstOrDefaultAsync();
+
+            if (!await HeadIsSoundAsync(election, head))
             {
-                logger.LogError("Hash chain of election {ElectionId} is corrupted; invalid blocks: {Blocks}", electionId, string.Join(',', verification.InvalidBlockIds));
-                return new VoteOutcome(VoteStatus.ChainCorrupted, ElectionName: election.Opis);
+                await transaction.RollbackAsync();
+                context.ChangeTracker.Clear();
+                await chainService.VerifyAndStoreAsync(electionId, "Vote");
+                return (new VoteOutcome(VoteStatus.ChainCorrupted, ElectionName: election.Opis), false);
             }
 
-            var head = chain.Count == 0 ? null : chain[^1];
             var block = new GlosowanieWyborcze
             {
-                Indeks = chain.Count,
+                Indeks = election.LiczbaBlokow,
                 IdKandydat = candidateId,
                 IdWybory = electionId,
                 IdPoprzednie = head?.Id,
                 ZnacznikCzasu = now,
                 Nonce = BlockHelper.NewNonce(),
+                IdKlucza = signer.KeyId,
             };
             block.Hash = BlockHelper.ComputeHash(block, head?.Hash);
+            block.Podpis = signer.Sign(block.Hash);
+
+            election.HashGlowy = block.Hash;
+            election.LiczbaBlokow++;
+            election.Wersja++;
 
             context.GlosowanieWyborczes.Add(block);
             context.GlosUzytkownikas.Add(new GlosUzytkownika { IdUzytkownik = userId, IdWybory = electionId, DataOddania = now });
+
+            var email = await context.Uzytkowniks.Where(u => u.Id == userId).Select(u => u.Email).SingleAsync();
+            await emailSender.SendAsync(Email.VoteReceipt(email, election.Opis, block.Hash));
 
             try
             {
                 await context.SaveChangesAsync();
                 await transaction.CommitAsync();
             }
+            catch (DbUpdateConcurrencyException)
+            {
+                // Another vote in the same election committed first; the election row version moved on.
+                await transaction.RollbackAsync();
+                return (new VoteOutcome(VoteStatus.Conflict), true);
+            }
             catch (DbUpdateException ex)
             {
-                // A concurrent request of the same voter (unique index on user + election) or of another
-                // voter (unique index on election + block index) won the race.
-                logger.LogWarning(ex, "Vote of user {UserId} in election {ElectionId} rejected by a unique constraint", userId, electionId);
                 await transaction.RollbackAsync();
-                return new VoteOutcome(VoteStatus.AlreadyVoted, ElectionName: election.Opis);
+                context.ChangeTracker.Clear();
+                if (await HasVotedAsync(userId, electionId))
+                {
+                    logger.LogWarning(ex, "Duplicate vote of user {UserId} in election {ElectionId} rejected by a unique constraint", userId, electionId);
+                    return (new VoteOutcome(VoteStatus.AlreadyVoted, ElectionName: election.Opis), false);
+                }
+
+                logger.LogWarning(ex, "Vote in election {ElectionId} rejected by a unique constraint; retrying", electionId);
+                return (new VoteOutcome(VoteStatus.Conflict), true);
             }
 
-            var email = await context.Uzytkowniks.Where(u => u.Id == userId).Select(u => u.Email).SingleAsync();
-            await emailSender.SendAsync(Email.VoteReceipt(email, election.Opis, block.Hash));
             logger.LogInformation("Vote recorded in election {ElectionId}, block {Index}", electionId, block.Indeks);
-
-            return new VoteOutcome(VoteStatus.Success, block.Hash, election.Opis);
+            return (new VoteOutcome(VoteStatus.Success, block.Hash, election.Opis), false);
         }
 
-        public async Task<GlosowanieWyborczeViewModel?> GetResultsAsync(int electionId)
+        /// <summary>Cheap integrity check: stored head matches the last block, and that block hashes and verifies.</summary>
+        private async Task<bool> HeadIsSoundAsync(DataWyborow election, GlosowanieWyborcze? head)
         {
-            var election = await context.DataWyborows.AsNoTracking().SingleOrDefaultAsync(e => e.Id == electionId);
-            if (election == null)
+            if (!BlockChainHelper.HeadMatches(election, head))
             {
-                return null;
+                logger.LogError("Head state of election {ElectionId} does not match the last block", election.Id);
+                return false;
             }
 
-            var rows = await context.Kandydats
-                .Where(k => k.IdWybory == electionId)
-                .Select(k => new GlosowanieWyborczeItemViewModel
-                {
-                    IdKandydat = k.Id,
-                    CandidateName = k.Imie,
-                    CandidateSurname = k.Nazwisko,
-                    CountedVotes = k.GlosowanieWyborczes.Count,
-                })
-                .ToListAsync();
-
-            var total = rows.Sum(r => r.CountedVotes);
-            foreach (var row in rows)
+            if (head == null)
             {
-                row.CountedVotesPercentage = total == 0 ? 0 : Math.Round(100.0 * row.CountedVotes / total, 2);
+                return true;
             }
 
-            var verification = await VerifyChainAsync(electionId);
-
-            return new GlosowanieWyborczeViewModel
+            string? previousHash = null;
+            if (head.IdPoprzednie.HasValue)
             {
-                ElectionId = election.Id,
-                ElectionName = election.Opis,
-                DataRozpoczecia = election.DataRozpoczecia,
-                DataZakonczenia = election.DataZakonczenia,
-                Status = election.GetStatus(Now()),
-                TotalVotes = total,
-                Rows = rows.OrderByDescending(r => r.CountedVotes).ThenBy(r => r.CandidateSurname).ToList(),
-                ChainValid = verification.IsValid,
-                BlockCount = verification.BlockCount,
-                HeadHash = verification.HeadHash,
-            };
+                previousHash = await context.GlosowanieWyborczes
+                    .AsNoTracking()
+                    .Where(g => g.Id == head.IdPoprzednie.Value)
+                    .Select(g => g.Hash)
+                    .SingleOrDefaultAsync();
+            }
+
+            var hashOk = string.Equals(head.Hash, BlockHelper.ComputeHash(head, previousHash), StringComparison.OrdinalIgnoreCase);
+            var signatureOk = signer.Verify(head.Hash, head.Podpis);
+            if (!hashOk || !signatureOk)
+            {
+                logger.LogError("Head block {BlockId} of election {ElectionId} is invalid (hash ok: {HashOk}, signature ok: {SignatureOk})", head.Id, election.Id, hashOk, signatureOk);
+            }
+
+            return hashOk && signatureOk;
         }
 
-        public async Task<VoteSearchViewModel> SearchVoteAsync(string hash)
+        private async Task PublishPeriodicAnchorIfDueAsync(int electionId)
         {
-            var normalized = (hash ?? string.Empty).Trim().ToUpperInvariant();
-            var result = new VoteSearchViewModel { Hash = normalized, Searched = normalized.Length > 0 };
-            if (normalized.Length != 64)
+            var every = chainOptions.Value.AnchorEveryBlocks;
+            if (every <= 0)
             {
-                return result;
+                return;
             }
 
-            var block = await context.GlosowanieWyborczes
-                .AsNoTracking()
-                .Where(g => g.Hash == normalized)
-                .Select(g => new
-                {
-                    g.IdWybory,
-                    g.Indeks,
-                    g.ZnacznikCzasu,
-                    g.IdKandydatNavigation.Imie,
-                    g.IdKandydatNavigation.Nazwisko,
-                    ElectionName = g.IdWyboryNavigation.Opis,
-                })
-                .SingleOrDefaultAsync();
-
-            if (block == null)
+            var blocks = await context.DataWyborows.AsNoTracking().Where(e => e.Id == electionId).Select(e => e.LiczbaBlokow).SingleAsync();
+            if (blocks % every == 0)
             {
-                return result;
+                await chainService.PublishAnchorAsync(electionId, ChainService.ReasonPeriodic);
             }
-
-            var verification = await VerifyChainAsync(block.IdWybory);
-            result.Found = true;
-            result.CandidateName = block.Imie;
-            result.CandidateSurname = block.Nazwisko;
-            result.ElectionName = block.ElectionName;
-            result.BlockIndex = block.Indeks;
-            result.Timestamp = block.ZnacznikCzasu;
-            result.ChainValid = verification.IsValid;
-            return result;
-        }
-
-        public async Task<ChainVerificationResult> VerifyChainAsync(int electionId)
-        {
-            var chain = await LoadChainAsync(electionId);
-            return BlockChainHelper.VerifyBlockChain(chain);
-        }
-
-        private Task<List<GlosowanieWyborcze>> LoadChainAsync(int electionId)
-        {
-            return context.GlosowanieWyborczes
-                .AsNoTracking()
-                .Where(g => g.IdWybory == electionId)
-                .OrderBy(g => g.Indeks)
-                .ToListAsync();
         }
 
         private DateTime Now() => timeProvider.GetLocalNow().DateTime;

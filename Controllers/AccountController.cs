@@ -6,11 +6,12 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using System.Security.Claims;
 
 namespace InternetVotingApplication.Controllers
 {
-    public class AccountController(IUserService userService, IElectionService electionService, ILogger<AccountController> logger) : Controller
+    public class AccountController(IUserService userService, IResultsService resultsService, ILogger<AccountController> logger) : Controller
     {
         [HttpGet]
         public IActionResult Register()
@@ -21,6 +22,7 @@ namespace InternetVotingApplication.Controllers
         }
 
         [HttpPost]
+        [EnableRateLimiting(RateLimitPolicies.Auth)]
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
             if (User.Identity?.IsAuthenticated == true)
@@ -70,6 +72,7 @@ namespace InternetVotingApplication.Controllers
         }
 
         [HttpPost]
+        [EnableRateLimiting(RateLimitPolicies.Auth)]
         public async Task<IActionResult> Login(Logowanie model)
         {
             if (!ModelState.IsValid)
@@ -152,6 +155,7 @@ namespace InternetVotingApplication.Controllers
         }
 
         [HttpPost]
+        [EnableRateLimiting(RateLimitPolicies.Auth)]
         public async Task<IActionResult> PasswordRecovery(PasswordRecovery model)
         {
             if (!ModelState.IsValid)
@@ -175,6 +179,7 @@ namespace InternetVotingApplication.Controllers
         }
 
         [HttpPost]
+        [EnableRateLimiting(RateLimitPolicies.Auth)]
         public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
         {
             if (!ModelState.IsValid)
@@ -197,7 +202,7 @@ namespace InternetVotingApplication.Controllers
         {
             var vm = string.IsNullOrWhiteSpace(hash)
                 ? new VoteSearchViewModel()
-                : await electionService.SearchVoteAsync(hash);
+                : await resultsService.SearchVoteAsync(hash);
             return View(vm);
         }
 

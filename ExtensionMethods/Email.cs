@@ -47,6 +47,23 @@ namespace InternetVotingApplication.ExtensionMethods
             return new EmailMessage(to, "Reset hasła w aplikacji do głosowania", body);
         }
 
+        public static EmailMessage ChainAnchor(string to, string electionName, int electionId, Models.KotwicaLancucha anchor, string keyId)
+        {
+            ArgumentNullException.ThrowIfNull(anchor);
+            var body =
+                $"<h2>Kotwica łańcucha głosów: {Enc(electionName)} (id {electionId})</h2>" +
+                "<p>Poniższe dane opisują stan łańcucha w chwili publikacji. Zachowaj tę wiadomość: pozwala wykryć późniejsze przepisanie historii.</p>" +
+                "<table>" +
+                $"<tr><td>Czas</td><td>{anchor.Data:yyyy-MM-dd HH:mm:ss.fffffff}</td></tr>" +
+                $"<tr><td>Liczba bloków</td><td>{anchor.LiczbaBlokow}</td></tr>" +
+                $"<tr><td>Hash głowy</td><td><code>{Enc(anchor.HashGlowy ?? "(pusty łańcuch)")}</code></td></tr>" +
+                $"<tr><td>Powód</td><td>{Enc(anchor.Powod)}</td></tr>" +
+                $"<tr><td>Identyfikator klucza</td><td>{Enc(keyId)}</td></tr>" +
+                $"<tr><td>Podpis (ECDSA P-256, base64)</td><td><code>{Enc(anchor.Podpis)}</code></td></tr>" +
+                "</table>";
+            return new EmailMessage(to, $"Kotwica łańcucha głosów: {electionName}", body);
+        }
+
         private static string Enc(string? value) => WebUtility.HtmlEncode(value ?? string.Empty);
     }
 }

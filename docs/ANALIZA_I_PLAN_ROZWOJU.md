@@ -411,5 +411,8 @@ Do wykonania ręcznie (usuwanie plików wymaga decyzji autora repozytorium):
   `wwwroot/assets/img/{portfolio,clients,team}` oraz `.vs/` z indeksu gita (`git rm -r --cached .vs`).
 - Zrotować hasło konta SMTP, które było w historii repozytorium.
 
-Pozostałe punkty etapu 2 (podpisy bloków, drzewo Merkle, rozdzielenie uprawnienia od głosu, 2FA,
-lokalizacja, wykresy, Serilog) pozostają otwarte.
+Etap 2 (aktualizacja tego samego dnia, patrz `docs/PLAN_ETAP_2.md` i `docs/ARCHITEKTURA.md` 4a):
+zrealizowane podpisy bloków ECDSA, stan głowy z weryfikacją przyrostową, weryfikacja w tle z dziennikiem,
+kotwice e-mail, publiczna strona łańcucha i eksport, niezależny weryfikator, outbox poczty, dziennik audytu,
+panel wyborów, rate limiting, `/health`, Serilog. Otwarte pozostają: drzewo Merkle (kotwice pełnią tę rolę
+dla pojedynczego łańcucha), rozdzielenie tożsamości od głosu, 2FA, lokalizacja, wykresy.

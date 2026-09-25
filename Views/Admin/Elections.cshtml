@@ -1,0 +1,76 @@
+@model IReadOnlyList<AdminElectionViewModel>
+@{
+    ViewData["Title"] = "Wybory i łańcuchy";
+}
+<h2>Wybory i łańcuchy</h2>
+<hr />
+<partial name="_StatusMessage" />
+@if (Model.Count == 0)
+{
+    <p>Nie utworzono jeszcze wyborów. <a asp-action="CreateElection">Stwórz wybory</a>.</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped align-middle">
+            <thead>
+                <tr>
+                    <th>Wybory</th>
+                    <th>Status</th>
+                    <th>Kandydaci</th>
+                    <th>Głosujący</th>
+                    <th>Bloki</th>
+                    <th>Weryfikacja</th>
+                    <th>Kotwice</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var e in Model)
+                {
+                    <tr>
+                        <td>
+                            <div>@e.Opis</div>
+                            <div class="small text-muted">@e.DataRozpoczecia.ToString("g") &ndash; @e.DataZakonczenia.ToString("g")</div>
+                        </td>
+                        <td>@(e.Status switch { ElectionStatus.Upcoming => "nie rozpoczęte", ElectionStatus.Ongoing => "trwają", _ => "zakończone" })</td>
+                        <td>@e.CandidateCount</td>
+                        <td>@e.Participants</td>
+                        <td>
+                            <div>@e.BlockCount</div>
+                            <div class="hash-value small text-muted">@(e.HeadHash is null ? "" : e.HeadHash[..16] + "…")</div>
+                        </td>
+                        <td>
+                            @if (e.LastVerification is null)
+                            {
+                                <span class="text-muted">brak</span>
+                            }
+                            else
+                            {
+                                <span class="badge @(e.LastVerification.IsValid ? "bg-success" : "bg-danger")">@(e.LastVerification.IsValid ? "OK" : "BŁĄD")</span>
+                                <div class="small text-muted">@e.LastVerification.Date.ToString("g")</div>
+                            }
+                        </td>
+                        <td>
+                            @e.AnchorCount
+                            @if (e.HasFinalAnchor)
+                            {
+                                <span class="badge bg-dark">końcowa</span>
+                            }
+                        </td>
+                        <td class="text-end text-nowrap">
+                            <form asp-action="VerifyChain" asp-route-id="@e.Id" method="post" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-outline-primary">Weryfikuj</button>
+                            </form>
+                            <form asp-action="PublishAnchor" asp-route-id="@e.Id" method="post" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-outline-secondary">Kotwica</button>
+                            </form>
+                            <a class="btn btn-sm btn-link" asp-controller="Election" asp-action="Chain" asp-route-id="@e.Id">Łańcuch</a>
+                            <a class="btn btn-sm btn-link" asp-action="DeleteCandidate" asp-route-electionId="@e.Id">Kandydaci</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
