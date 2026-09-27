@@ -135,6 +135,12 @@ public class InfrastructureTests
         Assert.False(seeding.SampleData);
 
         Assert.False(new SigningOptions().AutoGenerateKey);
+
+        var database = new DatabaseOptions();
+        Assert.Equal(DatabaseProvider.SqlServer, database.Provider);
+        Assert.False(database.FallbackToSqliteWhenUnavailable);
+        Assert.Equal(TimeSpan.FromSeconds(3), database.ProbeTimeout);
+        Assert.Contains("App_Data", database.SqliteConnectionString, StringComparison.Ordinal);
         Assert.Equal(5, new MailOptions().MaxAttempts);
     }
 }

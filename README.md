@@ -41,56 +41,82 @@ Technologie: ASP.NET Core 9 MVC, Entity Framework Core 9, SQL Server, BCrypt, Ma
 | `tools/ChainVerifier/` | niezależny weryfikator eksportu łańcucha (konsola, bez zależności od aplikacji) |
 | `docs/` | analiza kodu i plan rozwoju |
 
-## Uruchomienie lokalne (Windows, Visual Studio lub `dotnet run`)
+## Szybki start (Windows, Visual Studio)
 
-Wymagania: .NET SDK 9.0 (<https://dotnet.microsoft.com/download>), SQL Server (Express, Developer lub LocalDB).
-Nie potrzebujesz serwera poczty ani Dockera.
+Potrzebujesz tylko **.NET SDK 9.0** (<https://dotnet.microsoft.com/download/dotnet/9.0>, albo
+`winget install Microsoft.DotNet.SDK.9`). SQL Server jest opcjonalny: bez niego aplikacja w trybie
+Development uruchomi się na pliku SQLite i powie Ci o tym.
 
-1. **Baza danych.** `appsettings.Development.json` łączy się z lokalną instancją przez uwierzytelnianie Windows:
+1. Otwórz `InternetVotingApplication.sln` w Visual Studio.
+2. Wybierz profil startowy **`https (SQL Server)`** (domyślny) i naciśnij **F5**.
+3. Przeglądarka otworzy stronę **Diagnostyka** (`/setup`). Pokazuje, na jakiej bazie działa aplikacja,
+   gdzie trafiają e-maile, gdzie jest klucz podpisu i co zrobić dalej. Idź według listy „Co dalej".
 
-   ```text
-   Server=localhost;Database=InternetVoting;Trusted_Connection=True;TrustServerCertificate=True;
-   ```
+Co dzieje się przy pierwszym starcie w trybie Development:
 
-   Jeśli masz SQL Server Express albo LocalDB, zmień `Server=` na `localhost\SQLEXPRESS` lub
-   `(localdb)\MSSQLLocalDB`. Najlepiej zrobić to w user secrets, żeby nie modyfikować pliku w repozytorium:
+- aplikacja sprawdza (maksymalnie 3 s), czy SQL Server `localhost` odpowiada; jeśli tak, tworzy bazę
+  `InternetVoting` migracjami EF Core; jeśli nie, przechodzi w **tryb zapasowy SQLite**
+  (`App_Data/voting-dev.db`) i wyświetla żółty pasek na dole każdej strony oraz wyjaśnienie w logu,
+- dodaje trzy przykładowe wybory z kandydatami (trwające, nadchodzące, zakończone),
+- generuje klucz podpisu bloków do `App_Data/signing-key.pem` (zrób jego kopię),
+- zapisuje każdy e-mail jako plik HTML w `App_Data/mail/` (aktywacja konta, reset hasła, potwierdzenie
+  głosu, kotwice łańcucha) zamiast wysyłać go przez SMTP,
+- pierwsze aktywowane konto dostaje rolę administratora; kolejne są zwykłymi wyborcami.
 
-   ```bash
-   dotnet user-secrets set "ConnectionStrings:InternetVotingDBConnection" "Server=localhost\SQLEXPRESS;Database=InternetVoting;Trusted_Connection=True;TrustServerCertificate=True;"
-   ```
+Profile startowe (`Properties/launchSettings.json`):
 
-   Baza `InternetVoting` zostanie utworzona automatycznie przy pierwszym starcie (migracje EF Core).
+| Profil | Baza | Kiedy |
+| --- | --- | --- |
+| `https (SQL Server)` | SQL Server, a gdy nie odpowiada: SQLite (tylko Development) | domyślny, codzienna praca |
+| `https (SQLite)` | zawsze plik SQLite, bez sondy SQL Servera | bez SQL Servera, szybkie klikanie |
+| `http` | jak `https (SQL Server)`, bez TLS | problemy z certyfikatem deweloperskim |
+| `IIS Express` | jak `https (SQL Server)` | jeśli wolisz IIS Express |
 
-2. **Start.** W Visual Studio otwórz `InternetVotingApplication.sln` i naciśnij F5 (profil `https`), albo w terminalu:
+### Bez Visual Studio
 
-   ```bash
-   dotnet run --project InternetVotingApplication.csproj
-   ```
+Dwuklik w `run.cmd` (albo `run.cmd -Sqlite`). Skrypt sprawdza SDK, wykrywa instancje SQL Server i stan ich
+usług, proponuje connection string dla instancji nazwanej, uruchamia aplikację i otwiera przeglądarkę.
+Testy: `run-tests.cmd`. W terminalu: `dotnet run --project InternetVotingApplication.csproj --launch-profile "https (SQL Server)"`.
 
-   Przy pierwszym starcie w trybie `Development` aplikacja:
-   - tworzy schemat bazy i trzy przykładowe wybory z kandydatami (trwające, nadchodzące, zakończone),
-   - generuje klucz podpisu bloków do `App_Data/signing-key.pem` (plik jest w `.gitignore`; zrób jego kopię),
-   - zapisuje każdy e-mail jako plik HTML w `App_Data/mail/` zamiast go wysyłać.
+### Tryby bazy danych
 
-3. **Pierwsze konto.** Zarejestruj się w aplikacji, otwórz plik z `App_Data/mail/` i kliknij link aktywacyjny.
-   Pierwsze aktywowane konto automatycznie dostaje rolę administratora (`Seeding:FirstActivatedUserIsAdmin`).
-   Kolejne konta są zwykłymi wyborcami. Administrator nie głosuje; do przetestowania głosowania załóż drugie konto
-   (potrzebny drugi poprawny PESEL, np. `02070803628`).
+| `Database:Provider` | Zachowanie |
+| --- | --- |
+| `SqlServer` (domyślnie) | SQL Server z `ConnectionStrings:InternetVotingDBConnection`. W Development, gdy `Database:FallbackToSqliteWhenUnavailable=true` i sonda `master` nie odpowie w `Database:ProbeTimeout`, aplikacja przechodzi na SQLite. Poza Development nigdy nie ma sondy ani fallbacku: brak bazy to czytelny błąd i kod wyjścia 1. |
+| `Sqlite` | Plik z `Database:SqliteConnectionString` (domyślnie `App_Data/voting-dev.db`, ścieżka względem katalogu projektu). Schemat powstaje przez `EnsureCreated`, bez migracji. Tylko do rozwoju. |
 
-4. **Co obejrzeć.** Panel wyborcy `/Election/Dashboard`, głosowanie i potwierdzenie z hashem, wyszukiwarka
-   `/Account/Search`, publiczna strona łańcucha `/Election/Chain/{id}` z kluczem publicznym i kotwicami,
-   panel administratora `/Admin/Elections` (weryfikacja, kotwica), dziennik `/Admin/Audit`, stan `/health`.
-   Kotwice i potwierdzenia trafiają do `App_Data/mail/`.
+Ważne przy SQLite: dane z pliku nie trafiają do SQL Servera (po powrocie SQL Servera „znikną", bo to inna
+baza); `EnsureCreated` nie aktualizuje istniejącego pliku po zmianie modelu danych, wtedy usuń
+`App_Data/voting-dev.db`. Zmienna `IVAPP_SKIP_DB_PROBE=1` wyłącza sondę. `dotnet ef` zawsze pracuje na
+SQL Serverze (tryb projektowy pomija sondę).
+
+Inna instancja SQL Server (Express, LocalDB) bez zmieniania plików w repozytorium:
+
+```bash
+dotnet user-secrets set "ConnectionStrings:InternetVotingDBConnection" "Server=localhost\SQLEXPRESS;Database=InternetVoting;Trusted_Connection=True;TrustServerCertificate=True;"
+```
+
+### Rozwiązywanie problemów
+
+| Objaw | Przyczyna | Co zrobić |
+| --- | --- | --- |
+| `A compatible .NET SDK was not found` / `global.json` | brak SDK 9.0 | `winget install Microsoft.DotNet.SDK.9`, restart Visual Studio |
+| żółty pasek „Tryb zapasowy" mimo zainstalowanego SQL Servera | usługa zatrzymana | `services.msc` → „SQL Server (MSSQLSERVER)" → Uruchom; restart aplikacji |
+| pasek „Tryb zapasowy", w logu kod 2/53/26 | inna nazwa instancji lub wyłączony TCP/IP | `Server=localhost\SQLEXPRESS` lub `(localdb)\MSSQLLocalDB` w user secrets; SQL Server Configuration Manager → Protocols → TCP/IP |
+| w logu kod 18456 | konto Windows bez loginu na serwerze | w SSMS dodaj login dla konta Windows albo użyj loginu SQL |
+| w logu kod 4060 | brak bazy i brak uprawnień do jej utworzenia | nadaj koncie rolę `dbcreator` albo utwórz pustą bazę `InternetVoting` |
+| dane „zniknęły" po włączeniu SQL Servera | wcześniej pracowałeś na SQLite | to inna baza; zarejestruj się ponownie albo wróć profilem `https (SQLite)` |
+| `SQLite Error 1: no such column` | stary plik SQLite po zmianie modelu | usuń `App_Data/voting-dev.db` |
+| brak e-maila aktywacyjnego | poczta idzie do plików | otwórz najnowszy plik z `App_Data/mail/` |
+| przeglądarka ostrzega o certyfikacie | brak zaufanego certyfikatu deweloperskiego | `dotnet dev-certs https --trust` albo profil `http` |
+| port 5001 zajęty | inna aplikacja | zmień `applicationUrl` w `Properties/launchSettings.json` |
+| po utracie `App_Data/signing-key.pem` weryfikacja podpisów nie przechodzi | nowy klucz | przywróć kopię pliku; bez niej stare bloki są niepodpisane poprawnie |
 
 Wariant z Dockerem (SQL Server + Mailpit na <http://localhost:8025> + aplikacja na <http://localhost:8080>):
 
 ```bash
 docker compose up --build
 ```
-
-Tylko baza i poczta w Dockerze, aplikacja lokalnie: `docker compose up -d db mailpit`, a w user secrets ustaw
-połączenie `Server=localhost,1433;Database=InternetVoting;User Id=sa;Password=Voting!Passw0rd;TrustServerCertificate=True;`
-oraz `Smtp:PickupDirectory` na pusty string, żeby poczta szła do Mailpit.
 
 ### Konto administratora w produkcji
 
@@ -108,7 +134,8 @@ Wartości wrażliwe nie są przechowywane w repozytorium. Lokalnie użyj user se
 | Klucz | Znaczenie |
 | --- | --- |
 | `ConnectionStrings:InternetVotingDBConnection` | połączenie z SQL Server |
-| `Database:ApplyMigrationsOnStartup` | stosowanie migracji przy starcie (`true` w Development) |
+| `Database:Provider`, `Database:SqliteConnectionString`, `Database:FallbackToSqliteWhenUnavailable`, `Database:ProbeTimeout` | silnik bazy, plik SQLite, tryb zapasowy (tylko Development) i czas sondy |
+| `Database:ApplyMigrationsOnStartup` | stosowanie migracji przy starcie (`true` w Development, tylko SQL Server) |
 | `Smtp:Host`, `Smtp:Port`, `Smtp:SecureSocket`, `Smtp:UserName`, `Smtp:Password`, `Smtp:FromAddress` | serwer poczty; `Smtp:Enabled=false` tylko loguje wiadomości |
 | `Security:MaxFailedLoginAttempts`, `Security:LockoutDuration`, `Security:PasswordResetTokenLifetime` | polityka blokady konta i ważność linku resetu |
 | `Seeding:AdminEmails`, `Seeding:FirstActivatedUserIsAdmin`, `Seeding:SampleData` | administratorzy i dane przykładowe (dwa ostatnie tylko do rozwoju) |
@@ -191,7 +218,7 @@ Zwraca kod 0 dla poprawnego łańcucha, 1 dla niepoprawnego.
 
 ## Eksploatacja
 
-- `GET /health` sprawdza połączenie z bazą.
+- `GET /health` sprawdza połączenie z bazą; `GET /setup` (tylko Development) pokazuje pełną diagnostykę uruchomienia.
 - Logi w formacie Serilog na konsolę, z logowaniem żądań HTTP; poziomy w sekcji `Serilog`.
 - Dziennik audytu (`/Admin/Audit`) zapisuje działania administratorów, wyniki weryfikacji i kotwice.
 

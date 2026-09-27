@@ -42,6 +42,21 @@ public sealed class FakeSmtpTransport : InternetVotingApplication.Services.Mail.
     }
 }
 
+/// <summary>Start-up probe with a scripted answer; counts calls.</summary>
+public sealed class FakeSqlServerProbe(bool ok, string? error = null, int? errorNumber = null) : InternetVotingApplication.Data.ISqlServerProbe
+{
+    public int Calls { get; private set; }
+
+    public TimeSpan? LastTimeout { get; private set; }
+
+    public InternetVotingApplication.Data.ProbeResult CanConnect(string connectionString, TimeSpan timeout)
+    {
+        Calls++;
+        LastTimeout = timeout;
+        return new InternetVotingApplication.Data.ProbeResult(ok, error, errorNumber, TimeSpan.FromMilliseconds(5));
+    }
+}
+
 /// <summary>An in-memory SQLite database that lives as long as the connection is open.</summary>
 public sealed class SqliteDatabase : IDisposable
 {

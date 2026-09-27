@@ -19,18 +19,30 @@ public static class DbInitializer
         var databaseOptions = configuration.GetSection(DatabaseOptions.SectionName).Get<DatabaseOptions>() ?? new DatabaseOptions();
 
         using var scope = services.CreateScope();
+
+        // First use of DatabaseInfo: runs the provider decision (and the SQL Server probe) with logging available.
+        var databaseInfo = scope.ServiceProvider.GetRequiredService<DatabaseInfo>();
         var context = scope.ServiceProvider.GetRequiredService<InternetVotingContext>();
         var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger(typeof(DbInitializer));
         var timeProvider = scope.ServiceProvider.GetRequiredService<TimeProvider>();
 
-        if (databaseOptions.EnsureCreatedOnStartup)
+        try
         {
-            await context.Database.EnsureCreatedAsync();
+            if (databaseInfo.IsSqlite || databaseOptions.EnsureCreatedOnStartup)
+            {
+                // SQL Server migrations never run on SQLite: the schema is created straight from the model.
+                await context.Database.EnsureCreatedAsync();
+            }
+            else if (databaseOptions.ApplyMigrationsOnStartup)
+            {
+                logger.LogInformation("Applying pending database migrations");
+                await context.Database.MigrateAsync();
+            }
         }
-        else if (databaseOptions.ApplyMigrationsOnStartup)
+        catch (Exception ex) when (ex is not OperationCanceledException && !databaseInfo.IsSqlite)
         {
-            logger.LogInformation("Applying pending database migrations");
-            await context.Database.MigrateAsync();
+            var number = (ex as Microsoft.Data.SqlClient.SqlException)?.Number ?? (ex.InnerException as Microsoft.Data.SqlClient.SqlException)?.Number;
+            throw new DatabaseUnavailableException(DatabaseProviderResolver.Explain(databaseInfo.ConnectionString, ex.Message, number), ex);
         }
 
         var seeding = scope.ServiceProvider.GetRequiredService<IOptions<SeedingOptions>>().Value;

@@ -284,6 +284,11 @@ Wykonane (szczegóły w `docs/PLAN_ETAP_2.md`):
 6. `ElectionService` rozbity na `ElectionService`, `ResultsService`, `ChainService`; dziennik audytu;
    panel wyborów administratora; rate limiting; `/health`; Serilog.
 
+Uruchamianie (2026-09-27): wybór silnika przez `DatabaseProviderResolver` (SQL Server; w Development po nieudanej
+sondzie `master` zapasowy SQLite z banerem i wyjaśnieniem), strona diagnostyczna `/setup`, profile Visual Studio,
+`global.json`, skrypty `run.cmd`/`run.ps1`. Poza Development zachowanie jest niezmienione: brak bazy to czytelny
+błąd i kod wyjścia 1.
+
 Nadal otwarte: tajność głosu (3.2, wymaga mieszania lub ślepych podpisów), przeniesienie modeli formularzy
 i walidatorów do właściwych folderów (3.6, wymaga usuwania plików), UTC w bazie, wiele węzłów weryfikujących.
 

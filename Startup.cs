@@ -1,13 +1,13 @@
 using System.Threading.RateLimiting;
 using InternetVotingApplication.Blockchain;
 using InternetVotingApplication.Configuration;
+using InternetVotingApplication.Data;
 using InternetVotingApplication.Interfaces;
 using InternetVotingApplication.Models;
 using InternetVotingApplication.Services;
 using InternetVotingApplication.Services.Mail;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Serilog;
 
@@ -34,8 +34,16 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
         services.AddOptions<SigningOptions>().Bind(Configuration.GetSection(SigningOptions.SectionName));
         services.AddOptions<ChainOptions>().Bind(Configuration.GetSection(ChainOptions.SectionName));
 
-        var connectionString = Configuration.GetConnectionString("InternetVotingDBConnection");
-        services.AddDbContext<InternetVotingContext>(options => options.UseSqlServer(connectionString));
+        services.AddOptions<DatabaseOptions>().Bind(Configuration.GetSection(DatabaseOptions.SectionName));
+
+        // The engine (SQL Server, or SQLite in development when SQL Server is down) is decided once, on first use,
+        // by DatabaseProviderResolver; DbInitializer forces that first use before the server starts listening.
+        services.AddSingleton<ISqlServerProbe, SqlServerProbe>();
+        services.AddSingleton<DatabaseProviderResolver>();
+        services.AddSingleton(sp => sp.GetRequiredService<DatabaseProviderResolver>().Resolve());
+        services.AddDbContext<InternetVotingContext>((sp, options) =>
+            DatabaseProviderResolver.Configure(options, sp.GetRequiredService<DatabaseInfo>()));
+        services.AddScoped<ISetupDiagnostics, SetupDiagnosticsService>();
 
         services.AddSingleton(TimeProvider.System);
         services.AddSingleton<IBlockSigner>(sp => SigningKeyProvider.Create(

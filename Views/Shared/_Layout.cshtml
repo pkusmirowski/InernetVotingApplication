@@ -1,3 +1,5 @@
+@inject InternetVotingApplication.Data.DatabaseInfo DatabaseInfo
+@inject IWebHostEnvironment HostEnvironment
 <!DOCTYPE html>
 <html lang="pl">
 <head>
@@ -120,6 +122,31 @@
             </div>
         </div>
     </footer>
+
+    @if (DatabaseInfo.IsSqlite)
+    {
+        <div class="dev-banner alert @(DatabaseInfo.IsFallback ? "alert-warning" : "alert-info") mb-0" role="status">
+            @if (DatabaseInfo.IsFallback)
+            {
+                <b>Tryb zapasowy:</b> <span>SQL Server nie odpowiedział, aplikacja działa na pliku SQLite <code>@DatabaseInfo.SqliteFilePath</code>. Dane nie trafiają do SQL Servera.</span>
+            }
+            else
+            {
+                <b>Tryb deweloperski:</b> <span>baza SQLite w pliku <code>@DatabaseInfo.SqliteFilePath</code>.</span>
+            }
+            @if (HostEnvironment.IsDevelopment())
+            {
+                <a href="~/setup" class="ms-2">Diagnostyka</a>
+            }
+        </div>
+    }
+    else if (HostEnvironment.IsDevelopment())
+    {
+        <div class="dev-banner alert alert-light border mb-0" role="status">
+            <span>Środowisko Development, baza SQL Server.</span>
+            <a href="~/setup" class="ms-2">Diagnostyka</a>
+        </div>
+    }
 
     <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
 

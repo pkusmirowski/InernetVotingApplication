@@ -54,6 +54,14 @@ public sealed class ChainPagesTests : IClassFixture<VotingWebApplicationFactory>
         Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync(new Uri("/Election/Export/99999", UriKind.Relative))).StatusCode);
     }
 
+    [Fact]
+    public async Task Setup_page_is_hidden_outside_development()
+    {
+        var response = await _factory.CreateHttpsClient().GetAsync(new Uri("/setup", UriKind.Relative));
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
     [Theory]
     [InlineData("/Admin/Elections")]
     [InlineData("/Admin/Audit")]

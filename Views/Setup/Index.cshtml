@@ -1,0 +1,97 @@
+@model SetupViewModel
+@{
+    ViewData["Title"] = "Diagnostyka";
+    string Badge(SetupState state) => state switch
+    {
+        SetupState.Ok => "bg-success",
+        SetupState.Warning => "bg-warning text-dark",
+        _ => "bg-danger",
+    };
+    string BadgeText(SetupState state) => state switch
+    {
+        SetupState.Ok => "OK",
+        SetupState.Warning => "uwaga",
+        _ => "błąd",
+    };
+}
+<h2>Diagnostyka uruchomienia</h2>
+<p class="text-muted">Środowisko <b>@Model.EnvironmentName</b>, @Model.RuntimeVersion. Katalog aplikacji: <code>@Model.ContentRoot</code>.</p>
+<div class="alert @(Model.OverallState switch { SetupState.Ok => "alert-success", SetupState.Warning => "alert-warning", _ => "alert-danger" })" role="status">
+    @switch (Model.OverallState)
+    {
+        case SetupState.Ok:
+            <b>Wszystko gotowe.</b>
+            break;
+        case SetupState.Warning:
+            <b>Aplikacja działa, ale zwróć uwagę na pozycje oznaczone „uwaga".</b>
+            break;
+        default:
+            <b>Coś nie działa.</b>
+            <span>Sprawdź pozycje oznaczone „błąd".</span>
+            break;
+    }
+</div>
+@if (!string.IsNullOrEmpty(Model.FallbackExplanation))
+{
+    <div class="alert alert-warning" role="alert">
+        <b>Tryb zapasowy SQLite.</b>
+        <pre class="small mb-0 mt-2" style="white-space: pre-wrap">@Model.FallbackExplanation</pre>
+    </div>
+}
+<hr />
+@{
+    var sections = new (string Title, IReadOnlyList<SetupItem> Items)[]
+    {
+        ("Baza danych", Model.Database),
+        ("Poczta", Model.Mail),
+        ("Klucz podpisu bloków", Model.Signing),
+        ("Dane", Model.Data),
+    };
+}
+<div class="row g-4">
+    @foreach (var (title, items) in sections)
+    {
+        <div class="col-lg-6">
+            <h4>@title</h4>
+            <table class="table table-sm align-middle">
+                <tbody>
+                    @foreach (var item in items)
+                    {
+                        <tr>
+                            <th scope="row" class="text-nowrap">@item.Label</th>
+                            <td class="hash-value small">@item.Value</td>
+                            <td class="text-end"><span class="badge @Badge(item.State)">@BadgeText(item.State)</span></td>
+                        </tr>
+                        @if (!string.IsNullOrEmpty(item.Hint))
+                        {
+                            <tr><td colspan="3" class="small text-muted border-0 pt-0">@item.Hint</td></tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+<h4 class="mt-4">Co dalej</h4>
+<ol>
+    @foreach (var step in Model.NextSteps)
+    {
+        <li>@step</li>
+    }
+</ol>
+<p>
+    <a class="btn btn-primary" asp-controller="Home" asp-action="Index">Strona główna</a>
+    <a class="btn btn-outline-secondary" asp-controller="Account" asp-action="Register">Rejestracja</a>
+    <a class="btn btn-outline-secondary" asp-controller="Account" asp-action="Login">Logowanie</a>
+    <a class="btn btn-link" href="~/health">/health</a>
+</p>
+@if (Model.Errors.Count > 0)
+{
+    <h5 class="text-danger">Błędy</h5>
+    <ul class="small">
+        @foreach (var error in Model.Errors)
+        {
+            <li>@error</li>
+        }
+    </ul>
+}
