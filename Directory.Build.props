@@ -1,0 +1,15 @@
+<Project>
+
+  <!-- Settings shared by every project in the repository (web app, tests, tools). -->
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <!-- Needed for IDE0005 (unused usings) to run during build; CS1591 (missing XML comment) is not enforced. -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591;CS1573</NoWarn>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+
+</Project>

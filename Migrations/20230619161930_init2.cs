@@ -1,35 +1,25 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace InternetVotingApplication.Migrations
 {
+    /// <summary>
+    /// Legacy migration from the original schema (2023). It altered a column of a table that the current
+    /// InitialCreate migration creates later, so applying its original body on an empty database fails.
+    /// It is kept as a no-op only so that the file can be deleted by the repository owner; it is safe to delete
+    /// together with its Designer file.
+    /// </summary>
     public partial class init2 : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterColumn<int>(
-                name: "jestAktywne",
-                table: "Uzytkownik",
-                type: "int",
-                nullable: false,
-                defaultValueSql: "((1))",
-                oldClrType: typeof(bool),
-                oldType: "bit",
-                oldDefaultValueSql: "((1))");
+            // Intentionally empty: superseded by InitialCreate.
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterColumn<bool>(
-                name: "jestAktywne",
-                table: "Uzytkownik",
-                type: "bit",
-                nullable: false,
-                defaultValueSql: "((1))",
-                oldClrType: typeof(int),
-                oldType: "int",
-                oldDefaultValueSql: "((1))");
+            // Intentionally empty: superseded by InitialCreate.
         }
     }
 }

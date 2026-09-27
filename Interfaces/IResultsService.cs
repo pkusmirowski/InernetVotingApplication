@@ -1,11 +1,10 @@
 using InternetVotingApplication.ViewModels;
 
-namespace InternetVotingApplication.Interfaces
-{
-    public interface IResultsService
-    {
-        Task<GlosowanieWyborczeViewModel?> GetResultsAsync(int electionId);
+namespace InternetVotingApplication.Interfaces;
 
-        Task<VoteSearchViewModel> SearchVoteAsync(string hash);
-    }
+public interface IResultsService
+{
+    Task<GlosowanieWyborczeViewModel?> GetResultsAsync(int electionId);
+
+    Task<VoteSearchViewModel> SearchVoteAsync(string hash);
 }

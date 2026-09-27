@@ -1,7 +1,6 @@
-namespace InternetVotingApplication.ViewModels
+namespace InternetVotingApplication.ViewModels;
+
+public class DataWyborowViewModel
 {
-    public class DataWyborowViewModel
-    {
-        public IReadOnlyList<DataWyborowItemViewModel> Elections { get; set; } = [];
-    }
+    public IReadOnlyList<DataWyborowItemViewModel> Elections { get; set; } = [];
 }

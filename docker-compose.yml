@@ -36,6 +36,9 @@ services:
       Smtp__Port: "1025"
       Smtp__SecureSocket: None
       Smtp__FromAddress: no-reply@internetvoting.local
+      Smtp__PickupDirectory: ""
+      Seeding__SampleData: "true"
+      Seeding__FirstActivatedUserIsAdmin: "true"
       # Development convenience only: generates a key inside the container volume. In production pass
       # Signing__PrivateKeyPem (PKCS#8 PEM) from a secret store instead.
       Signing__AutoGenerateKey: "true"

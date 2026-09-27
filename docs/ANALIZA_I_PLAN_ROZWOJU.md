@@ -402,8 +402,7 @@ Zrealizowane w tej gałęzi (etap 0 i 1 oraz część etapu 2):
 Do wykonania ręcznie (usuwanie plików wymaga decyzji autora repozytorium):
 
 - Usunąć stare migracje `Migrations/20230619161930_init2*.cs` i `Migrations/20230619163326_init3*.cs`
-  (bez tego `dotnet ef database update` na pustej bazie zakończy się błędem, bo próbują zmienić kolumnę
-  w nieistniejącej tabeli). Istniejącą lokalną bazę należy utworzyć od nowa: schemat zmienił się
+  (zostały zamienione na puste operacje, więc nie blokują już startu aplikacji, ale są zbędne). Istniejącą lokalną bazę należy utworzyć od nowa: schemat zmienił się
   (nowe kolumny, indeksy, brak `glos`), a stare hashe głosów nie są zgodne z formatem `v2`.
 - Usunąć martwe pliki: `ExtensionMethods/GeneratePassword.cs`, `ExtensionMethods/ArrayExtensions.cs`,
   `ExtensionMethods/GlosowanieWyborczeItemComparer.cs`, `Properties/serviceDependencies.json`,

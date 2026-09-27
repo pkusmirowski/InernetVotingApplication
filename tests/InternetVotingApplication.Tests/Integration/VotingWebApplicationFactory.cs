@@ -9,72 +9,71 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace InternetVotingApplication.Tests.Integration
+namespace InternetVotingApplication.Tests.Integration;
+
+/// <summary>
+/// Boots the real application on an in-memory SQLite database with e-mail delivery captured.
+/// </summary>
+public sealed class VotingWebApplicationFactory : WebApplicationFactory<Program>
 {
-    /// <summary>
-    /// Boots the real application on an in-memory SQLite database with e-mail delivery captured.
-    /// </summary>
-    public sealed class VotingWebApplicationFactory : WebApplicationFactory<Program>
+    private readonly SqliteConnection _connection = new("DataSource=:memory:");
+
+    public FakeEmailSender Emails { get; } = new();
+
+    protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        private readonly SqliteConnection _connection = new("DataSource=:memory:");
+        _connection.Open();
 
-        public FakeEmailSender Emails { get; } = new();
-
-        protected override void ConfigureWebHost(IWebHostBuilder builder)
+        builder.UseEnvironment("Testing");
+        builder.ConfigureAppConfiguration((_, config) =>
         {
-            _connection.Open();
-
-            builder.UseEnvironment("Testing");
-            builder.ConfigureAppConfiguration((_, config) =>
+            config.AddInMemoryCollection(new Dictionary<string, string?>
             {
-                config.AddInMemoryCollection(new Dictionary<string, string?>
-                {
-                    ["Database:ApplyMigrationsOnStartup"] = "false",
-                    ["Database:EnsureCreatedOnStartup"] = "true",
-                    ["Smtp:Enabled"] = "false",
-                    ["Signing:PrivateKeyPem"] = InternetVotingApplication.Blockchain.EcdsaBlockSigner.GeneratePrivateKeyPem(),
-                    ["Chain:AnchorEveryBlocks"] = "1",
-                    ["Chain:AnchorRecipients:0"] = "komisja@example.com",
-                    ["Chain:VerificationInterval"] = "01:00:00",
-                    ["Mail:PollInterval"] = "01:00:00",
-                    ["RateLimiting:AuthPermitLimit"] = "1000",
-                });
+                ["Database:ApplyMigrationsOnStartup"] = "false",
+                ["Database:EnsureCreatedOnStartup"] = "true",
+                ["Smtp:Enabled"] = "false",
+                ["Signing:PrivateKeyPem"] = InternetVotingApplication.Blockchain.EcdsaBlockSigner.GeneratePrivateKeyPem(),
+                ["Chain:AnchorEveryBlocks"] = "1",
+                ["Chain:AnchorRecipients:0"] = "komisja@example.com",
+                ["Chain:VerificationInterval"] = "01:00:00",
+                ["Mail:PollInterval"] = "01:00:00",
+                ["RateLimiting:AuthPermitLimit"] = "1000",
             });
+        });
 
-            builder.ConfigureServices(services =>
-            {
-                services.RemoveAll<DbContextOptions<InternetVotingContext>>();
-                services.RemoveAll<IDbContextOptionsConfiguration<InternetVotingContext>>();
-                services.RemoveAll<InternetVotingContext>();
-                services.AddDbContext<InternetVotingContext>(options => options.UseSqlite(_connection));
-
-                services.RemoveAll<IEmailSender>();
-                services.AddSingleton<IEmailSender>(Emails);
-            });
-        }
-
-        public HttpClient CreateHttpsClient(bool allowAutoRedirect = false)
+        builder.ConfigureServices(services =>
         {
-            return CreateClient(new WebApplicationFactoryClientOptions
-            {
-                BaseAddress = new Uri("https://localhost"),
-                AllowAutoRedirect = allowAutoRedirect,
-            });
-        }
+            services.RemoveAll<DbContextOptions<InternetVotingContext>>();
+            services.RemoveAll<IDbContextOptionsConfiguration<InternetVotingContext>>();
+            services.RemoveAll<InternetVotingContext>();
+            services.AddDbContext<InternetVotingContext>(options => options.UseSqlite(_connection));
 
-        public InternetVotingContext CreateContext()
-        {
-            var scope = Services.CreateScope();
-            return scope.ServiceProvider.GetRequiredService<InternetVotingContext>();
-        }
+            services.RemoveAll<IEmailSender>();
+            services.AddSingleton<IEmailSender>(Emails);
+        });
+    }
 
-        protected override void Dispose(bool disposing)
+    public HttpClient CreateHttpsClient(bool allowAutoRedirect = false)
+    {
+        return CreateClient(new WebApplicationFactoryClientOptions
         {
-            base.Dispose(disposing);
-            if (disposing)
-            {
-                _connection.Dispose();
-            }
+            BaseAddress = new Uri("https://localhost"),
+            AllowAutoRedirect = allowAutoRedirect,
+        });
+    }
+
+    public InternetVotingContext CreateContext()
+    {
+        var scope = Services.CreateScope();
+        return scope.ServiceProvider.GetRequiredService<InternetVotingContext>();
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        base.Dispose(disposing);
+        if (disposing)
+        {
+            _connection.Dispose();
         }
     }
 }
