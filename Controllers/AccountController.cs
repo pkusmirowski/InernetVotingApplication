@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using InternetVotingApplication.Configuration;
 using InternetVotingApplication.ExtensionMethods;
 using InternetVotingApplication.Interfaces;
 using InternetVotingApplication.Models;
@@ -8,10 +9,15 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Options;
 
 namespace InternetVotingApplication.Controllers;
 
-public class AccountController(IUserService userService, IResultsService resultsService, ILogger<AccountController> logger) : Controller
+public class AccountController(
+    IUserService userService,
+    IResultsService resultsService,
+    IOptions<AppOptions> appOptions,
+    ILogger<AccountController> logger) : Controller
 {
     [HttpGet]
     public IActionResult Register()
@@ -35,7 +41,7 @@ public class AccountController(IUserService userService, IResultsService results
             return View(model);
         }
 
-        var status = await userService.RegisterAsync(model, code => Url.Action("Activation", "Account", new { id = code }, Request.Scheme)!);
+        var status = await userService.RegisterAsync(model, code => AbsoluteLink("Activation", new { id = code }));
         switch (status)
         {
             case RegistrationStatus.Success:
@@ -163,7 +169,7 @@ public class AccountController(IUserService userService, IResultsService results
             return View(model);
         }
 
-        await userService.RequestPasswordResetAsync(model.Email, token => Url.Action("ResetPassword", "Account", new { token }, Request.Scheme)!);
+        await userService.RequestPasswordResetAsync(model.Email, token => AbsoluteLink("ResetPassword", new { token }));
         return View("PasswordRecoveryConfirmation");
     }
 
@@ -204,6 +210,22 @@ public class AccountController(IUserService userService, IResultsService results
             ? new VoteSearchViewModel()
             : await resultsService.SearchVoteAsync(hash);
         return View(vm);
+    }
+
+    /// <summary>
+    /// Absolute link for an e-mail. Built from the configured public address when there is one, so that a forged
+    /// <c>Host</c> header can never redirect an activation or password-reset link to an attacker's domain.
+    /// </summary>
+    private string AbsoluteLink(string action, object routeValues)
+    {
+        var publicBaseUrl = appOptions.Value.PublicBaseUrl;
+        if (string.IsNullOrWhiteSpace(publicBaseUrl))
+        {
+            return Url.Action(action, "Account", routeValues, Request.Scheme)!;
+        }
+
+        var relative = Url.Action(action, "Account", routeValues)!;
+        return new Uri(new Uri(publicBaseUrl.TrimEnd('/') + "/"), relative.TrimStart('/')).ToString();
     }
 
     private Task SignInAsync(Uzytkownik user, bool isAdmin)

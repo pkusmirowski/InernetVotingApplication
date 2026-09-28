@@ -122,12 +122,21 @@ public class ElectionController(IElectionService electionService, IResultsServic
         return View(vm);
     }
 
-    /// <summary>Public JSON export for independent verification (see tools/ChainVerifier).</summary>
+    /// <summary>
+    /// Public JSON export for independent verification (see tools/ChainVerifier). Blocks carry candidate ids, so
+    /// the export is public only once the election has ended; until then only administrators can download it.
+    /// </summary>
     [HttpGet]
     [AllowAnonymous]
     [Produces("application/json")]
     public async Task<IActionResult> Export(int id)
     {
+        var status = await electionService.GetElectionStatusAsync(id);
+        if (status == null || (status != ElectionStatus.Ended && !User.IsInRole(Roles.Admin)))
+        {
+            return NotFound();
+        }
+
         var export = await chainService.ExportAsync(id);
         if (export == null)
         {

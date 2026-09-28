@@ -105,6 +105,11 @@ public class DevelopmentModeTests
 
         var setup = await client.GetAsync(new Uri("/setup", UriKind.Relative));
         Assert.Equal(HttpStatusCode.NotFound, setup.StatusCode);
+
+        // Development conveniences are forced off outside Development even though the configuration enables them.
+        var seeding = scope.ServiceProvider.GetRequiredService<Microsoft.Extensions.Options.IOptions<Configuration.SeedingOptions>>().Value;
+        Assert.False(seeding.FirstActivatedUserIsAdmin);
+        Assert.False(seeding.SampleData);
     }
 
     /// <summary>The outbox dispatcher runs on a long interval in tests; deliver the queued mail now.</summary>

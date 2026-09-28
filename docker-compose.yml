@@ -29,8 +29,13 @@ services:
       mailpit:
         condition: service_started
     environment:
-      ASPNETCORE_ENVIRONMENT: Production
+      # This compose file is a local demo, not a production deployment: the Development environment enables
+      # sample data, first-activated-account-is-admin, the /setup page and key auto-generation. Outside
+      # Development those conveniences are switched off by the application regardless of configuration.
+      ASPNETCORE_ENVIRONMENT: Development
+      App__PublicBaseUrl: http://localhost:8080
       ConnectionStrings__InternetVotingDBConnection: "Server=db,1433;Database=InternetVoting;User Id=sa;Password=Voting!Passw0rd;MultipleActiveResultSets=True;TrustServerCertificate=True;"
+      Database__FallbackToSqliteWhenUnavailable: "false"
       Database__ApplyMigrationsOnStartup: "true"
       Smtp__Host: mailpit
       Smtp__Port: "1025"

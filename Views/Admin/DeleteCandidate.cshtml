@@ -43,7 +43,7 @@ else
                         <td class="text-end">
                             @if (candidate.VoteCount == 0)
                             {
-                                <form asp-action="DeleteCandidate" method="post" class="d-inline" onsubmit="return confirm('Usunąć kandydata @candidate.Imie @candidate.Nazwisko?');">
+                                <form asp-action="DeleteCandidate" method="post" class="d-inline" data-confirm="Usunąć kandydata @candidate.Imie @candidate.Nazwisko?">
                                     <input type="hidden" name="id" value="@candidate.Id" />
                                     <input type="hidden" name="electionId" value="@Model.SelectedElectionId" />
                                     <button type="submit" class="btn btn-sm btn-outline-danger">Usuń</button>

@@ -55,6 +55,27 @@ public sealed class ChainPagesTests : IClassFixture<VotingWebApplicationFactory>
     }
 
     [Fact]
+    public async Task Export_of_a_running_election_is_not_public()
+    {
+        int electionId;
+        using (var context = _factory.CreateContext())
+        {
+            var election = new DataWyborow { Opis = "Wybory w toku", DataRozpoczecia = DateTime.Now.AddDays(-1), DataZakonczenia = DateTime.Now.AddDays(1) };
+            context.Add(election);
+            await context.SaveChangesAsync();
+            electionId = election.Id;
+        }
+
+        var client = _factory.CreateHttpsClient();
+
+        var page = await client.GetAsync(new Uri($"/Election/Chain/{electionId}", UriKind.Relative));
+        Assert.Equal(HttpStatusCode.OK, page.StatusCode);
+        Assert.Contains("po zakończeniu wyborów", await page.Content.ReadAsStringAsync(), StringComparison.Ordinal);
+
+        Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync(new Uri($"/Election/Export/{electionId}", UriKind.Relative))).StatusCode);
+    }
+
+    [Fact]
     public async Task Setup_page_is_hidden_outside_development()
     {
         var response = await _factory.CreateHttpsClient().GetAsync(new Uri("/setup", UriKind.Relative));

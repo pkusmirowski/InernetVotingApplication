@@ -33,8 +33,15 @@
                 </tr>
             </tbody>
         </table>
-        <a class="btn btn-outline-primary btn-sm" asp-action="Export" asp-route-id="@Model.ElectionId">Pobierz eksport JSON</a>
-        <p class="small text-muted mt-2">Eksport zawiera wszystkie bloki, listę kandydatów, kotwice i klucz publiczny. Można go zweryfikować niezależnie od aplikacji narzędziem <code>tools/ChainVerifier</code>.</p>
+        @if (Model.Status == ElectionStatus.Ended || User.IsInRole(Roles.Admin))
+        {
+            <a class="btn btn-outline-primary btn-sm" asp-action="Export" asp-route-id="@Model.ElectionId">Pobierz eksport JSON</a>
+            <p class="small text-muted mt-2">Eksport zawiera wszystkie bloki, listę kandydatów, kotwice i klucz publiczny. Można go zweryfikować niezależnie od aplikacji narzędziem <code>tools/ChainVerifier</code>.</p>
+        }
+        else
+        {
+            <p class="small text-muted mt-2">Eksport JSON łańcucha (bloki z identyfikatorami kandydatów) będzie dostępny publicznie po zakończeniu wyborów, żeby nie ujawniać cząstkowych wyników w trakcie głosowania.</p>
+        }
     </div>
     <div class="col-lg-6">
         <h4>Klucz publiczny podpisów bloków</h4>

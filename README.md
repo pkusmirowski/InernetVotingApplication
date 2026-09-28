@@ -139,7 +139,8 @@ Wartości wrażliwe nie są przechowywane w repozytorium. Lokalnie użyj user se
 | `Database:ApplyMigrationsOnStartup` | stosowanie migracji przy starcie (`true` w Development, tylko SQL Server) |
 | `Smtp:Host`, `Smtp:Port`, `Smtp:SecureSocket`, `Smtp:UserName`, `Smtp:Password`, `Smtp:FromAddress` | serwer poczty; `Smtp:Enabled=false` tylko loguje wiadomości |
 | `Security:MaxFailedLoginAttempts`, `Security:LockoutDuration`, `Security:PasswordResetTokenLifetime` | polityka blokady konta i ważność linku resetu |
-| `Seeding:AdminEmails`, `Seeding:FirstActivatedUserIsAdmin`, `Seeding:SampleData` | administratorzy i dane przykładowe (dwa ostatnie tylko do rozwoju) |
+| `App:PublicBaseUrl` | publiczny adres aplikacji do budowania linków w e-mailach (w produkcji obowiązkowy: bez niego link powstaje z nagłówka `Host` żądania) |
+| `Seeding:AdminEmails`, `Seeding:FirstActivatedUserIsAdmin`, `Seeding:SampleData` | administratorzy i dane przykładowe (dwa ostatnie działają wyłącznie w środowisku Development, poza nim są ignorowane) |
 | `Smtp:PickupDirectory` | katalog na pliki HTML z pocztą zamiast wysyłki (rozwój) |
 | `Signing:PrivateKeyPem`, `Signing:KeyFilePath`, `Signing:AutoGenerateKey` | klucz ECDSA do podpisu bloków i kotwic |
 | `Chain:VerificationInterval`, `Chain:AnchorEveryBlocks`, `Chain:AnchorRecipients`, `Chain:VerifyEndedElectionsFor` | częstość weryfikacji w tle, kotwice i ich odbiorcy |

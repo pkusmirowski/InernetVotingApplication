@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using InternetVotingApplication.Configuration;
 using InternetVotingApplication.Controllers;
 using InternetVotingApplication.Interfaces;
 using InternetVotingApplication.Models;
@@ -6,6 +7,7 @@ using InternetVotingApplication.ViewModels;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using NSubstitute;
 using static InternetVotingApplication.Tests.Controllers.ControllerTestHelper;
 
@@ -16,9 +18,10 @@ public class AccountControllerTests
     private readonly IUserService _users = Substitute.For<IUserService>();
     private readonly IResultsService _results = Substitute.For<IResultsService>();
     private readonly IAuthenticationService _authentication = Substitute.For<IAuthenticationService>();
+    private readonly AppOptions _app = new();
 
     private AccountController Create(ClaimsPrincipal? user = null)
-        => new AccountController(_users, _results, TestData.Logger<AccountController>()).Prepare(user, _authentication);
+        => new AccountController(_users, _results, Options.Create(_app), TestData.Logger<AccountController>()).Prepare(user, _authentication);
 
     private static RegisterViewModel Registration() => new()
     {
@@ -70,6 +73,22 @@ public class AccountControllerTests
         AssertView(result, "RegisterConfirmation");
         Assert.NotNull(factory);
         Assert.Equal("https://app/Account/Activation", factory(Guid.NewGuid()));
+    }
+
+    [Fact]
+    public async Task Mailed_links_use_the_configured_public_address_not_the_request_host()
+    {
+        _app.PublicBaseUrl = "https://glosowanie.example.pl/";
+        Func<Guid, string>? activation = null;
+        Func<Guid, string>? reset = null;
+        _users.RegisterAsync(Arg.Any<RegisterViewModel>(), Arg.Do<Func<Guid, string>>(f => activation = f)).Returns(RegistrationStatus.Success);
+        _users.RequestPasswordResetAsync(Arg.Any<string>(), Arg.Do<Func<Guid, string>>(f => reset = f)).Returns(Task.CompletedTask);
+
+        await Create().Register(Registration());
+        await Create().PasswordRecovery(new PasswordRecovery { Email = "a@b.pl" });
+
+        Assert.Equal("https://glosowanie.example.pl/Account/Activation", activation!(Guid.NewGuid()));
+        Assert.Equal("https://glosowanie.example.pl/Account/ResetPassword", reset!(Guid.NewGuid()));
     }
 
     [Theory]

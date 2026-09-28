@@ -29,7 +29,19 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
             .Bind(Configuration.GetSection(SmtpOptions.SectionName))
             .ValidateDataAnnotations();
         services.AddOptions<MailOptions>().Bind(Configuration.GetSection(MailOptions.SectionName));
-        services.AddOptions<SeedingOptions>().Bind(Configuration.GetSection(SeedingOptions.SectionName));
+        services.AddOptions<AppOptions>().Bind(Configuration.GetSection(AppOptions.SectionName));
+        services.AddOptions<SeedingOptions>()
+            .Bind(Configuration.GetSection(SeedingOptions.SectionName))
+            .PostConfigure(options =>
+            {
+                // Development conveniences never apply elsewhere, whatever the configuration says: the first
+                // registrant of a public deployment must not become an administrator.
+                if (!Environment.IsDevelopment())
+                {
+                    options.FirstActivatedUserIsAdmin = false;
+                    options.SampleData = false;
+                }
+            });
         services.AddOptions<SecurityOptions>().Bind(Configuration.GetSection(SecurityOptions.SectionName));
         services.AddOptions<SigningOptions>().Bind(Configuration.GetSection(SigningOptions.SectionName));
         services.AddOptions<ChainOptions>().Bind(Configuration.GetSection(ChainOptions.SectionName));

@@ -42,7 +42,13 @@ internal static class ControllerTestHelper
         controller.TempData = new TempDataDictionary(httpContext, Substitute.For<ITempDataProvider>());
 
         var url = Substitute.For<IUrlHelper>();
-        url.Action(Arg.Any<UrlActionContext>()).Returns(ci => $"https://app/{ci.Arg<UrlActionContext>().Controller}/{ci.Arg<UrlActionContext>().Action}");
+        // Like the real helper: absolute when a protocol is requested, otherwise a site-relative path.
+        url.Action(Arg.Any<UrlActionContext>()).Returns(ci =>
+        {
+            var context = ci.Arg<UrlActionContext>();
+            var path = $"/{context.Controller}/{context.Action}";
+            return context.Protocol is null ? path : "https://app" + path;
+        });
         url.IsLocalUrl(Arg.Any<string?>()).Returns(ci => ci.Arg<string?>() is { } s && s.StartsWith('/') && !s.StartsWith("//", StringComparison.Ordinal));
         controller.Url = url;
         return controller;

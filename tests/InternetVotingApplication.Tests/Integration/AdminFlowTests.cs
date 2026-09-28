@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 
 namespace InternetVotingApplication.Tests.Integration;
@@ -20,11 +21,22 @@ public sealed partial class AdminFlowTests : IClassFixture<VotingWebApplicationF
     [Fact]
     public async Task First_user_becomes_admin_and_manages_an_election()
     {
+        // First-account-is-admin only works in the Development environment (it is forced off elsewhere), so this
+        // test runs under Development with every convenience that would touch the real project directory disabled.
         using var factory = _factory.WithWebHostBuilder(builder =>
+        {
+            builder.UseEnvironment("Development");
             builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["Seeding:FirstActivatedUserIsAdmin"] = "true",
-            })));
+                ["Seeding:SampleData"] = "false",
+                ["Database:Provider"] = "Sqlite",
+                ["Database:SqliteConnectionString"] = "Data Source=:memory:",
+                ["Database:FallbackToSqliteWhenUnavailable"] = "false",
+                ["Smtp:PickupDirectory"] = "",
+                ["Signing:AutoGenerateKey"] = "false",
+            }));
+        });
         var client = factory.CreateClient(new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactoryClientOptions
         {
             BaseAddress = new Uri("https://localhost"),

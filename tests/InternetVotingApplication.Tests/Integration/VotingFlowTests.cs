@@ -115,7 +115,17 @@ public sealed partial class VotingFlowTests : IClassFixture<VotingWebApplication
         var anchorMail = _factory.Emails.Sent.Single(m => m.To == "komisja@example.com");
         Assert.Contains(hash, anchorMail.HtmlBody, StringComparison.Ordinal);
 
-        // The public export verifies with the independent tool.
+        // While the election is running the export (which carries candidate ids) is not public.
+        Assert.Equal(HttpStatusCode.NotFound, (await anonymous.GetAsync(new Uri($"/Election/Export/{electionId}", UriKind.Relative))).StatusCode);
+
+        // Once it has ended, the public export verifies with the independent tool.
+        using (var context = _factory.CreateContext())
+        {
+            var election = await context.DataWyborows.SingleAsync(e => e.Id == electionId);
+            election.DataZakonczenia = DateTime.Now.AddMinutes(-1);
+            await context.SaveChangesAsync();
+        }
+
         var exportJson = await anonymous.GetStringAsync(new Uri($"/Election/Export/{electionId}", UriKind.Relative));
         var report = ChainVerifier.Verifier.Verify(ChainVerifier.Verifier.Parse(exportJson));
         Assert.True(report.IsValid, string.Join("; ", report.Errors));

@@ -24,6 +24,12 @@ w `docs/`.
   wysyłane jawnym tekstem każdemu, kto znał e-mail i PESEL), stała czasowo weryfikacja hasła.
 - Ograniczenie liczby żądań na logowaniu, rejestracji i odzyskiwaniu hasła; nagłówki bezpieczeństwa (CSP, nosniff,
   frame-ancestors); dane SMTP i connection string poza kodem (user secrets / zmienne środowiskowe).
+- Po przeglądzie bezpieczeństwa (2026-09-28): linki aktywacyjne i resetu hasła budowane z `App:PublicBaseUrl`
+  zamiast z nagłówka `Host` (ochrona przed podmianą domeny w linku), automatyczny awans pierwszego konta na
+  administratora i dane przykładowe wymuszone na „wyłączone" poza Development, eksport JSON łańcucha (z identyfikatorami
+  kandydatów) publiczny dopiero po zakończeniu wyborów, wysłane wiadomości usuwane z outboxa (brak trwałego
+  powiązania e-mail → hash głosu), potwierdzenie usunięcia kandydata przeniesione z atrybutu inline do `site.js`
+  (zgodność z CSP).
 
 ### Głosowanie i łańcuch
 

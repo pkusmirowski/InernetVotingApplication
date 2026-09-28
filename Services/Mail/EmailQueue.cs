@@ -33,12 +33,14 @@ public sealed class EmailQueue(InternetVotingContext context, TimeProvider timeP
             .ToListAsync(cancellationToken);
     }
 
+    /// <summary>
+    /// A delivered message is removed rather than kept: the body of a vote receipt links a voter's e-mail address
+    /// to a vote hash, and that link must not live in the database longer than delivery requires.
+    /// </summary>
     public void MarkSent(WiadomoscEmail row)
     {
         ArgumentNullException.ThrowIfNull(row);
-        row.Wyslano = Now();
-        row.Proby++;
-        row.OstatniBlad = null;
+        context.WiadomosciEmail.Remove(row);
     }
 
     public void MarkFailed(WiadomoscEmail row, string error)

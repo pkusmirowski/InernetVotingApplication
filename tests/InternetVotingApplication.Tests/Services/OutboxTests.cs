@@ -38,10 +38,9 @@ public sealed class OutboxTests : IDisposable
         Assert.Equal(1, sent);
         var delivered = Assert.Single(transport.Sent);
         Assert.Equal("a@example.com", delivered.To);
+        // A delivered message (which may link a voter's e-mail to a vote hash) is removed, not archived.
         using var check = _db.CreateContext();
-        var stored = await check.WiadomosciEmail.SingleAsync();
-        Assert.NotNull(stored.Wyslano);
-        Assert.Equal(1, stored.Proby);
+        Assert.Empty(check.WiadomosciEmail);
     }
 
     [Fact]

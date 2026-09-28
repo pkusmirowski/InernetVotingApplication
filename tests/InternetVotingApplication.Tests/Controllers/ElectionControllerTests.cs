@@ -173,6 +173,7 @@ public class ElectionControllerTests
     {
         var export = new ChainExport("internet-voting-chain/v2", DateTime.Now, new ChainExportElection(2, "W", DateTime.Now, DateTime.Now, 0, null), "k", "pem", [], [], []);
         _chain.ExportAsync(2).Returns(export);
+        _elections.GetElectionStatusAsync(2).Returns(ElectionStatus.Ended);
         var controller = Create();
 
         var json = Assert.IsType<JsonResult>(await controller.Export(2));
@@ -180,7 +181,21 @@ public class ElectionControllerTests
         Assert.Same(export, json.Value);
         Assert.Contains("election-2-chain.json", controller.Response.Headers.ContentDisposition.ToString(), StringComparison.Ordinal);
 
-        _chain.ExportAsync(9).Returns((ChainExport?)null);
+        _elections.GetElectionStatusAsync(9).Returns((ElectionStatus?)null);
         Assert.IsType<NotFoundResult>(await Create().Export(9));
+    }
+
+    [Fact]
+    public async Task Export_of_a_running_election_is_only_for_admins()
+    {
+        var export = new ChainExport("internet-voting-chain/v2", DateTime.Now, new ChainExportElection(3, "W", DateTime.Now, DateTime.Now, 0, null), "k", "pem", [], [], []);
+        _chain.ExportAsync(3).Returns(export);
+        _elections.GetElectionStatusAsync(3).Returns(ElectionStatus.Ongoing);
+
+        Assert.IsType<NotFoundResult>(await Create().Export(3));
+        Assert.IsType<JsonResult>(await Create(admin: true).Export(3));
+
+        _elections.GetElectionStatusAsync(3).Returns(ElectionStatus.Upcoming);
+        Assert.IsType<NotFoundResult>(await Create().Export(3));
     }
 }
