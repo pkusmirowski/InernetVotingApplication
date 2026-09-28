@@ -289,6 +289,10 @@ sondzie `master` zapasowy SQLite z banerem i wyjaśnieniem), strona diagnostyczn
 `global.json`, skrypty `run.cmd`/`run.ps1`. Poza Development zachowanie jest niezmienione: brak bazy to czytelny
 błąd i kod wyjścia 1.
 
+Finalizacja (2026-09-28, wersja 2.0.0): migracja na .NET 10 LTS (wsparcie do listopada 2028), build, testy
+i formatowanie zweryfikowane na SDK 10, wersja aplikacji w stopce i na `/setup`, `CHANGELOG.md`,
+plan i status w `docs/PLAN_FINALIZACJI.md`.
+
 Nadal otwarte: tajność głosu (3.2, wymaga mieszania lub ślepych podpisów), przeniesienie modeli formularzy
 i walidatorów do właściwych folderów (3.6, wymaga usuwania plików), UTC w bazie, wiele węzłów weryfikujących.
 

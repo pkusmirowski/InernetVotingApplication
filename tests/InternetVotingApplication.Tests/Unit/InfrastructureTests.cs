@@ -32,6 +32,13 @@ public class InfrastructureTests
     }
 
     [Fact]
+    public void Application_version_comes_from_assembly_metadata()
+    {
+        Assert.StartsWith("2.0.0", AppVersion.Value, StringComparison.Ordinal);
+        Assert.DoesNotContain('+', AppVersion.Value);
+    }
+
+    [Fact]
     public void GetUserId_reads_name_identifier_and_fails_loudly_without_it()
     {
         var principal = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, "42")]));

@@ -17,7 +17,7 @@ namespace InternetVotingApplication.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.20")
+                .HasAnnotation("ProductVersion", "10.0.12")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -40,7 +40,7 @@ namespace InternetVotingApplication.Migrations
                     b.HasIndex("IdUzytkownik")
                         .IsUnique();
 
-                    b.ToTable("Administrator");
+                    b.ToTable("Administrator", (string)null);
                 });
 
             modelBuilder.Entity("InternetVotingApplication.Models.DataWyborow", b =>
@@ -87,7 +87,7 @@ namespace InternetVotingApplication.Migrations
                     b.HasIndex("Opis")
                         .IsUnique();
 
-                    b.ToTable("DataWyborow");
+                    b.ToTable("DataWyborow", (string)null);
                 });
 
             modelBuilder.Entity("InternetVotingApplication.Models.DziennikAudytu", b =>
@@ -122,7 +122,7 @@ namespace InternetVotingApplication.Migrations
 
                     b.HasIndex("Data");
 
-                    b.ToTable("DziennikAudytu");
+                    b.ToTable("DziennikAudytu", (string)null);
                 });
 
             modelBuilder.Entity("InternetVotingApplication.Models.GlosUzytkownika", b =>
@@ -153,7 +153,7 @@ namespace InternetVotingApplication.Migrations
                     b.HasIndex("IdUzytkownik", "IdWybory")
                         .IsUnique();
 
-                    b.ToTable("GlosUzytkownika");
+                    b.ToTable("GlosUzytkownika", (string)null);
                 });
 
             modelBuilder.Entity("InternetVotingApplication.Models.GlosowanieWyborcze", b =>
@@ -225,7 +225,7 @@ namespace InternetVotingApplication.Migrations
                     b.HasIndex("IdWybory", "Indeks")
                         .IsUnique();
 
-                    b.ToTable("GlosowanieWyborcze");
+                    b.ToTable("GlosowanieWyborcze", (string)null);
                 });
 
             modelBuilder.Entity("InternetVotingApplication.Models.Kandydat", b =>
@@ -258,7 +258,7 @@ namespace InternetVotingApplication.Migrations
                     b.HasIndex("IdWybory", "Imie", "Nazwisko")
                         .IsUnique();
 
-                    b.ToTable("Kandydat");
+                    b.ToTable("Kandydat", (string)null);
                 });
 
             modelBuilder.Entity("InternetVotingApplication.Models.KotwicaLancucha", b =>
@@ -310,7 +310,7 @@ namespace InternetVotingApplication.Migrations
 
                     b.HasIndex("IdWybory", "Data");
 
-                    b.ToTable("KotwicaLancucha");
+                    b.ToTable("KotwicaLancucha", (string)null);
                 });
 
             modelBuilder.Entity("InternetVotingApplication.Models.Uzytkownik", b =>
@@ -399,7 +399,7 @@ namespace InternetVotingApplication.Migrations
 
                     b.HasIndex("TokenResetuHasla");
 
-                    b.ToTable("Uzytkownik");
+                    b.ToTable("Uzytkownik", (string)null);
                 });
 
             modelBuilder.Entity("InternetVotingApplication.Models.WeryfikacjaLancucha", b =>
@@ -449,7 +449,7 @@ namespace InternetVotingApplication.Migrations
 
                     b.HasIndex("IdWybory", "Data");
 
-                    b.ToTable("WeryfikacjaLancucha");
+                    b.ToTable("WeryfikacjaLancucha", (string)null);
                 });
 
             modelBuilder.Entity("InternetVotingApplication.Models.WiadomoscEmail", b =>
@@ -503,7 +503,7 @@ namespace InternetVotingApplication.Migrations
 
                     b.HasIndex("Wyslano", "NastepnaProba");
 
-                    b.ToTable("WiadomoscEmail");
+                    b.ToTable("WiadomoscEmail", (string)null);
                 });
 
             modelBuilder.Entity("InternetVotingApplication.Models.Administrator", b =>

@@ -15,7 +15,7 @@
     };
 }
 <h2>Diagnostyka uruchomienia</h2>
-<p class="text-muted">Środowisko <b>@Model.EnvironmentName</b>, @Model.RuntimeVersion. Katalog aplikacji: <code>@Model.ContentRoot</code>.</p>
+<p class="text-muted">Aplikacja w wersji <b>@Model.ApplicationVersion</b>, środowisko <b>@Model.EnvironmentName</b>, @Model.RuntimeVersion. Katalog aplikacji: <code>@Model.ContentRoot</code>.</p>
 <div class="alert @(Model.OverallState switch { SetupState.Ok => "alert-success", SetupState.Warning => "alert-warning", _ => "alert-danger" })" role="status">
     @switch (Model.OverallState)
     {

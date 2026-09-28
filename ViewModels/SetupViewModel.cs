@@ -19,6 +19,8 @@ public sealed class SetupViewModel
 
     public string RuntimeVersion { get; set; } = string.Empty;
 
+    public string ApplicationVersion { get; set; } = string.Empty;
+
     public string ContentRoot { get; set; } = string.Empty;
 
     public DatabaseProvider Provider { get; set; }

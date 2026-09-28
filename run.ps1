@@ -3,7 +3,7 @@
   Uruchamia aplikację do głosowania na tym komputerze i otwiera stronę diagnostyczną.
 
 .DESCRIPTION
-  1. Sprawdza, czy jest .NET SDK 9 (jeśli nie, pokazuje polecenie instalacji).
+  1. Sprawdza, czy jest .NET SDK 10 (jeśli nie, pokazuje polecenie instalacji).
   2. Wykrywa lokalne instancje SQL Server i stan ich usług; dla instancji nazwanej proponuje
      connection string i zapisuje go w user secrets (tylko po potwierdzeniu).
   3. Startuje aplikację profilem "https (SQL Server)" albo "https (SQLite)" (-Sqlite).
@@ -25,13 +25,13 @@ function Write-Step($text) { Write-Host "==> $text" -ForegroundColor Cyan }
 Write-Step 'Sprawdzam .NET SDK'
 $sdks = @()
 try { $sdks = & dotnet --list-sdks 2>$null } catch { }
-if (-not ($sdks | Where-Object { $_ -match '^9\.' })) {
-    Write-Host 'Brak .NET SDK 9. Zainstaluj go poleceniem:' -ForegroundColor Yellow
-    Write-Host '    winget install Microsoft.DotNet.SDK.9' -ForegroundColor Yellow
-    Write-Host 'albo ze strony https://dotnet.microsoft.com/download/dotnet/9.0 i uruchom skrypt ponownie.'
+if (-not ($sdks | Where-Object { $_ -match '^10\.' })) {
+    Write-Host 'Brak .NET SDK 10. Zainstaluj go poleceniem:' -ForegroundColor Yellow
+    Write-Host '    winget install Microsoft.DotNet.SDK.10' -ForegroundColor Yellow
+    Write-Host 'albo ze strony https://dotnet.microsoft.com/download/dotnet/10.0 i uruchom skrypt ponownie.'
     exit 1
 }
-Write-Host ("Znaleziono: " + (($sdks | Where-Object { $_ -match '^9\.' }) -join ', '))
+Write-Host ("Znaleziono: " + (($sdks | Where-Object { $_ -match '^10\.' }) -join ', '))
 
 $profile = 'https (SQL Server)'
 if ($Sqlite) {

@@ -33,6 +33,7 @@ public sealed class SetupDiagnosticsService(
         {
             EnvironmentName = environment.EnvironmentName,
             RuntimeVersion = System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription,
+            ApplicationVersion = AppVersion.Value,
             ContentRoot = environment.ContentRootPath,
             Provider = databaseInfo.Provider,
             Reason = databaseInfo.Reason,

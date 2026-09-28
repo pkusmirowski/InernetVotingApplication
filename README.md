@@ -4,7 +4,8 @@ Aplikacja webowa do głosowań internetowych (praca inżynierska). Każdy oddany
 w łańcuchu hashy SHA-256 prowadzonym osobno dla każdych wyborów. Wyborca otrzymuje hash swojego głosu
 i może w każdej chwili sprawdzić, czy głos znajduje się w nienaruszonym łańcuchu.
 
-Technologie: ASP.NET Core 9 MVC, Entity Framework Core 9, SQL Server, BCrypt, MailKit, Bootstrap 5, xUnit.
+Technologie: .NET 10 LTS, ASP.NET Core 10 MVC, Entity Framework Core 10, SQL Server, BCrypt, MailKit, Bootstrap 5, xUnit.
+Wersja 2.0.0; historia zmian w `CHANGELOG.md`.
 
 ## Funkcje
 
@@ -43,9 +44,9 @@ Technologie: ASP.NET Core 9 MVC, Entity Framework Core 9, SQL Server, BCrypt, Ma
 
 ## Szybki start (Windows, Visual Studio)
 
-Potrzebujesz tylko **.NET SDK 9.0** (<https://dotnet.microsoft.com/download/dotnet/9.0>, albo
-`winget install Microsoft.DotNet.SDK.9`). SQL Server jest opcjonalny: bez niego aplikacja w trybie
-Development uruchomi się na pliku SQLite i powie Ci o tym.
+Potrzebujesz tylko **.NET SDK 10.0** (<https://dotnet.microsoft.com/download/dotnet/10.0>, albo
+`winget install Microsoft.DotNet.SDK.10`) i Visual Studio 2022 17.14+ lub Visual Studio 2026.
+SQL Server jest opcjonalny: bez niego aplikacja w trybie Development uruchomi się na pliku SQLite i powie Ci o tym.
 
 1. Otwórz `InternetVotingApplication.sln` w Visual Studio.
 2. Wybierz profil startowy **`https (SQL Server)`** (domyślny) i naciśnij **F5**.
@@ -100,7 +101,7 @@ dotnet user-secrets set "ConnectionStrings:InternetVotingDBConnection" "Server=l
 
 | Objaw | Przyczyna | Co zrobić |
 | --- | --- | --- |
-| `A compatible .NET SDK was not found` / `global.json` | brak SDK 9.0 | `winget install Microsoft.DotNet.SDK.9`, restart Visual Studio |
+| `A compatible .NET SDK was not found` / `global.json` | brak SDK 10.0 | `winget install Microsoft.DotNet.SDK.10`, restart Visual Studio (wymagane 2022 17.14+ lub 2026) |
 | żółty pasek „Tryb zapasowy" mimo zainstalowanego SQL Servera | usługa zatrzymana | `services.msc` → „SQL Server (MSSQLSERVER)" → Uruchom; restart aplikacji |
 | pasek „Tryb zapasowy", w logu kod 2/53/26 | inna nazwa instancji lub wyłączony TCP/IP | `Server=localhost\SQLEXPRESS` lub `(localdb)\MSSQLLocalDB` w user secrets; SQL Server Configuration Manager → Protocols → TCP/IP |
 | w logu kod 18456 | konto Windows bez loginu na serwerze | w SSMS dodaj login dla konta Windows albo użyj loginu SQL |
@@ -171,7 +172,7 @@ a poczta jest przechwytywana przez `FakeEmailSender`. Poziomy testów:
 
 ## Styl kodu
 
-Projekt używa aktualnych konwencji C# 13 / .NET 9: przestrzenie nazw w zapisie plikowym, konstruktory
+Projekt używa aktualnych konwencji C# 14 / .NET 10: przestrzenie nazw w zapisie plikowym, konstruktory
 podstawowe, rekordy, wyrażenia kolekcji, `TimeProvider`, `required`/nullable, `GeneratedRegex`.
 Reguły są w `.editorconfig` na poziomie ostrzeżeń, `dotnet format` je egzekwuje, a CI odrzuca odstępstwa.
 

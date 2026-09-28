@@ -1,6 +1,7 @@
 # Analiza aplikacji InternetVotingApplication i plan rozwoju
 
-Data analizy: 2026-09-25. Zakres: cały kod C#, widoki Razor, konfiguracja projektu, migracje EF, zasoby statyczne.
+Data analizy: 2026-09-25 (stan pierwotny projektu na .NET 9; od 2026-09-28 projekt jest na .NET 10, patrz `docs/PLAN_FINALIZACJI.md`
+i `CHANGELOG.md`). Zakres: cały kod C#, widoki Razor, konfiguracja projektu, migracje EF, zasoby statyczne.
 Analiza jest statyczna (czytanie kodu) plus próba kompilacji. W środowisku analizy nie było SDK .NET 9, więc projekt
 skompilowano na SDK .NET 8 po tymczasowej zmianie `TargetFramework` na `net8.0` i usunięciu pakietu `Abp`
 (jest net9-only i nieużywany). W tej konfiguracji build przechodzi bez błędów, z jednym ostrzeżeniem kompilatora
