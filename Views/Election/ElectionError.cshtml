@@ -1,16 +1,10 @@
-﻿@{
-    ViewData["Title"] = "Błąd głosowania";
+@model string?
+@{
+    ViewData["Title"] = "Błąd łańcucha";
 }
-<br />
-<br />
-<br />
-<br />
-<div class="container">
-    <main id="main">
-        <div class="text-center">
-            <h2 class="text-danger">Błąd głosowania</h2>
-            <p>Głos nie został oddany.</p>
-            <p>Jeśli ten błąd się powtarza, skontaktuj się z administratorem.</p>
-        </div>
-    </main>
+<h2 class="text-danger">Głos nie został zapisany</h2>
+<hr />
+<div class="alert alert-danger" role="alert">
+    Weryfikacja łańcucha głosów wyborów @(Model ?? "") wykazała naruszenie integralności. Oddawanie głosów zostało wstrzymane. Skontaktuj się z administratorem.
 </div>
+<a class="btn btn-link" asp-action="Dashboard">Wróć do panelu</a>

@@ -1,22 +1,20 @@
-﻿using InternetVotingApplication.Models;
+using InternetVotingApplication.Models;
 using InternetVotingApplication.ViewModels;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
-namespace InternetVotingApplication.Interfaces
+namespace InternetVotingApplication.Interfaces;
+
+public sealed record VoteOutcome(VoteStatus Status, string? Hash = null, string? ElectionName = null);
+
+/// <summary>Voter-facing operations: listing elections and casting a vote.</summary>
+public interface IElectionService
 {
-    public interface IElectionService
-    {
-        DataWyborowViewModel GetAllElections();
-        KandydatViewModel GetAllCandidates(int id);
-        string AddVote(string user, int candidateId, int electionId);
-        bool CheckIfElectionEnded(int electionId);
-        bool CheckIfElectionStarted(int electionId);
-        bool CheckElectionBlockchain(int electionId);
-        Task<bool> CheckIfVoted(string user, int election);
-        GlosowanieWyborczeViewModel SearchVote(string Text);
-        GlosowanieWyborczeViewModel GetElectionResult(int id);
-        int CountVotes(int election, int candidate);
-        List<DataWyborow> ShowElectionByName();
-    }
+    Task<DataWyborowViewModel> GetElectionListAsync(int userId);
+
+    Task<ElectionStatus?> GetElectionStatusAsync(int electionId);
+
+    Task<KandydatViewModel?> GetVotingPageAsync(int electionId);
+
+    Task<bool> HasVotedAsync(int userId, int electionId);
+
+    Task<VoteOutcome> CastVoteAsync(int userId, int electionId, int candidateId);
 }

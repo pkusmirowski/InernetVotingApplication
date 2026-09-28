@@ -1,160 +1,259 @@
-﻿using InternetVotingApplication.Interfaces;
+using System.Security.Claims;
+using InternetVotingApplication.Configuration;
+using InternetVotingApplication.ExtensionMethods;
+using InternetVotingApplication.Interfaces;
 using InternetVotingApplication.Models;
-using Microsoft.AspNetCore.Http;
+using InternetVotingApplication.ViewModels;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Options;
 
-namespace InternetVotingApplication.Controllers
+namespace InternetVotingApplication.Controllers;
+
+public class AccountController(
+    IUserService userService,
+    IResultsService resultsService,
+    IOptions<AppOptions> appOptions,
+    ILogger<AccountController> logger) : Controller
 {
-    public class AccountController(IUserService userService, IElectionService electionService, IAdminService adminService) : Controller
+    [HttpGet]
+    public IActionResult Register()
     {
-        private readonly IUserService _userService = userService;
-        private readonly IElectionService _electionService = electionService;
-        private readonly IAdminService _adminService = adminService;
+        return User.Identity?.IsAuthenticated == true
+            ? RedirectToAction("Dashboard", "Election")
+            : View(new RegisterViewModel());
+    }
 
-        public IActionResult Register()
+    [HttpPost]
+    [EnableRateLimiting(RateLimitPolicies.Auth)]
+    public async Task<IActionResult> Register(RegisterViewModel model)
+    {
+        if (User.Identity?.IsAuthenticated == true)
         {
-            if (HttpContext.Session.GetString("email") != null)
-            {
-                return RedirectToAction("Dashboard");
-            }
-
-            return View();
+            return RedirectToAction("Dashboard", "Election");
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> RegisterAsync(Uzytkownik user)
+        if (!ModelState.IsValid)
         {
-            if (HttpContext.Session.GetString("email") != null)
-            {
-                return RedirectToAction("Dashboard");
-            }
-
-            if (!ModelState.IsValid)
-            {
-                return View();
-            }
-
-            if (await _userService.RegisterAsync(user))
-            {
-                ViewBag.RegistrationSuccessful = $"Uzytkownik {user.Imie} {user.Nazwisko} został zarejestrowany poprawnie! </br> Aktywuj swoje konto potwierdzając adres E-mail";
-                return View();
-            }
-
-            ViewBag.Error = "Registration failed. Please try again.";
-            return View();
+            return View(model);
         }
 
-        public async Task<IActionResult> LoginAsync(Logowanie user)
+        var status = await userService.RegisterAsync(model, code => AbsoluteLink("Activation", new { id = code }));
+        switch (status)
         {
-            if (HttpContext.Session.GetString("email") != null)
-            {
-                return RedirectToAction("Dashboard");
-            }
-
-            if (!ModelState.IsValid)
-            {
-                return View();
-            }
-
-            var loginResult = await _userService.LoginAsync(user);
-            if (loginResult == 0 || loginResult == 1)
-            {
-                HttpContext.Session.SetString("email", user.Email);
-                if (loginResult == 0)
-                {
-                    HttpContext.Session.SetString("Admin", "Admin");
-                    return RedirectToAction("Panel", "Admin");
-                }
-                return RedirectToAction("Dashboard", "Election");
-            }
-
-            ViewBag.Error = "Login failed. Please check your credentials.";
-            return View();
+            case RegistrationStatus.Success:
+                return View("RegisterConfirmation", model);
+            case RegistrationStatus.EmailTaken:
+                ModelState.AddModelError(nameof(model.Email), "Konto z tym adresem e-mail już istnieje.");
+                break;
+            case RegistrationStatus.PeselTaken:
+                ModelState.AddModelError(nameof(model.Pesel), "Konto z tym numerem PESEL już istnieje.");
+                break;
+            case RegistrationStatus.InvalidPesel:
+                ModelState.AddModelError(nameof(model.Pesel), "Numer PESEL jest niepoprawny.");
+                break;
+            case RegistrationStatus.InvalidEmail:
+                ModelState.AddModelError(nameof(model.Email), "Adres e-mail jest niepoprawny.");
+                break;
+            default:
+                ModelState.AddModelError(string.Empty, "Rejestracja nie powiodła się.");
+                break;
         }
 
-        public IActionResult Logout()
+        return View(model);
+    }
+
+    [HttpGet]
+    public IActionResult Login(string? returnUrl = null)
+    {
+        if (User.Identity?.IsAuthenticated == true)
         {
-            HttpContext.Session.Clear();
-            return RedirectToAction("Login");
+            return RedirectAfterLogin(User.IsInRole(Roles.Admin), returnUrl);
         }
 
-        public IActionResult ChangePassword()
-        {
-            if (HttpContext.Session.GetString("email") == null)
-            {
-                return RedirectToAction("Login");
-            }
+        return View(new Logowanie { ReturnUrl = returnUrl });
+    }
 
-            return View();
+    [HttpPost]
+    [EnableRateLimiting(RateLimitPolicies.Auth)]
+    public async Task<IActionResult> Login(Logowanie model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(model);
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult ChangePassword(ChangePassword user)
+        var outcome = await userService.LoginAsync(model);
+        switch (outcome.Status)
         {
-            if (HttpContext.Session.GetString("email") == null)
-            {
-                return RedirectToAction("Login");
-            }
-
-            if (!ModelState.IsValid)
-            {
-                return View();
-            }
-
-            if (_userService.ChangePassword(user, HttpContext.Session.GetString("email")))
-            {
-                ViewBag.ChangePasswordSuccessful = "Hasło zostało zmienione poprawnie!";
-                return View();
-            }
-
-            ViewBag.Error = "Password change failed. Please try again.";
-            return View();
+            case LoginStatus.Success:
+                await SignInAsync(outcome.User!, outcome.IsAdmin);
+                logger.LogInformation("User {UserId} signed in", outcome.User!.Id);
+                return RedirectAfterLogin(outcome.IsAdmin, model.ReturnUrl);
+            case LoginStatus.NotActivated:
+                ModelState.AddModelError(string.Empty, "Konto nie zostało jeszcze aktywowane. Sprawdź swoją skrzynkę e-mail.");
+                break;
+            case LoginStatus.LockedOut:
+                ModelState.AddModelError(string.Empty, "Konto zostało tymczasowo zablokowane po zbyt wielu nieudanych próbach logowania. Spróbuj ponownie później.");
+                break;
+            default:
+                ModelState.AddModelError(string.Empty, "Nieprawidłowy adres e-mail lub hasło.");
+                break;
         }
 
-        public IActionResult Activation()
-        {
-            ViewBag.Message = "Zły kod aktywacyjny.";
-            if (RouteData.Values["id"] != null && _userService.GetUserByAcitvationCode(new Guid(RouteData.Values["id"].ToString())))
-            {
-                ViewBag.Message = "Aktywacja konta powiodła się.";
-            }
+        return View(model);
+    }
 
-            return View();
+    [HttpPost]
+    [Authorize]
+    public async Task<IActionResult> Logout()
+    {
+        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        return RedirectToAction("Index", "Home");
+    }
+
+    [HttpGet]
+    public IActionResult AccessDenied()
+    {
+        return View();
+    }
+
+    [HttpGet]
+    [Authorize]
+    public IActionResult ChangePassword()
+    {
+        return View(new ChangePassword());
+    }
+
+    [HttpPost]
+    [Authorize]
+    public async Task<IActionResult> ChangePassword(ChangePassword model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(model);
         }
 
-        public IActionResult PasswordRecovery()
+        if (await userService.ChangePasswordAsync(User.GetUserId(), model))
         {
-            return View();
+            TempData["StatusMessage"] = "Hasło zostało zmienione.";
+            return RedirectToAction(nameof(ChangePassword));
         }
 
-        [HttpPost]
-        public async Task<IActionResult> PasswordRecoveryAsync(PasswordRecovery password)
+        ModelState.AddModelError(nameof(model.Password), "Obecne hasło jest nieprawidłowe.");
+        return View(model);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Activation(Guid? id)
+    {
+        var activated = id.HasValue && await userService.ActivateAsync(id.Value);
+        return View(activated);
+    }
+
+    [HttpGet]
+    public IActionResult PasswordRecovery()
+    {
+        return View(new PasswordRecovery());
+    }
+
+    [HttpPost]
+    [EnableRateLimiting(RateLimitPolicies.Auth)]
+    public async Task<IActionResult> PasswordRecovery(PasswordRecovery model)
+    {
+        if (!ModelState.IsValid)
         {
-            if (!ModelState.IsValid)
-            {
-                return View();
-            }
-
-            if (await _userService.RecoverPassword(password))
-            {
-                ViewBag.Success = "Password recovery successful. Please check your email.";
-                return View();
-            }
-
-            ViewBag.Error = "Password recovery failed. Please try again.";
-            return View();
+            return View(model);
         }
 
-        public IActionResult Search(string text)
+        await userService.RequestPasswordResetAsync(model.Email, token => AbsoluteLink("ResetPassword", new { token }));
+        return View("PasswordRecoveryConfirmation");
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> ResetPassword(Guid? token)
+    {
+        if (!token.HasValue || !await userService.IsPasswordResetTokenValidAsync(token.Value))
         {
-            text ??= "1";
-            var vm = _electionService.SearchVote(text);
-            return View(vm);
+            return View("ResetPasswordInvalid");
         }
+
+        return View(new ResetPasswordViewModel { Token = token.Value });
+    }
+
+    [HttpPost]
+    [EnableRateLimiting(RateLimitPolicies.Auth)]
+    public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        if (!await userService.ResetPasswordAsync(model.Token, model.NewPassword))
+        {
+            return View("ResetPasswordInvalid");
+        }
+
+        TempData["StatusMessage"] = "Hasło zostało ustawione. Możesz się zalogować.";
+        return RedirectToAction(nameof(Login));
+    }
+
+    /// <summary>Public lookup of a vote by its hash (verifiability without signing in).</summary>
+    [HttpGet]
+    public async Task<IActionResult> Search(string? hash)
+    {
+        var vm = string.IsNullOrWhiteSpace(hash)
+            ? new VoteSearchViewModel()
+            : await resultsService.SearchVoteAsync(hash);
+        return View(vm);
+    }
+
+    /// <summary>
+    /// Absolute link for an e-mail. Built from the configured public address when there is one, so that a forged
+    /// <c>Host</c> header can never redirect an activation or password-reset link to an attacker's domain.
+    /// </summary>
+    private string AbsoluteLink(string action, object routeValues)
+    {
+        var publicBaseUrl = appOptions.Value.PublicBaseUrl;
+        if (string.IsNullOrWhiteSpace(publicBaseUrl))
+        {
+            return Url.Action(action, "Account", routeValues, Request.Scheme)!;
+        }
+
+        var relative = Url.Action(action, "Account", routeValues)!;
+        return new Uri(new Uri(publicBaseUrl.TrimEnd('/') + "/"), relative.TrimStart('/')).ToString();
+    }
+
+    private Task SignInAsync(Uzytkownik user, bool isAdmin)
+    {
+        var claims = new List<Claim>
+        {
+            new(ClaimTypes.NameIdentifier, user.Id.ToString(System.Globalization.CultureInfo.InvariantCulture)),
+            new(ClaimTypes.Email, user.Email),
+            new(ClaimTypes.Name, $"{user.Imie} {user.Nazwisko}"),
+            new(ClaimTypes.Role, isAdmin ? Roles.Admin : Roles.Voter),
+        };
+
+        var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+        return HttpContext.SignInAsync(
+            CookieAuthenticationDefaults.AuthenticationScheme,
+            new ClaimsPrincipal(identity),
+            new AuthenticationProperties { IsPersistent = false });
+    }
+
+    private IActionResult RedirectAfterLogin(bool isAdmin, string? returnUrl)
+    {
+        if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+        {
+            return LocalRedirect(returnUrl);
+        }
+
+        return isAdmin
+            ? RedirectToAction("Panel", "Admin")
+            : RedirectToAction("Dashboard", "Election");
     }
 }
-

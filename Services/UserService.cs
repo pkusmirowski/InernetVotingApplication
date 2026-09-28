@@ -1,115 +1,238 @@
-﻿using InternetVotingApplication.ExtensionMethods;
+using InternetVotingApplication.Configuration;
+using InternetVotingApplication.ExtensionMethods;
 using InternetVotingApplication.Interfaces;
 using InternetVotingApplication.Models;
+using InternetVotingApplication.ViewModels;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 using BC = BCrypt.Net.BCrypt;
 
-namespace InternetVotingApplication.Services
+namespace InternetVotingApplication.Services;
+
+public class UserService(
+    InternetVotingContext context,
+    IEmailSender emailSender,
+    IOptions<SecurityOptions> securityOptions,
+    IOptions<SeedingOptions> seedingOptions,
+    IAuditLog auditLog,
+    TimeProvider timeProvider,
+    ILogger<UserService> logger) : IUserService
 {
-    public class UserService(InternetVotingContext context) : IUserService
+    /// <summary>Hash verified when the account does not exist, so that response time does not reveal account existence.</summary>
+    private static readonly string DummyHash = BC.HashPassword("dummy-password-for-timing");
+
+    private readonly SecurityOptions _security = securityOptions.Value;
+
+    public async Task<RegistrationStatus> RegisterAsync(RegisterViewModel model, Func<Guid, string> activationLinkFactory)
     {
-        private readonly InternetVotingContext _context = context;
+        ArgumentNullException.ThrowIfNull(model);
+        ArgumentNullException.ThrowIfNull(activationLinkFactory);
 
-        public async Task<bool> RegisterAsync(Uzytkownik user)
+        var email = NormalizeEmail(model.Email);
+        if (!EmailValidation.IsValidEmail(email))
         {
-            if (await _context.Uzytkowniks.AnyAsync(x => x.Email == user.Email || x.Pesel == user.Pesel))
-            {
-                return false;
-            }
-
-            if (!PeselValidation.IsValidPESEL(user.Pesel) || !EmailValidation.IsValidEmail(user.Email))
-            {
-                return false;
-            }
-
-            user.KodAktywacyjny = Guid.NewGuid();
-            user.Haslo = BC.HashPassword(user.Haslo);
-            user.JestAktywne = 0;
-
-            _context.Uzytkowniks.Add(user);
-            await _context.SaveChangesAsync();
-
-            Email.SendEmailAfterRegistration(user);
-            return true;
+            return RegistrationStatus.InvalidEmail;
         }
 
-        public async Task<int> LoginAsync(Logowanie user)
+        if (!PeselValidation.IsValidPESEL(model.Pesel))
         {
-            var userAccount = await _context.Uzytkowniks
-                .Where(u => u.Email == user.Email)
-                .Select(u => new { u.Id, u.JestAktywne, u.Haslo })
-                .FirstOrDefaultAsync();
-
-            if (userAccount == null || userAccount.JestAktywne != 1 || !BC.Verify(user.Haslo, userAccount.Haslo))
-            {
-                return 2;
-            }
-
-            var isAdmin = await _context.Administrators.AnyAsync(a => a.IdUzytkownik == userAccount.Id);
-            return isAdmin ? 0 : 1;
+            return RegistrationStatus.InvalidPesel;
         }
 
-        public async Task<bool> AuthenticateUser(Logowanie user)
+        if (await context.Uzytkowniks.AnyAsync(u => u.Email == email))
         {
-            var account = await _context.Uzytkowniks
-                .Where(x => x.Email == user.Email)
-                .Select(x => x.Haslo)
-                .FirstOrDefaultAsync();
-
-            return account != null && BC.Verify(user.Haslo, account);
+            return RegistrationStatus.EmailTaken;
         }
 
-        public bool ChangePassword(ChangePassword password, string userEmail)
+        if (await context.Uzytkowniks.AnyAsync(u => u.Pesel == model.Pesel))
         {
-            var account = _context.Uzytkowniks.SingleOrDefault(x => x.Email == userEmail);
-            if (account == null || !BC.Verify(password.Password, account.Haslo) || password.NewPassword != password.ConfirmNewPassword)
-            {
-                return false;
-            }
-
-            account.Haslo = BC.HashPassword(password.NewPassword);
-            _context.Update(account);
-            _context.SaveChanges();
-
-            Email.SendEmailChangePassword(userEmail);
-            return true;
+            return RegistrationStatus.PeselTaken;
         }
 
-        public bool GetUserByAcitvationCode(Guid activationCode)
+        var user = new Uzytkownik
         {
-            var user = _context.Uzytkowniks.SingleOrDefault(x => x.KodAktywacyjny == activationCode);
-            if (user == null)
-            {
-                return false;
-            }
+            Imie = model.Imie.Trim(),
+            Nazwisko = model.Nazwisko.Trim(),
+            Pesel = model.Pesel,
+            Email = email,
+            DataUrodzenia = model.DataUrodzenia!.Value.Date,
+            Haslo = BC.HashPassword(model.Haslo),
+            JestAktywne = false,
+            KodAktywacyjny = Guid.NewGuid(),
+            DataRejestracji = Now(),
+        };
 
-            user.JestAktywne = 1;
-            user.KodAktywacyjny = Guid.Empty;
-
-            _context.Update(user);
-            _context.SaveChanges();
-
-            return true;
+        context.Uzytkowniks.Add(user);
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex)
+        {
+            // Unique index violated by a concurrent registration.
+            logger.LogWarning(ex, "Registration for {Email} rejected by a unique constraint", email);
+            return RegistrationStatus.EmailTaken;
         }
 
-        public async Task<bool> RecoverPassword(PasswordRecovery password)
-        {
-            var user = await _context.Uzytkowniks
-                .SingleOrDefaultAsync(x => x.Pesel == password.Pesel && x.Email == password.Email);
-
-            if (user == null)
-            {
-                return false;
-            }
-
-            string newPassword = GeneratePassword.CreateRandomPassword(8);
-            user.Haslo = BC.HashPassword(newPassword);
-            await _context.SaveChangesAsync();
-            Email.SendNewPassword(newPassword, user);
-            return true;
-        }
+        await emailSender.SendAsync(Email.AfterRegistration(user.Email, user.Imie, user.Nazwisko, activationLinkFactory(user.KodAktywacyjny.Value)));
+        logger.LogInformation("User {UserId} registered", user.Id);
+        return RegistrationStatus.Success;
     }
+
+    public async Task<LoginOutcome> LoginAsync(Logowanie model)
+    {
+        ArgumentNullException.ThrowIfNull(model);
+
+        var email = NormalizeEmail(model.Email);
+        var user = await context.Uzytkowniks.SingleOrDefaultAsync(u => u.Email == email);
+        var now = Now();
+
+        if (user == null)
+        {
+            BC.Verify(model.Haslo, DummyHash);
+            return new LoginOutcome(LoginStatus.InvalidCredentials, null, false);
+        }
+
+        if (user.ZablokowaneDo.HasValue && user.ZablokowaneDo > now)
+        {
+            return new LoginOutcome(LoginStatus.LockedOut, null, false);
+        }
+
+        if (!BC.Verify(model.Haslo, user.Haslo))
+        {
+            user.NieudaneLogowania++;
+            var lockedNow = false;
+            if (user.NieudaneLogowania >= _security.MaxFailedLoginAttempts)
+            {
+                user.ZablokowaneDo = now.Add(_security.LockoutDuration);
+                user.NieudaneLogowania = 0;
+                lockedNow = true;
+                logger.LogWarning("User {UserId} locked out until {Until}", user.Id, user.ZablokowaneDo);
+            }
+
+            await context.SaveChangesAsync();
+            return new LoginOutcome(lockedNow ? LoginStatus.LockedOut : LoginStatus.InvalidCredentials, null, false);
+        }
+
+        if (!user.JestAktywne)
+        {
+            return new LoginOutcome(LoginStatus.NotActivated, null, false);
+        }
+
+        if (user.NieudaneLogowania != 0 || user.ZablokowaneDo.HasValue)
+        {
+            user.NieudaneLogowania = 0;
+            user.ZablokowaneDo = null;
+            await context.SaveChangesAsync();
+        }
+
+        var isAdmin = await context.Administrators.AnyAsync(a => a.IdUzytkownik == user.Id);
+        return new LoginOutcome(LoginStatus.Success, user, isAdmin);
+    }
+
+    public async Task<bool> ActivateAsync(Guid activationCode)
+    {
+        if (activationCode == Guid.Empty)
+        {
+            return false;
+        }
+
+        var user = await context.Uzytkowniks.SingleOrDefaultAsync(u => u.KodAktywacyjny == activationCode);
+        if (user == null)
+        {
+            return false;
+        }
+
+        user.JestAktywne = true;
+        user.KodAktywacyjny = null;
+        await context.SaveChangesAsync();
+        logger.LogInformation("User {UserId} activated", user.Id);
+
+        if (seedingOptions.Value.FirstActivatedUserIsAdmin && !await context.Administrators.AnyAsync())
+        {
+            context.Administrators.Add(new Administrator { IdUzytkownik = user.Id });
+            await context.SaveChangesAsync();
+            await auditLog.LogAsync(AuditLog.Actions.AdminPromoted, $"{user.Email} (pierwsze aktywowane konto, Seeding:FirstActivatedUserIsAdmin)", user.Id);
+            logger.LogWarning("User {UserId} promoted to administrator as the first activated account", user.Id);
+        }
+
+        return true;
+    }
+
+    public async Task<bool> ChangePasswordAsync(int userId, ChangePassword model)
+    {
+        ArgumentNullException.ThrowIfNull(model);
+
+        var user = await context.Uzytkowniks.FindAsync(userId);
+        if (user == null || !BC.Verify(model.Password, user.Haslo))
+        {
+            return false;
+        }
+
+        user.Haslo = BC.HashPassword(model.NewPassword);
+        await context.SaveChangesAsync();
+        await emailSender.SendAsync(Email.PasswordChanged(user.Email));
+        return true;
+    }
+
+    public async Task RequestPasswordResetAsync(string email, Func<Guid, string> resetLinkFactory)
+    {
+        ArgumentNullException.ThrowIfNull(resetLinkFactory);
+
+        var normalized = NormalizeEmail(email);
+        var user = await context.Uzytkowniks.SingleOrDefaultAsync(u => u.Email == normalized && u.JestAktywne);
+        if (user == null)
+        {
+            logger.LogInformation("Password reset requested for unknown or inactive account");
+            return;
+        }
+
+        user.TokenResetuHasla = Guid.NewGuid();
+        user.TokenResetuWygasa = Now().Add(_security.PasswordResetTokenLifetime);
+        await context.SaveChangesAsync();
+
+        await emailSender.SendAsync(Email.PasswordReset(user.Email, resetLinkFactory(user.TokenResetuHasla.Value), _security.PasswordResetTokenLifetime));
+    }
+
+    public async Task<bool> IsPasswordResetTokenValidAsync(Guid token)
+    {
+        if (token == Guid.Empty)
+        {
+            return false;
+        }
+
+        var now = Now();
+        return await context.Uzytkowniks.AnyAsync(u => u.TokenResetuHasla == token && u.TokenResetuWygasa > now);
+    }
+
+    public async Task<bool> ResetPasswordAsync(Guid token, string newPassword)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(newPassword);
+        if (token == Guid.Empty)
+        {
+            return false;
+        }
+
+        var now = Now();
+        var user = await context.Uzytkowniks.SingleOrDefaultAsync(u => u.TokenResetuHasla == token && u.TokenResetuWygasa > now);
+        if (user == null)
+        {
+            return false;
+        }
+
+        user.Haslo = BC.HashPassword(newPassword);
+        user.TokenResetuHasla = null;
+        user.TokenResetuWygasa = null;
+        user.NieudaneLogowania = 0;
+        user.ZablokowaneDo = null;
+        await context.SaveChangesAsync();
+
+        await emailSender.SendAsync(Email.PasswordChanged(user.Email));
+        logger.LogInformation("Password reset completed for user {UserId}", user.Id);
+        return true;
+    }
+
+    private DateTime Now() => timeProvider.GetLocalNow().DateTime;
+
+    private static string NormalizeEmail(string? email) => (email ?? string.Empty).Trim().ToLowerInvariant();
 }

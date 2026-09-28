@@ -1,10 +1,6 @@
-﻿using InternetVotingApplication.Models;
-using System.Collections.Generic;
+namespace InternetVotingApplication.ViewModels;
 
-namespace InternetVotingApplication.ViewModels
+public class DataWyborowViewModel
 {
-    public class DataWyborowViewModel
-    {
-        public IEnumerable<DataWyborowItemViewModel> ElectionDates { get; set; }
-    }
+    public IReadOnlyList<DataWyborowItemViewModel> Elections { get; set; } = [];
 }

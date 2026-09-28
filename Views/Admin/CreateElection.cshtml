@@ -1,52 +1,33 @@
-﻿@model InternetVotingApplication.Models.DataWyborow
-
+@model ElectionFormViewModel
 @{
     ViewData["Title"] = "Stwórz wybory";
 }
-<br />
-<br />
-<br />
-<br />
-<div class="container">
-    <main id="main">
-        <h2>Stwórz wybory</h2>
-        <hr />
-        <div class="row">
-            <div class="col-md-4">
-                <form asp-action="CreateElection">
-                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-                    <div class="form-group">
-                        <label asp-for="DataRozpoczecia" class="control-label"></label>
-                        <input asp-for="DataRozpoczecia" class="form-control" />
-                        <span asp-validation-for="DataRozpoczecia" class="text-danger"></span>
-                    </div>
-                    <div class="form-group">
-                        <label asp-for="DataZakonczenia" class="control-label"></label>
-                        <input asp-for="DataZakonczenia" class="form-control" />
-                        <span asp-validation-for="DataZakonczenia" class="text-danger"></span>
-                    </div>
-                    <div class="form-group">
-                        <label asp-for="Opis" class="control-label"></label>
-                        <input asp-for="Opis" class="form-control" />
-                        <span asp-validation-for="Opis" class="text-danger"></span>
-                    </div>
-                    <div class="form-group">
-                        <input type="submit" value="Stwórz" class="btn btn-primary" />
-                    </div>
-                </form>
+<h2>Stwórz wybory</h2>
+<hr />
+<partial name="_StatusMessage" />
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="CreateElection" method="post">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+            <div class="form-group mb-3">
+                <label asp-for="Opis" class="form-label"></label>
+                <input asp-for="Opis" class="form-control" />
+                <span asp-validation-for="Opis" class="text-danger"></span>
             </div>
-        </div>
-        @if (ViewBag.Error == false)
-        {
-            <br />
-            <div class="alert alert-danger" role="alert">
-                <b>Błąd. Wybory nie zostały dodane! Możliwe, że te wybory już istnieją.</b>
+            <div class="form-group mb-3">
+                <label asp-for="DataRozpoczecia" class="form-label"></label>
+                <input asp-for="DataRozpoczecia" class="form-control" />
+                <span asp-validation-for="DataRozpoczecia" class="text-danger"></span>
             </div>
-        }
-        <br />
-        <p class="text-success"><b>@ViewBag.addElectionSuccessful</b></p>
-        @section Scripts {
-            @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-        }
-    </main>
+            <div class="form-group mb-3">
+                <label asp-for="DataZakonczenia" class="form-label"></label>
+                <input asp-for="DataZakonczenia" class="form-control" />
+                <span asp-validation-for="DataZakonczenia" class="text-danger"></span>
+            </div>
+            <button type="submit" class="btn btn-primary">Stwórz</button>
+        </form>
+    </div>
 </div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

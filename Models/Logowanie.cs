@@ -1,18 +1,20 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
-namespace InternetVotingApplication.Models
+namespace InternetVotingApplication.Models;
+
+/// <summary>Sign-in form.</summary>
+public class Logowanie
 {
-    public class Logowanie
-    {
-        [Required(ErrorMessage = "Wpisz swój adres email")]
-        [StringLength(89)]
-        [EmailAddress(ErrorMessage = "Podaj poprawny adres email")]
-        [Display(Name = "Adres Email")]
-        public string Email { get; set; }
+    [Required(ErrorMessage = "Wpisz swój adres e-mail")]
+    [StringLength(254)]
+    [EmailAddress(ErrorMessage = "Podaj poprawny adres e-mail")]
+    [Display(Name = "Adres e-mail")]
+    public string Email { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Podaj hasło")]
-        [DataType(DataType.Password)]
-        [Display(Name = "Hasło")]
-        public string Haslo { get; set; }
-    }
+    [Required(ErrorMessage = "Podaj hasło")]
+    [DataType(DataType.Password)]
+    [Display(Name = "Hasło")]
+    public string Haslo { get; set; } = string.Empty;
+
+    public string? ReturnUrl { get; set; }
 }

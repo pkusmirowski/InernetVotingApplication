@@ -1,0 +1,9 @@
+**/bin/
+**/obj/
+**/.vs/
+**/TestResults/
+.git/
+docs/
+tests/
+tools/
+App_Data/

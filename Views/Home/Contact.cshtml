@@ -1,12 +1,7 @@
-﻿@{
+@{
     ViewData["Title"] = "Kontakt";
 }
-<br />
-<br />
-<br />
-<div class="container">
-    <main id="main">
-        <h2>Kontakt</h2>
+<h2>Kontakt</h2>
         <hr />
         <section id="contact" class="contact">
             <div class="container">
@@ -31,36 +26,11 @@
                         </div>
                     </div>
                     <div class="col-lg-7 mt-5 mt-lg-0 d-flex align-items-stretch">
-                        <form action="forms/contact.php" method="post" role="form" class="php-email-form">
-                            <div class="row">
-                                <div class="form-group col-md-6">
-                                    <label for="name">Twoje imię</label>
-                                    <input type="text" name="name" class="form-control" id="name" placeholder="Twoje imię" required>
-                                </div>
-                                <div class="form-group col-md-6 mt-3 mt-md-0">
-                                    <label for="email">Twój adres e-mail</label>
-                                    <input type="email" class="form-control" name="email" id="email" placeholder="Twój adres e-mail" required>
-                                </div>
-                            </div>
-                            <div class="form-group mt-3">
-                                <label for="subject">Temat</label>
-                                <input type="text" class="form-control" name="subject" id="subject" placeholder="Temat" required>
-                            </div>
-                            <div class="form-group mt-3">
-                                <label for="message">Wiadomość</label>
-                                <textarea class="form-control" name="message" rows="10" required></textarea>
-                            </div>
-                            <div class="my-3">
-                                <div class="loading">Ładowanie</div>
-                                <div class="error-message"></div>
-                                <div class="sent-message">Twoja wiadomość została wysłana. Dziękujemy!</div>
-                            </div>
-                            <div class="text-center"><button type="submit">Wyślij wiadomość</button></div>
-                        </form>
+                        <div class="w-100 d-flex flex-column justify-content-center">
+                            <h4>Napisz do nas</h4>
+                            <p>Masz pytanie dotyczące rejestracji, aktywacji konta lub weryfikacji głosu? Napisz na adres <a href="mailto:info@twojadomena.pl">info@twojadomena.pl</a>. Odpowiadamy w dni robocze.</p>
+                        </div>
                     </div>
                 </div>
             </div>
         </section>
-    </main>
-</div>
-

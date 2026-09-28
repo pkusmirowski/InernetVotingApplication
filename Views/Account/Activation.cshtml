@@ -1,14 +1,15 @@
-﻿@{
+@model bool
+@{
     ViewData["Title"] = "Aktywacja konta";
 }
-
-<div class="container">
-    <main id="main">
-        <h2>Aktywacja konta</h2>
-        <hr />
-        <div class="text-center">
-            <br />
-            <h1>@ViewBag.Message</h1>
-        </div>
-    </main>
-</div>
+<h2>Aktywacja konta</h2>
+<hr />
+@if (Model)
+{
+    <div class="alert alert-success" role="alert">Konto zostało aktywowane. Możesz się zalogować.</div>
+    <a class="btn btn-primary" asp-action="Login">Zaloguj się</a>
+}
+else
+{
+    <div class="alert alert-danger" role="alert">Link aktywacyjny jest nieprawidłowy lub został już wykorzystany.</div>
+}

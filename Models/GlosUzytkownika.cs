@@ -1,30 +1,30 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace InternetVotingApplication.Models
+namespace InternetVotingApplication.Models;
+
+/// <summary>
+/// Records that a voter has taken part in an election. Holds no information about the choice made.
+/// </summary>
+[Table("GlosUzytkownika")]
+public class GlosUzytkownika
 {
-    [Table("GlosUzytkownika")]
-    public partial class GlosUzytkownika
-    {
-        [Key]
-        [Column("id")]
-        public int Id { get; set; }
+    [Key]
+    [Column("id")]
+    public int Id { get; set; }
 
-        [Column("id_uzytkownik")]
-        public int IdUzytkownik { get; set; }
+    [Column("id_uzytkownik")]
+    public int IdUzytkownik { get; set; }
 
-        [Column("id_wybory")]
-        public int IdWybory { get; set; }
+    [Column("id_wybory")]
+    public int IdWybory { get; set; }
 
-        [Column("glos")]
-        public bool Glos { get; set; }
+    [Column("dataOddania")]
+    public DateTime DataOddania { get; set; }
 
-        [ForeignKey(nameof(IdUzytkownik))]
-        [InverseProperty(nameof(Uzytkownik.GlosUzytkownikas))]
-        public virtual Uzytkownik IdUzytkownikNavigation { get; set; }
+    [ForeignKey(nameof(IdUzytkownik))]
+    public Uzytkownik IdUzytkownikNavigation { get; set; } = null!;
 
-        [ForeignKey(nameof(IdWybory))]
-        [InverseProperty(nameof(DataWyborow.GlosUzytkownikas))]
-        public virtual DataWyborow IdWyboryNavigation { get; set; }
-    }
+    [ForeignKey(nameof(IdWybory))]
+    public DataWyborow IdWyboryNavigation { get; set; } = null!;
 }

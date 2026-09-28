@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Code coverage settings. Usage: dotnet test with the settings option pointing at this file and the XPlat Code Coverage collector. -->
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat Code Coverage">
+        <Configuration>
+          <Format>cobertura</Format>
+          <!-- Generated code is not a testing target: EF migrations, compiled Razor views, the test and tool assemblies. -->
+          <Exclude>[InternetVotingApplication.Tests]*,[ChainVerifier]Program,[*]AspNetCoreGeneratedDocument.*,[*]InternetVotingApplication.Migrations.*</Exclude>
+          <ExcludeByFile>**/Migrations/*.cs,**/*.cshtml</ExcludeByFile>
+          <ExcludeByAttribute>Obsolete,GeneratedCodeAttribute,CompilerGeneratedAttribute</ExcludeByAttribute>
+          <SkipAutoProps>true</SkipAutoProps>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>

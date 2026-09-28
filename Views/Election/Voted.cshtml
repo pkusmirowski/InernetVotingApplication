@@ -1,18 +1,13 @@
-﻿@{
-    ViewData["Title"] = "Oddany głos";
+@model VoteReceiptViewModel
+@{
+    ViewData["Title"] = "Głos oddany";
 }
-<br />
-<br />
-<br />
-<br />
-<div class="container">
-    <main id="main">
-        <div class="text-center">
-            <h2><b class="text-success">Twój głos został oddany pomyślnie!</b></h2>
-            <h3><b class="text-danger">UWAGA!</b></h3>
-            <p>Skopiuj i zapisz hash, aby móc w przyszłości sprawdzić swój głos.</p>
-            <h4>Hash głosu: <b class="text-warning">@ViewBag.ID</b></h4>
-            <p>Twój hash został również wysłany na Twój adres e-mail!</p>
-        </div>
-    </main>
+<h2 class="text-success">Twój głos w wyborach „@Model.ElectionName” został zapisany</h2>
+<hr />
+<div class="alert alert-warning" role="alert">
+    <b>Zapisz poniższy hash.</b> Jest to jedyny sposób sprawdzenia w przyszłości, że Twój głos znajduje się w łańcuchu. Hash został także wysłany na Twój adres e-mail.
 </div>
+<p class="fs-5">Hash głosu:</p>
+<p class="hash-value fs-5"><b>@Model.Hash</b></p>
+<a class="btn btn-primary" asp-controller="Account" asp-action="Search" asp-route-hash="@Model.Hash">Sprawdź głos</a>
+<a class="btn btn-link" asp-action="Dashboard">Wróć do panelu</a>
