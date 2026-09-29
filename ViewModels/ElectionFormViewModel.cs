@@ -5,7 +5,7 @@ namespace InternetVotingApplication.ViewModels;
 public class ElectionFormViewModel : IValidatableObject
 {
     [Required(ErrorMessage = "Podaj nazwę wyborów")]
-    [StringLength(200)]
+    [StringLength(200, ErrorMessage = ValidationMessages.TooLong)]
     [Display(Name = "Nazwa wyborów")]
     public string Opis { get; set; } = string.Empty;
 

@@ -1,10 +1,11 @@
 @{
-    ViewData["Title"] = "Błąd";
+    ViewData["Title"] = "Coś poszło nie tak";
 }
-<h2>Wystąpił błąd</h2>
+<h2>Coś poszło nie tak</h2>
 <hr />
-<p>Przetwarzanie żądania nie powiodło się. Spróbuj ponownie później.</p>
+<p>Nie udało się wykonać tej operacji. To problem po naszej stronie, a nie Twój błąd. Spróbuj ponownie za kilka minut.</p>
 @if (ViewBag.RequestId is string requestId && !string.IsNullOrEmpty(requestId))
 {
-    <p class="text-muted small">Identyfikator żądania: <code>@requestId</code></p>
+    <p class="text-muted small">Jeśli problem się powtarza, <a asp-controller="Home" asp-action="Contact">napisz do nas</a> i podaj numer zgłoszenia: <code>@requestId</code></p>
 }
+<a class="btn btn-primary" asp-controller="Home" asp-action="Index">Wróć na stronę główną</a>

@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <title>@ViewData["Title"] - Aplikacja do głosowań internetowych</title>
-    <meta content="Aplikacja do głosowań internetowych z wewnętrznym łańcuchem hashy weryfikującym oddane głosy" name="description">
+    <meta content="Aplikacja do głosowań internetowych. Po oddaniu głosu dostajesz kod potwierdzenia i możesz sprawdzić, czy Twój głos jest zapisany." name="description">
 
     <link href="~/assets/img/favicon.png" rel="icon">
     <link href="~/assets/img/apple-touch-icon.png" rel="apple-touch-icon">
@@ -41,6 +41,7 @@
                         <li><a class="nav-link" asp-controller="Admin" asp-action="Panel">Panel administratora</a></li>
                         <li><a class="nav-link" asp-controller="Admin" asp-action="Elections">Wybory</a></li>
                         <li><a class="nav-link" asp-controller="Admin" asp-action="AddCandidate">Dodaj kandydata</a></li>
+                        <li><a class="nav-link" asp-controller="Admin" asp-action="Users">Użytkownicy</a></li>
                         <li><a class="nav-link" asp-controller="Admin" asp-action="Audit">Audyt</a></li>
                         <li><a class="nav-link" asp-controller="Account" asp-action="ChangePassword">Zmiana hasła</a></li>
                         <li>
@@ -89,9 +90,9 @@
                         <h3>Kontakt</h3>
                         <p>
                             ul. Przykładowa 40/50 <br>
-                            Warszawa, 55-555<br>
+                            55-555 Warszawa<br>
                             Polska <br><br>
-                            <strong>Numer telefonu:</strong> +48 000000000<br>
+                            <strong>Numer telefonu:</strong> +48 000 000 000<br>
                             <strong>Adres e-mail:</strong> info@twojadomena.pl<br>
                         </p>
                     </div>
@@ -108,7 +109,7 @@
                     </div>
                     <div class="col-lg-4 col-md-6 footer-links">
                         <h4>O aplikacji</h4>
-                        <p>Każdy oddany głos jest blokiem w łańcuchu hashy SHA-256 danych wyborów. Wyborca otrzymuje hash swojego głosu i może w każdej chwili sprawdzić, czy jest on obecny w nienaruszonym łańcuchu.</p>
+                        <p>Każdy oddany głos trafia do rejestru, w którym każda zmiana zostałaby wykryta. Po głosowaniu dostajesz kod potwierdzenia i możesz w każdej chwili sprawdzić, czy Twój głos jest zapisany bez zmian.</p>
                     </div>
                 </div>
             </div>

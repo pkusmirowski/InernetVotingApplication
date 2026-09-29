@@ -40,6 +40,24 @@ public sealed class DbInitializerTests : IDisposable
         Assert.Contains(elections, e => e.GetStatus(TestData.Now) == ElectionStatus.Ended);
     }
 
+    [Fact]
+    public async Task Test_accounts_are_created_once_activated_and_with_one_administrator()
+    {
+        using var context = _db.CreateContext();
+
+        Assert.Equal(TestAccounts.All.Count, await DbInitializer.SeedTestAccountsAsync(context, TestData.Clock(), NullLogger.Instance));
+        Assert.Equal(0, await DbInitializer.SeedTestAccountsAsync(context, TestData.Clock(), NullLogger.Instance));
+
+        var users = await context.Uzytkowniks.Include(u => u.Administrators).ToListAsync();
+        Assert.Equal(TestAccounts.All.Count, users.Count);
+        Assert.All(users, u => Assert.True(u.JestAktywne));
+        Assert.All(users, u => Assert.True(InternetVotingApplication.ExtensionMethods.PeselValidation.IsValidPESEL(u.Pesel)));
+        var admin = Assert.Single(users, u => u.Administrators.Count > 0);
+        Assert.Equal("admin@test.local", admin.Email);
+        Assert.True(BCrypt.Net.BCrypt.Verify(TestAccounts.AdminPassword, admin.Haslo));
+        Assert.True(BCrypt.Net.BCrypt.Verify(TestAccounts.VoterPassword, users.First(u => u.Email == "wyborca1@test.local").Haslo));
+    }
+
     public void Dispose()
     {
         _db.Dispose();

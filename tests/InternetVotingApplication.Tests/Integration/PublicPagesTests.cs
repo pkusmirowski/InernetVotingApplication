@@ -81,6 +81,30 @@ public sealed class PublicPagesTests : IClassFixture<VotingWebApplicationFactory
     }
 
     [Fact]
+    public async Task Registration_errors_are_shown_in_polish()
+    {
+        var client = _factory.CreateHttpsClient();
+
+        var response = await client.PostFormAsync("/Account/Register", new Dictionary<string, string>
+        {
+            ["Imie"] = new string('a', 51),
+            ["Nazwisko"] = "Testowa",
+            ["Pesel"] = "44051401359",
+            ["Email"] = "zla.data@example.com",
+            ["DataUrodzenia"] = "to nie jest data",
+            ["Haslo"] = "Secret#Pass1",
+            ["ConfirmPassword"] = "Secret#Pass1",
+        });
+
+        var html = WebUtility.HtmlDecode(await response.Content.ReadAsStringAsync());
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Contains("To pole może mieć najwyżej 50 znaków.", html, StringComparison.Ordinal);
+        Assert.Contains("jest nieprawidłowa", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("The value", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("The field", html, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task Search_for_unknown_hash_reports_not_found()
     {
         var client = _factory.CreateHttpsClient();

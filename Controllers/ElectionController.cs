@@ -66,9 +66,9 @@ public class ElectionController(IElectionService electionService, IResultsServic
             case VoteStatus.ElectionNotFound:
                 return NotFound();
             case VoteStatus.CandidateNotInElection:
-                return await RedisplayVotingPageAsync(model.ElectionId, "Wybrany kandydat nie bierze udziału w tych wyborach.");
+                return await RedisplayVotingPageAsync(model.ElectionId, "Wybrany kandydat nie bierze udziału w tych wyborach. Zaznacz kandydata z listy poniżej.");
             case VoteStatus.Conflict:
-                return await RedisplayVotingPageAsync(model.ElectionId, "Serwer jest chwilowo zajęty. Twój głos nie został zapisany, spróbuj ponownie.");
+                return await RedisplayVotingPageAsync(model.ElectionId, "Twój głos nie został jeszcze zapisany, bo w tej samej chwili głosowało wiele osób. Zaznacz kandydata i spróbuj ponownie.");
             case VoteStatus.ChainCorrupted:
                 return View("ElectionError", outcome.ElectionName);
             case VoteStatus.AlreadyVoted:

@@ -4,6 +4,7 @@ using InternetVotingApplication.Interfaces;
 using InternetVotingApplication.Models;
 using InternetVotingApplication.Services;
 using InternetVotingApplication.ViewModels;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using NSubstitute;
 using static InternetVotingApplication.Tests.Controllers.ControllerTestHelper;
@@ -36,8 +37,9 @@ public class AdminControllerTests
         AssertRedirect(await controller.VerifyChain(3), "Elections");
 
         var message = Assert.IsType<string>(controller.TempData["StatusMessage"]);
-        Assert.Contains("NIE przechodzi", message, StringComparison.Ordinal);
+        Assert.Contains("wykryła nieprawidłowości", message, StringComparison.Ordinal);
         Assert.Contains("2, 4", message, StringComparison.Ordinal);
+        Assert.Equal(true, controller.TempData["StatusIsError"]);
     }
 
     [Fact]
@@ -112,6 +114,60 @@ public class AdminControllerTests
 
         Assert.Equal(2, redirect.RouteValues!["electionId"]);
         Assert.Contains(fragment, Assert.IsType<string>(controller.TempData["StatusMessage"]), StringComparison.Ordinal);
+        Assert.Equal(status != DeleteCandidateStatus.Success, controller.TempData.ContainsKey("StatusIsError"));
+    }
+
+    [Fact]
+    public async Task EditElection_returns_404_for_unknown_id_and_maps_statuses()
+    {
+        _admin.GetElectionAsync(5).Returns((ElectionFormViewModel?)null);
+        Assert.IsType<NotFoundResult>(await Create().EditElection(5));
+
+        var model = new ElectionFormViewModel { Opis = "W", DataRozpoczecia = DateTime.Now, DataZakonczenia = DateTime.Now.AddDays(1) };
+        _admin.UpdateElectionAsync(5, model, 9).Returns(UpdateElectionStatus.Success);
+        var controller = Create();
+        AssertRedirect(await controller.EditElection(5, model), "Elections");
+        Assert.NotNull(controller.TempData["StatusMessage"]);
+
+        _admin.UpdateElectionAsync(5, model, 9).Returns(UpdateElectionStatus.Duplicate);
+        controller = Create();
+        AssertView(await controller.EditElection(5, model));
+        Assert.NotEmpty(controller.ModelState["Opis"]!.Errors);
+
+        _admin.UpdateElectionAsync(5, model, 9).Returns(UpdateElectionStatus.NotFound);
+        Assert.IsType<NotFoundResult>(await Create().EditElection(5, model));
+    }
+
+    [Theory]
+    [InlineData(DeleteElectionStatus.Success, "usunięte")]
+    [InlineData(DeleteElectionStatus.HasVotes, "oddano już głosy")]
+    [InlineData(DeleteElectionStatus.NotFound, "nie istnieją")]
+    public async Task DeleteElection_reports_outcome(DeleteElectionStatus status, string fragment)
+    {
+        _admin.DeleteElectionAsync(4, 9).Returns(status);
+        var controller = Create();
+
+        AssertRedirect(await controller.DeleteElection(4), "Elections");
+
+        Assert.Contains(fragment, Assert.IsType<string>(controller.TempData["StatusMessage"]), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Users_page_lists_accounts_and_actions_report_outcome()
+    {
+        _admin.GetUsersAsync().Returns([new UserListItemViewModel { Id = 1 }]);
+        var view = AssertView(await Create().Users());
+        Assert.Single(Assert.IsAssignableFrom<IReadOnlyList<UserListItemViewModel>>(view.Model));
+
+        _admin.ActivateUserAsync(3, 9).Returns(UserActionStatus.Success);
+        var controller = Create();
+        AssertRedirect(await controller.ActivateUser(3), "Users");
+        Assert.Contains("aktywowane", Assert.IsType<string>(controller.TempData["StatusMessage"]), StringComparison.Ordinal);
+
+        _admin.SetAdministratorAsync(9, false, 9).Returns(UserActionStatus.Forbidden);
+        controller = Create();
+        AssertRedirect(await controller.SetAdministrator(9, false), "Users");
+        Assert.Contains("ostatniemu administratorowi", Assert.IsType<string>(controller.TempData["StatusMessage"]), StringComparison.Ordinal);
     }
 
     [Fact]

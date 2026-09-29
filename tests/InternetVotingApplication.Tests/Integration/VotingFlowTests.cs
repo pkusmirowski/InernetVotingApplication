@@ -37,7 +37,7 @@ public sealed partial class VotingFlowTests : IClassFixture<VotingWebApplication
             ["ConfirmPassword"] = "Secret#Pass1",
         });
         Assert.Equal(HttpStatusCode.OK, register.StatusCode);
-        Assert.Contains("link aktywacyjny", await register.Content.ReadAsStringAsync(), StringComparison.Ordinal);
+        Assert.Contains("Twoje konto zostało utworzone", await register.Content.ReadAsStringAsync(), StringComparison.Ordinal);
 
         // Activate through the link from the captured e-mail
         var activationMail = _factory.Emails.Sent.Single(m => m.To == "ewa.testowa@example.com" && m.Subject.Contains("Aktywacja", StringComparison.Ordinal));
@@ -97,7 +97,7 @@ public sealed partial class VotingFlowTests : IClassFixture<VotingWebApplication
         var anonymous = _factory.CreateHttpsClient();
         var search = await anonymous.GetAsync(new Uri("/Account/Search?hash=" + hash, UriKind.Relative));
         var searchHtml = await search.Content.ReadAsStringAsync();
-        Assert.Contains("nienaruszony", searchHtml, StringComparison.Ordinal);
+        Assert.Contains("nikt go nie zmienił", searchHtml, StringComparison.Ordinal);
         Assert.Contains("Drugi Kandydat", searchHtml, StringComparison.Ordinal);
 
         // The block is persisted and the chain verifies

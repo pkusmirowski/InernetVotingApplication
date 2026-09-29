@@ -37,6 +37,9 @@ public sealed class SetupViewModel
 
     public List<SetupItem> Data { get; } = [];
 
+    /// <summary>Development accounts with their passwords, when Seeding:TestAccounts is on.</summary>
+    public IReadOnlyList<TestAccount> TestAccounts { get; set; } = [];
+
     /// <summary>Ordered "what to do next" steps for the person looking at the page.</summary>
     public List<string> NextSteps { get; } = [];
 

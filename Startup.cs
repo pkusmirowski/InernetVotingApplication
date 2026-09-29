@@ -40,6 +40,7 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
                 {
                     options.FirstActivatedUserIsAdmin = false;
                     options.SampleData = false;
+                    options.TestAccounts = false;
                 }
             });
         services.AddOptions<SecurityOptions>().Bind(Configuration.GetSection(SecurityOptions.SectionName));
@@ -111,7 +112,10 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
             .AddDbContextCheck<InternetVotingContext>("database");
 
         services.AddControllersWithViews(options =>
-            options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute()));
+        {
+            options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
+            ValidationMessages.UsePolish(options.ModelBindingMessageProvider);
+        });
     }
 
     public void Configure(WebApplication app)

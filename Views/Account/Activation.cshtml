@@ -6,10 +6,14 @@
 <hr />
 @if (Model)
 {
-    <div class="alert alert-success" role="alert">Konto zostało aktywowane. Możesz się zalogować.</div>
+    <div class="alert alert-success" role="alert">Konto zostało aktywowane. Możesz się teraz zalogować i głosować.</div>
     <a class="btn btn-primary" asp-action="Login">Zaloguj się</a>
 }
 else
 {
-    <div class="alert alert-danger" role="alert">Link aktywacyjny jest nieprawidłowy lub został już wykorzystany.</div>
+    <div class="alert alert-danger" role="alert">
+        <p class="mb-1"><b>Ten link aktywacyjny nie działa.</b></p>
+        <p class="mb-0">Najczęściej oznacza to, że konto zostało już aktywowane. Spróbuj się zalogować. Jeśli to się nie uda, sprawdź, czy link z wiadomości e-mail został skopiowany w całości.</p>
+    </div>
+    <a class="btn btn-primary" asp-action="Login">Przejdź do logowania</a>
 }

@@ -2,12 +2,14 @@
 @{
     ViewData["Title"] = "Głos oddany";
 }
-<h2 class="text-success">Twój głos w wyborach „@Model.ElectionName” został zapisany</h2>
+<h2 class="text-success">Dziękujemy, Twój głos został zapisany</h2>
+<p>Wybory: <b>@Model.ElectionName</b></p>
 <hr />
-<div class="alert alert-warning" role="alert">
-    <b>Zapisz poniższy hash.</b> Jest to jedyny sposób sprawdzenia w przyszłości, że Twój głos znajduje się w łańcuchu. Hash został także wysłany na Twój adres e-mail.
+<div class="alert alert-info" role="alert">
+    <b>Zachowaj kod potwierdzenia.</b> To jedyny sposób, żeby później sprawdzić, czy Twój głos jest zapisany i czy nikt go nie zmienił. Kod wysłaliśmy też na Twój adres e-mail.
 </div>
-<p class="fs-5">Hash głosu:</p>
+<p class="fs-5 mb-1">Twój kod potwierdzenia:</p>
 <p class="hash-value fs-5"><b>@Model.Hash</b></p>
-<a class="btn btn-primary" asp-controller="Account" asp-action="Search" asp-route-hash="@Model.Hash">Sprawdź głos</a>
-<a class="btn btn-link" asp-action="Dashboard">Wróć do panelu</a>
+<p class="small text-muted">Nie pokazuj kodu innym osobom. Każdy, kto go zna, może sprawdzić, na kogo oddano ten głos.</p>
+<a class="btn btn-primary" asp-controller="Account" asp-action="Search" asp-route-hash="@Model.Hash">Sprawdź swój głos</a>
+<a class="btn btn-link" asp-action="Dashboard">Wróć do listy wyborów</a>

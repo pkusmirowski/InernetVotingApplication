@@ -43,6 +43,6 @@ public class EmailTemplatesTests
         Assert.Contains("SIG==", mail.HtmlBody, StringComparison.Ordinal);
         Assert.Contains("KEY1", mail.HtmlBody, StringComparison.Ordinal);
         Assert.Contains("id 7", mail.HtmlBody, StringComparison.Ordinal);
-        Assert.Contains("Kotwica", mail.Subject, StringComparison.Ordinal);
+        Assert.Contains("Kopia kontrolna", mail.Subject, StringComparison.Ordinal);
     }
 }

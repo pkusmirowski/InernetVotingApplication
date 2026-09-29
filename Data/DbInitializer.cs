@@ -52,6 +52,78 @@ public static class DbInitializer
         {
             await SeedSampleDataAsync(context, timeProvider, logger);
         }
+
+        if (seeding.TestAccounts)
+        {
+            await SeedTestAccountsAsync(context, timeProvider, logger);
+        }
+    }
+
+    /// <summary>
+    /// Creates the accounts from <see cref="TestAccounts.All"/> that do not exist yet (matched by e-mail), already activated,
+    /// and makes the administrator among them an administrator. Returns how many accounts were created.
+    /// </summary>
+    public static async Task<int> SeedTestAccountsAsync(InternetVotingContext context, TimeProvider timeProvider, ILogger logger)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(timeProvider);
+        ArgumentNullException.ThrowIfNull(logger);
+
+        var emails = TestAccounts.All.Select(a => a.Email).ToList();
+        var existing = await context.Uzytkowniks
+            .Where(u => emails.Contains(u.Email))
+            .Select(u => new { u.Email, u.Id, IsAdmin = u.Administrators.Any() })
+            .ToListAsync();
+        var now = timeProvider.GetLocalNow().DateTime;
+        var created = 0;
+
+        foreach (var account in TestAccounts.All)
+        {
+            var found = existing.SingleOrDefault(u => u.Email == account.Email);
+            if (found != null)
+            {
+                if (account.IsAdmin && !found.IsAdmin)
+                {
+                    context.Administrators.Add(new Administrator { IdUzytkownik = found.Id });
+                }
+
+                continue;
+            }
+
+            var user = new Uzytkownik
+            {
+                Imie = account.Imie,
+                Nazwisko = account.Nazwisko,
+                Pesel = account.Pesel,
+                Email = account.Email,
+                DataUrodzenia = account.DataUrodzenia,
+                Haslo = BCrypt.Net.BCrypt.HashPassword(account.Password),
+                JestAktywne = true,
+                KodAktywacyjny = null,
+                DataRejestracji = now,
+            };
+            context.Uzytkowniks.Add(user);
+            if (account.IsAdmin)
+            {
+                context.Administrators.Add(new Administrator { IdUzytkownikNavigation = user });
+            }
+
+            created++;
+        }
+
+        if (context.ChangeTracker.HasChanges())
+        {
+            context.DziennikAudytu.Add(new DziennikAudytu
+            {
+                Data = now,
+                Akcja = "TestAccountsSeeded",
+                Szczegoly = $"Utworzono {created} kont testowych (Seeding:TestAccounts)",
+            });
+            await context.SaveChangesAsync();
+            logger.LogWarning("Created {Count} development test accounts; passwords are listed on /setup and in README", created);
+        }
+
+        return created;
     }
 
     public static async Task PromoteAdministratorsAsync(InternetVotingContext context, IEnumerable<string> adminEmails, TimeProvider timeProvider, ILogger logger)

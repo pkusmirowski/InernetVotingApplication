@@ -12,27 +12,30 @@ public static class Email
     public static EmailMessage AfterRegistration(string to, string firstName, string lastName, string activationLink)
     {
         var body =
-            $"<h2>Twoje konto <b>{Enc(firstName)} {Enc(lastName)}</b> w aplikacji do głosowania zostało założone.</h2>" +
-            "<p>Aby je aktywować, kliknij poniższy link:</p>" +
+            $"<h2>Dzień dobry, {Enc(firstName)} {Enc(lastName)}</h2>" +
+            "<p>Twoje konto w aplikacji do głosowania jest już założone. Został ostatni krok: kliknij poniższy link, żeby je aktywować. Dopiero potem można się zalogować i głosować.</p>" +
             $"<p><a href=\"{Enc(activationLink)}\">Aktywuj konto</a></p>" +
-            "<p>Jeśli to nie Ty zakładałeś konto, zignoruj tę wiadomość.</p>";
+            "<p>Jeśli to nie Ty zakładasz konto, zignoruj tę wiadomość. Bez kliknięcia linku konto pozostanie nieaktywne.</p>";
         return new EmailMessage(to, "Aktywacja konta w aplikacji do głosowania", body);
     }
 
     public static EmailMessage VoteReceipt(string to, string electionName, string hash)
     {
         var body =
-            $"<h2>Dziękujemy za oddanie głosu w wyborach: {Enc(electionName)}</h2>" +
-            $"<p>Hash Twojego głosu: <b>{Enc(hash)}</b></p>" +
-            "<p>Możesz sprawdzić, czy Twój głos znajduje się w łańcuchu, korzystając z wyszukiwarki głosów w aplikacji.</p>";
+            "<h2>Dziękujemy, Twój głos został zapisany</h2>" +
+            $"<p>Wybory: <b>{Enc(electionName)}</b></p>" +
+            $"<p>Twój kod potwierdzenia:<br><b>{Enc(hash)}</b></p>" +
+            "<p>Zachowaj tę wiadomość. Żeby sprawdzić, czy Twój głos jest zapisany i czy nikt go nie zmienił, otwórz w aplikacji zakładkę „Sprawdź głos” i wklej powyższy kod.</p>" +
+            "<p>Nie przekazuj kodu innym osobom. Każdy, kto go zna, może sprawdzić, na kogo oddano ten głos.</p>";
         return new EmailMessage(to, "Potwierdzenie oddania głosu", body);
     }
 
     public static EmailMessage PasswordChanged(string to)
     {
         const string body =
-            "<h2>Twoje hasło zostało zmienione.</h2>" +
-            "<p>Jeśli to nie Ty zmieniałeś hasło, natychmiast skontaktuj się z administratorem.</p>";
+            "<h2>Hasło do Twojego konta zostało zmienione</h2>" +
+            "<p>Jeśli to Ty, nie musisz nic robić.</p>" +
+            "<p>Jeśli to nie Ty, ktoś mógł uzyskać dostęp do Twojego konta. Jak najszybciej ustaw nowe hasło opcją „Przypomnij hasło” na stronie logowania i skontaktuj się z nami.</p>";
         return new EmailMessage(to, "Zmiana hasła", body);
     }
 
@@ -40,28 +43,29 @@ public static class Email
     {
         var minutes = (int)Math.Round(validFor.TotalMinutes);
         var body =
-            "<h2>Reset hasła</h2>" +
-            $"<p>Aby ustawić nowe hasło, kliknij poniższy link. Link jest ważny przez {minutes} minut.</p>" +
+            "<h2>Ustawianie nowego hasła</h2>" +
+            $"<p>Kliknij poniższy link, żeby ustawić nowe hasło. Link jest ważny przez {minutes} minut i działa tylko raz.</p>" +
             $"<p><a href=\"{Enc(resetLink)}\">Ustaw nowe hasło</a></p>" +
-            "<p>Jeśli nie prosiłeś o reset hasła, zignoruj tę wiadomość. Twoje hasło pozostaje bez zmian.</p>";
-        return new EmailMessage(to, "Reset hasła w aplikacji do głosowania", body);
+            "<p>Jeśli ta prośba nie pochodzi od Ciebie, zignoruj tę wiadomość. Twoje hasło pozostaje bez zmian.</p>";
+        return new EmailMessage(to, "Nowe hasło w aplikacji do głosowania", body);
     }
 
     public static EmailMessage ChainAnchor(string to, string electionName, int electionId, Models.KotwicaLancucha anchor, string keyId)
     {
         ArgumentNullException.ThrowIfNull(anchor);
         var body =
-            $"<h2>Kotwica łańcucha głosów: {Enc(electionName)} (id {electionId})</h2>" +
-            "<p>Poniższe dane opisują stan łańcucha w chwili publikacji. Zachowaj tę wiadomość: pozwala wykryć późniejsze przepisanie historii.</p>" +
+            $"<h2>Kopia kontrolna rejestru głosów: {Enc(electionName)} (id {electionId})</h2>" +
+            "<p>To automatyczna wiadomość dla komisji wyborczej. Zawiera podpisany stan rejestru głosów z chwili wysłania.</p>" +
+            "<p><b>Zachowaj tę wiadomość.</b> Jeśli ktoś później zmieni lub usunie zapisane głosy, porównanie rejestru z tą kopią to wykaże.</p>" +
             "<table>" +
-            $"<tr><td>Czas</td><td>{anchor.Data:yyyy-MM-dd HH:mm:ss.fffffff}</td></tr>" +
-            $"<tr><td>Liczba bloków</td><td>{anchor.LiczbaBlokow}</td></tr>" +
-            $"<tr><td>Hash głowy</td><td><code>{Enc(anchor.HashGlowy ?? "(pusty łańcuch)")}</code></td></tr>" +
-            $"<tr><td>Powód</td><td>{Enc(anchor.Powod)}</td></tr>" +
-            $"<tr><td>Identyfikator klucza</td><td>{Enc(keyId)}</td></tr>" +
-            $"<tr><td>Podpis (ECDSA P-256, base64)</td><td><code>{Enc(anchor.Podpis)}</code></td></tr>" +
+            $"<tr><td>Data i godzina</td><td>{anchor.Data:yyyy-MM-dd HH:mm:ss.fffffff}</td></tr>" +
+            $"<tr><td>Liczba głosów w rejestrze</td><td>{anchor.LiczbaBlokow}</td></tr>" +
+            $"<tr><td>Kod ostatniego wpisu (hash głowy łańcucha)</td><td><code>{Enc(anchor.HashGlowy ?? "(pusty rejestr)")}</code></td></tr>" +
+            $"<tr><td>Rodzaj kopii</td><td>{Enc(Services.ChainService.DescribeReason(anchor.Powod))}</td></tr>" +
+            $"<tr><td>Identyfikator klucza podpisu</td><td>{Enc(keyId)}</td></tr>" +
+            $"<tr><td>Podpis elektroniczny (ECDSA P-256, base64)</td><td><code>{Enc(anchor.Podpis)}</code></td></tr>" +
             "</table>";
-        return new EmailMessage(to, $"Kotwica łańcucha głosów: {electionName}", body);
+        return new EmailMessage(to, $"Kopia kontrolna rejestru głosów: {electionName}", body);
     }
 
     private static string Enc(string? value) => WebUtility.HtmlEncode(value ?? string.Empty);

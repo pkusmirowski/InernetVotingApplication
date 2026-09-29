@@ -4,6 +4,34 @@ Format zbliżony do [Keep a Changelog](https://keepachangelog.com/pl/1.1.0/). We
 inżynierskiej (.NET 6, sesja jako mechanizm logowania, łańcuch hashy bez podpisów). Wersja 2.0.0 to przebudowa opisana
 w `docs/`.
 
+## [Unreleased]
+
+### Panel administratora
+
+- Edycja nazwy i dat wyborów (`/Admin/EditElection`) oraz usuwanie wyborów bez oddanych głosów razem z kandydatami,
+  kotwicami i weryfikacjami; oba działania trafiają do dziennika audytu.
+- Lista użytkowników (`/Admin/Users`): aktywacja konta bez e-maila, nadawanie i odbieranie roli administratora
+  (bez odebrania jej sobie ani ostatniemu administratorowi).
+- Konta testowe w Development (`Seeding:TestAccounts`): `admin@test.local` / `Admin123!` i `wyborca1..5@test.local` /
+  `Wyborca123!`, aktywne od startu, wypisane na stronie `/setup`. Poza Development opcja jest wymuszona na wyłączoną.
+- Profile startowe otwierają `/Setup` (wcześniej `Home/Setup`, adres nieistniejący).
+
+### Język interfejsu
+
+- Teksty dla wyborców napisane prostym językiem: „kod potwierdzenia” zamiast „hash”, „rejestr głosów” zamiast
+  „łańcuch”, „kontrola rejestru” zamiast „weryfikacja”, „kopia kontrolna” zamiast „kotwica”. Dotyczy stron głosowania,
+  wyszukiwarki głosu, wyników, rejestru głosów, strony głównej z FAQ, polityki prywatności, stron błędów, komunikatów
+  formularzy i wiadomości e-mail; panel administratora używa tych samych nazw.
+- Dane techniczne (hash, podpis, numer bloku, klucz publiczny) są nadal dostępne w rozwijanej sekcji
+  „Szczegóły techniczne”.
+- Komunikaty mówią, co zrobić dalej (np. wyszukiwarka głosu podaje, ile znaków ma wpisany kod), a strony błędów
+  404, 403, 429 i 400 mają własne opisy.
+
+- Komunikaty walidacji, które framework generował po angielsku (za długi tekst, błędna data lub liczba), są po polsku
+  (`ValidationMessages`).
+- Komunikaty o niepowodzeniu w panelu administratora są czerwone, a nie zielone (`StatusIsError`).
+- Dziennik audytu pokazuje polskie opisy zdarzeń zamiast kodów; przed oddaniem głosu aplikacja pyta o potwierdzenie.
+
 ## [2.0.0] - 2026-09-28
 
 ### Platforma

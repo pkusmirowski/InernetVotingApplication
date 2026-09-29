@@ -62,7 +62,15 @@ Co dzieje się przy pierwszym starcie w trybie Development:
 - generuje klucz podpisu bloków do `App_Data/signing-key.pem` (zrób jego kopię),
 - zapisuje każdy e-mail jako plik HTML w `App_Data/mail/` (aktywacja konta, reset hasła, potwierdzenie
   głosu, kotwice łańcucha) zamiast wysyłać go przez SMTP,
-- pierwsze aktywowane konto dostaje rolę administratora; kolejne są zwykłymi wyborcami.
+- tworzy konta testowe (`Seeding:TestAccounts`), aktywne, z jawnymi hasłami widocznymi na stronie `/setup`:
+
+  | Konto | Hasło | Rola |
+  | --- | --- | --- |
+  | `admin@test.local` | `Admin123!` | administrator |
+  | `wyborca1@test.local` … `wyborca5@test.local` | `Wyborca123!` | wyborcy |
+
+- pierwsze aktywowane konto dostaje rolę administratora, jeśli żaden administrator jeszcze nie istnieje
+  (z kontami testowymi już istnieje, więc kolejne rejestracje to zwykli wyborcy).
 
 Profile startowe (`Properties/launchSettings.json`):
 
@@ -140,7 +148,7 @@ Wartości wrażliwe nie są przechowywane w repozytorium. Lokalnie użyj user se
 | `Smtp:Host`, `Smtp:Port`, `Smtp:SecureSocket`, `Smtp:UserName`, `Smtp:Password`, `Smtp:FromAddress` | serwer poczty; `Smtp:Enabled=false` tylko loguje wiadomości |
 | `Security:MaxFailedLoginAttempts`, `Security:LockoutDuration`, `Security:PasswordResetTokenLifetime` | polityka blokady konta i ważność linku resetu |
 | `App:PublicBaseUrl` | publiczny adres aplikacji do budowania linków w e-mailach (w produkcji obowiązkowy: bez niego link powstaje z nagłówka `Host` żądania) |
-| `Seeding:AdminEmails`, `Seeding:FirstActivatedUserIsAdmin`, `Seeding:SampleData` | administratorzy i dane przykładowe (dwa ostatnie działają wyłącznie w środowisku Development, poza nim są ignorowane) |
+| `Seeding:AdminEmails`, `Seeding:FirstActivatedUserIsAdmin`, `Seeding:SampleData`, `Seeding:TestAccounts` | administratorzy, dane przykładowe i konta testowe (trzy ostatnie działają wyłącznie w środowisku Development, poza nim są ignorowane) |
 | `Smtp:PickupDirectory` | katalog na pliki HTML z pocztą zamiast wysyłki (rozwój) |
 | `Signing:PrivateKeyPem`, `Signing:KeyFilePath`, `Signing:AutoGenerateKey` | klucz ECDSA do podpisu bloków i kotwic |
 | `Chain:VerificationInterval`, `Chain:AnchorEveryBlocks`, `Chain:AnchorRecipients`, `Chain:VerifyEndedElectionsFor` | częstość weryfikacji w tle, kotwice i ich odbiorcy |

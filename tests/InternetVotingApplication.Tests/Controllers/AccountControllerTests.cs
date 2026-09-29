@@ -139,7 +139,7 @@ public class AccountControllerTests
 
     [Theory]
     [InlineData(LoginStatus.InvalidCredentials, "Nieprawidłowy")]
-    [InlineData(LoginStatus.NotActivated, "aktywowane")]
+    [InlineData(LoginStatus.NotActivated, "nie jest jeszcze aktywne")]
     [InlineData(LoginStatus.LockedOut, "zablokowane")]
     public async Task Login_post_failure_shows_message_and_does_not_sign_in(LoginStatus status, string fragment)
     {

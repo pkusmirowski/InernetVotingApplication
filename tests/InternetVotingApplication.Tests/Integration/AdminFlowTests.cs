@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.RegularExpressions;
+using InternetVotingApplication.Services;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 
@@ -30,6 +31,7 @@ public sealed partial class AdminFlowTests : IClassFixture<VotingWebApplicationF
             {
                 ["Seeding:FirstActivatedUserIsAdmin"] = "true",
                 ["Seeding:SampleData"] = "false",
+                ["Seeding:TestAccounts"] = "false",
                 ["Database:Provider"] = "Sqlite",
                 ["Database:SqliteConnectionString"] = "Data Source=:memory:",
                 ["Database:FallbackToSqliteWhenUnavailable"] = "false",
@@ -84,10 +86,10 @@ public sealed partial class AdminFlowTests : IClassFixture<VotingWebApplicationF
         Assert.Equal(HttpStatusCode.Redirect, verify.StatusCode);
 
         var audit = await client.GetAsync(new Uri("/Admin/Audit", UriKind.Relative));
-        var auditHtml = await audit.Content.ReadAsStringAsync();
-        Assert.Contains("AdminPromoted", auditHtml, StringComparison.Ordinal);
-        Assert.Contains("ElectionCreated", auditHtml, StringComparison.Ordinal);
-        Assert.Contains("ChainVerified", auditHtml, StringComparison.Ordinal);
+        var auditHtml = WebUtility.HtmlDecode(await audit.Content.ReadAsStringAsync());
+        Assert.Contains(AuditLog.Actions.Describe(AuditLog.Actions.AdminPromoted), auditHtml, StringComparison.Ordinal);
+        Assert.Contains(AuditLog.Actions.Describe(AuditLog.Actions.ElectionCreated), auditHtml, StringComparison.Ordinal);
+        Assert.Contains(AuditLog.Actions.Describe(AuditLog.Actions.ChainVerified), auditHtml, StringComparison.Ordinal);
 
         // A voter (non-admin) is redirected away from admin pages.
         var voterClient = factory.CreateClient(new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactoryClientOptions { BaseAddress = new Uri("https://localhost"), AllowAutoRedirect = false });

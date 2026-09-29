@@ -1,6 +1,6 @@
 @model GlosowanieWyborczeViewModel
 @{
-    ViewData["Title"] = "Wyniki wyborów";
+    ViewData["Title"] = Model.Status == ElectionStatus.Ended ? "Wyniki wyborów" : "Informacje o wyborach";
 }
 <h2>@Model.ElectionName</h2>
 <p class="text-muted">@Model.DataRozpoczecia.ToString("g") &ndash; @Model.DataZakonczenia.ToString("g")</p>
@@ -8,44 +8,60 @@
 @switch (Model.Status)
 {
     case ElectionStatus.Upcoming:
-        <div class="alert alert-secondary" role="alert">Wybory jeszcze się nie rozpoczęły. Wróć po dacie rozpoczęcia, aby oddać głos.</div>
+        <div class="alert alert-secondary" role="alert">Te wybory jeszcze się nie rozpoczęły. Głosować będzie można od @Model.DataRozpoczecia.ToString("g").</div>
         break;
     case ElectionStatus.Ongoing:
         if (Model.HasVoted)
         {
-            <div class="alert alert-info" role="alert">Oddałeś już swój głos w tych wyborach. Wyniki będą dostępne po ich zakończeniu.</div>
+            <div class="alert alert-info" role="alert">Twój głos w tych wyborach jest już oddany. Wyniki pokażemy po zakończeniu głosowania, czyli po @Model.DataZakonczenia.ToString("g").</div>
         }
         else
         {
-            <div class="alert alert-info" role="alert">Wybory trwają. Wyniki będą dostępne po ich zakończeniu.</div>
+            <div class="alert alert-info" role="alert">Głosowanie trwa do @Model.DataZakonczenia.ToString("g"). Wyniki pokażemy po jego zakończeniu.</div>
             <a class="btn btn-primary" asp-action="Voting" asp-route-id="@Model.ElectionId">Zagłosuj</a>
         }
         break;
     default:
         @if (Model.LastVerification is null)
         {
-            <div class="alert alert-secondary" role="alert">Łańcuch głosów nie został jeszcze zweryfikowany.</div>
+            <div class="alert alert-secondary" role="alert">Rejestr głosów tych wyborów nie został jeszcze skontrolowany.</div>
         }
         else if (Model.LastVerification.IsValid)
         {
-            <div class="alert alert-success" role="alert">Łańcuch głosów jest nienaruszony: @Model.LastVerification.BlockCount bloków, hashe i podpisy poprawne (weryfikacja @Model.LastVerification.Date.ToString("g")).</div>
+            <div class="alert alert-success" role="alert">
+                <b>Kontrola nie wykryła żadnych zmian w zapisanych głosach.</b>
+                Liczba sprawdzonych głosów: @Model.LastVerification.BlockCount. Ostatnia kontrola: @Model.LastVerification.Date.ToString("g").
+            </div>
         }
         else
         {
-            <div class="alert alert-danger" role="alert"><b>Łańcuch głosów nie przechodzi weryfikacji</b> (@Model.LastVerification.Date.ToString("g")). Wyniki mogą być niewiarygodne. @Model.LastVerification.Details</div>
+            <div class="alert alert-danger" role="alert">
+                <p class="mb-1"><b>Uwaga: te wyniki mogą być niewiarygodne.</b></p>
+                <p class="mb-0">Kontrola z @Model.LastVerification.Date.ToString("g") wykryła, że zapisane głosy mogły zostać zmienione. Sprawa wymaga wyjaśnienia.</p>
+                @if (!string.IsNullOrEmpty(Model.LastVerification.Details))
+                {
+                    <details class="mt-2 small">
+                        <summary>Szczegóły techniczne</summary>
+                        <div class="mt-1">@Model.LastVerification.Details</div>
+                    </details>
+                }
+            </div>
         }
-        @if (Model.HeadHash != null)
+        @if (Model.TotalVotes == 0)
         {
-            <p class="small text-muted">Hash ostatniego bloku: <span class="hash-value">@Model.HeadHash</span> &middot; <a asp-action="Chain" asp-route-id="@Model.ElectionId">szczegóły łańcucha i eksport</a></p>
+            <p>W tych wyborach nie oddano żadnego głosu.</p>
         }
-        <p>Oddane głosy: <b>@Model.TotalVotes</b></p>
+        else
+        {
+            <p>Liczba oddanych głosów: <b>@Model.TotalVotes</b></p>
+        }
         <div class="table-responsive">
             <table class="table table-striped align-middle">
                 <thead>
                     <tr>
                         <th scope="col">Kandydat</th>
-                        <th scope="col">Głosy</th>
-                        <th scope="col">Procent</th>
+                        <th scope="col">Liczba głosów</th>
+                        <th scope="col">Procent głosów</th>
                         <th scope="col" class="w-25"></th>
                     </tr>
                 </thead>
@@ -62,6 +78,14 @@
                 </tbody>
             </table>
         </div>
+        <p class="small text-muted">Chcesz wiedzieć, skąd pewność, że głosów nie zmieniono? <a asp-action="Chain" asp-route-id="@Model.ElectionId">Zobacz rejestr głosów tych wyborów</a>.</p>
+        @if (Model.HeadHash != null)
+        {
+            <details class="small text-muted mb-3">
+                <summary>Szczegóły techniczne</summary>
+                <div class="mt-1">Kod ostatniego wpisu w rejestrze (hash): <span class="hash-value">@Model.HeadHash</span></div>
+            </details>
+        }
         break;
 }
-<a class="btn btn-link" asp-action="Dashboard">Wróć do panelu</a>
+<a class="btn btn-link" asp-action="Dashboard">Wróć do listy wyborów</a>

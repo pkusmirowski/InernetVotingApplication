@@ -63,3 +63,30 @@ public enum DeleteCandidateStatus
     NotFound,
     HasVotes
 }
+
+public enum UpdateElectionStatus
+{
+    Success,
+    NotFound,
+    Duplicate,
+    InvalidDates
+}
+
+public enum DeleteElectionStatus
+{
+    Success,
+    NotFound,
+    HasVotes
+}
+
+public enum UserActionStatus
+{
+    Success,
+    NotFound,
+
+    /// <summary>Nothing to do: the account is already in the requested state.</summary>
+    NoChange,
+
+    /// <summary>An administrator may not revoke their own role, and the last administrator cannot be removed.</summary>
+    Forbidden
+}
