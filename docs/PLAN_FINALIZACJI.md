@@ -12,9 +12,9 @@ zweryfikowana na docelowej platformie, z kompletną dokumentacją i czystą hist
 | 5 | Numer wersji aplikacji (`2.0.0`) widoczny w stopce i na stronie diagnostycznej | wersja z metadanych zestawu | wykonane |
 | 6 | Dokumentacja końcowa: README (wersje, szybki start), `CHANGELOG.md` z pełną listą zmian od wersji pierwotnej, aktualizacja `docs/` | dokumenty opisują stan po zmianach | wykonane |
 | 7 | Commit, push, opis pull requesta [pkusmirowski/InernetVotingApplication#2](https://github.com/pkusmirowski/InernetVotingApplication/pull/2) z podsumowaniem całości | PR aktualny | wykonane |
-| 8 | **Po stronie autora**: usunięcie plików, których narzędzie nie mogło skasować (lista niżej), pierwsze F5 na PC, scalenie PR | | do zrobienia ręcznie |
+| 8 | **Po stronie autora**: usunięcie plików, których narzędzie nie mogło skasować (lista niżej), pierwsze F5 na PC, scalenie PR | | pliki usunięte 2026-09-29 (build i 217 testów zielone); F5 na PC z SQL Serverem do zrobienia ręcznie |
 
-## Pliki do ręcznego usunięcia (narzędzie nie mogło ich skasować)
+## Pliki do ręcznego usunięcia (usunięte 2026-09-29)
 
 Wszystkie są nieużywane lub zneutralizowane; ich usunięcie nie zmienia zachowania aplikacji:
 
