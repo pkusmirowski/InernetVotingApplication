@@ -68,6 +68,26 @@ public class ElectionControllerTests
     }
 
     [Fact]
+    public async Task Voting_page_that_disappeared_meanwhile_returns_404()
+    {
+        _elections.GetElectionStatusAsync(2).Returns(ElectionStatus.Ongoing);
+        _elections.HasVotedAsync(1, 2).Returns(false);
+        _elections.GetVotingPageAsync(2).Returns((KandydatViewModel?)null);
+
+        Assert.IsType<NotFoundResult>(await Create().Voting(2));
+        Assert.IsType<NotFoundResult>(await Create().Vote(new KandydatViewModel { ElectionId = 2 }));
+    }
+
+    [Fact]
+    public async Task Export_returns_404_when_the_chain_cannot_be_exported()
+    {
+        _elections.GetElectionStatusAsync(2).Returns(ElectionStatus.Ended);
+        _chain.ExportAsync(2).Returns((ChainExport?)null);
+
+        Assert.IsType<NotFoundResult>(await Create().Export(2));
+    }
+
+    [Fact]
     public async Task Vote_without_selection_redisplays_page_with_error()
     {
         _elections.GetVotingPageAsync(2).Returns(new KandydatViewModel { ElectionId = 2 });

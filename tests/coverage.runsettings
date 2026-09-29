@@ -6,9 +6,11 @@
       <DataCollector friendlyName="XPlat Code Coverage">
         <Configuration>
           <Format>cobertura</Format>
-          <!-- Generated code is not a testing target: EF migrations, compiled Razor views, the test and tool assemblies. -->
-          <Exclude>[InternetVotingApplication.Tests]*,[ChainVerifier]Program,[*]AspNetCoreGeneratedDocument.*,[*]InternetVotingApplication.Migrations.*</Exclude>
-          <ExcludeByFile>**/Migrations/*.cs,**/*.cshtml</ExcludeByFile>
+          <!-- Generated code is not a testing target: EF migrations, compiled Razor views, the test and tool assemblies.
+               Program.cs files are process entry points (composition root, exit codes); the integration tests start the
+               web application through them, but the console exit paths are not unit-testable. -->
+          <Exclude>[InternetVotingApplication.Tests]*,[*]AspNetCoreGeneratedDocument.*,[*]InternetVotingApplication.Migrations.*</Exclude>
+          <ExcludeByFile>**/Migrations/*.cs,**/*.cshtml,**/Program.cs</ExcludeByFile>
           <ExcludeByAttribute>Obsolete,GeneratedCodeAttribute,CompilerGeneratedAttribute</ExcludeByAttribute>
           <SkipAutoProps>true</SkipAutoProps>
         </Configuration>

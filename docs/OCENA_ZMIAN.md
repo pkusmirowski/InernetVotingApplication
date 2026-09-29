@@ -56,7 +56,7 @@ Odnośniki wskazują pliki w commicie `7266c79`.
 | Dodatek | Ocena |
 | --- | --- |
 | Podpisy ECDSA, stan głowy, kotwice wysyłane poza system, niezależny weryfikator `tools/ChainVerifier` | wzmacnia główną tezę (wykrywalność manipulacji); rozbudowane, ale spójne z ideą |
-| 226 testów (jednostkowe, serwisy na SQLite, integracyjne), CI | duża wartość; wcześniej testów nie było |
+| 311 testów (jednostkowe, serwisy na SQLite, integracyjne), pokrycie 99% linii i 91% gałęzi, próg pokrycia w CI | duża wartość; wcześniej testów nie było |
 | Panel: edycja i usuwanie wyborów, użytkownicy i role, dziennik audytu | uzupełnia brakujące funkcje |
 | Docker, skrypty uruchomieniowe, konta testowe | wygoda uruchomienia |
 | Kolejka poczty (outbox) i strona diagnostyczna `/setup` | przerośnięte jak na skalę projektu, ale działają i są przetestowane; zostawione |
@@ -102,7 +102,7 @@ Przegląd 2026-09-29 znalazł błędy, które pojawiły się dopiero w przebudow
 ## 7. Jak to sprawdzono (2026-09-29)
 
 - `dotnet build -c Release`: 0 ostrzeżeń i 0 błędów; `dotnet format --verify-no-changes`: bez zmian.
-- `dotnet test`: 226 z 226. Testy dla błędów z punktu 5 najpierw uruchomiono na kodzie sprzed poprawki: nie
+- `dotnet test`: 311 z 311; pokrycie 99,1% linii i 91,3% gałęzi (wcześniej 91,1% i 77,5%), próg w CI: 97% i 88%. Testy dla błędów z punktu 5 najpierw uruchomiono na kodzie sprzed poprawki: nie
   przechodziły. Po poprawce przechodzą.
 - Pełny przebieg na nowej, pustej bazie SQLite (aplikacja w trybie Development, żądania HTTP), 48 z 48 kroków:
   - rejestracja: zły PESEL, wiek poniżej 18 lat i zajęty e-mail odrzucone; logowanie przed aktywacją odrzucone;

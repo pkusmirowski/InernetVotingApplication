@@ -31,17 +31,25 @@ jobs:
           --settings tests/coverage.runsettings
           --collect:"XPlat Code Coverage"
 
-      - name: Coverage summary
+      # Fails the build when coverage drops below the agreed minimum (see docs/INSTRUKCJA.md, "Testy").
+      - name: Coverage gate
         if: always()
+        env:
+          MIN_LINE: "97"
+          MIN_BRANCH: "88"
         run: |
           FILE=$(find . -name coverage.cobertura.xml | head -n1)
-          if [ -n "$FILE" ]; then
-            python3 - "$FILE" <<'PY'
-          import sys, xml.etree.ElementTree as ET
+          if [ -z "$FILE" ]; then echo "No coverage report found"; exit 1; fi
+          python3 - "$FILE" <<'PY'
+          import os, sys, xml.etree.ElementTree as ET
           root = ET.parse(sys.argv[1]).getroot()
-          print(f"Line coverage: {float(root.get('line-rate'))*100:.1f}%  Branch coverage: {float(root.get('branch-rate'))*100:.1f}%")
+          line, branch = float(root.get('line-rate')) * 100, float(root.get('branch-rate')) * 100
+          min_line, min_branch = float(os.environ['MIN_LINE']), float(os.environ['MIN_BRANCH'])
+          print(f"Line coverage: {line:.1f}% (minimum {min_line:.0f}%)  Branch coverage: {branch:.1f}% (minimum {min_branch:.0f}%)")
+          if line < min_line or branch < min_branch:
+              print("::error::Code coverage is below the minimum")
+              sys.exit(1)
           PY
-          fi
 
       - name: Upload test results
         if: always()

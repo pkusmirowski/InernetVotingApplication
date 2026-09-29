@@ -115,6 +115,65 @@ public sealed class ChainVerifierToolTests : IDisposable
         Assert.Contains(report.Errors, e => e.Contains("historia została skrócona", StringComparison.Ordinal));
     }
 
+    private async Task<ChainVerifier.ChainExport> GenuineExportAsync() => ChainVerifier.Verifier.Parse(await ExportJsonAsync());
+
+    private static ChainVerifier.ChainExport WithBlock(ChainVerifier.ChainExport export, int index, Func<ChainVerifier.ChainExportBlock, ChainVerifier.ChainExportBlock> change)
+        => export with { Blocks = export.Blocks.Select(b => b.Index == index ? change(b) : b).ToList() };
+
+    private static void AssertRejected(ChainVerifier.ChainExport export, string fragment)
+    {
+        var report = ChainVerifier.Verifier.Verify(export);
+        Assert.False(report.IsValid);
+        Assert.Contains(report.Errors, e => e.Contains(fragment, StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Rejects_an_unknown_format_and_an_unreadable_key()
+    {
+        var export = await GenuineExportAsync();
+
+        AssertRejected(export with { Format = "inny/v1" }, "Nieznany format");
+        AssertRejected(export with { PublicKeyPem = "-----BEGIN PUBLIC KEY-----\nAAAA\n-----END PUBLIC KEY-----" }, "Nie można wczytać klucza");
+        AssertRejected(export with { KeyId = "0000000000000000" }, "nie odpowiada kluczowi publicznemu");
+    }
+
+    [Fact]
+    public async Task Rejects_blocks_that_were_moved_relinked_or_taken_from_another_election()
+    {
+        var export = await GenuineExportAsync();
+
+        AssertRejected(WithBlock(export, 2, b => b with { Index = 7 }), "oczekiwano indeksu 2");
+        AssertRejected(WithBlock(export, 1, b => b with { ElectionId = 99 }), "należy do wyborów 99");
+        AssertRejected(WithBlock(export, 1, b => b with { PreviousHash = new string('A', 64) }), "hash poprzedniego bloku");
+    }
+
+    [Fact]
+    public async Task Rejects_forged_signatures_of_blocks_and_anchors()
+    {
+        var export = await GenuineExportAsync();
+
+        AssertRejected(WithBlock(export, 0, b => b with { Signature = "to nie jest base64" }), "Blok 0: niepoprawny podpis");
+        AssertRejected(WithBlock(export, 0, b => b with { Signature = Convert.ToBase64String(new byte[70]) }), "Blok 0: niepoprawny podpis");
+        var anchor = export.Anchors[0];
+        AssertRejected(export with { Anchors = [anchor with { BlockCount = anchor.BlockCount - 1 }] }, "niepoprawny podpis");
+    }
+
+    [Fact]
+    public async Task Rejects_a_header_or_candidate_list_that_does_not_match_the_blocks()
+    {
+        var export = await GenuineExportAsync();
+
+        AssertRejected(export with { Election = export.Election with { BlockCount = 5 } }, "Nagłówek deklaruje 5 bloków");
+        AssertRejected(export with { Election = export.Election with { HeadHash = new string('B', 64) } }, "Hash głowy z nagłówka");
+        AssertRejected(export with { Candidates = export.Candidates.Where(c => c.FirstName != "Beata").ToList() }, "nie występuje na liście kandydatów");
+    }
+
+    [Fact]
+    public void Parse_rejects_an_empty_document()
+    {
+        Assert.Throws<InvalidDataException>(() => ChainVerifier.Verifier.Parse("null"));
+    }
+
     public void Dispose()
     {
         _db.Dispose();

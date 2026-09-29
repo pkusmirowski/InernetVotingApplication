@@ -19,6 +19,115 @@ public class AdminControllerTests
     private AdminController Create() => new AdminController(_admin, _chain).Prepare(Voter(id: 9, admin: true));
 
     [Fact]
+    public void Panel_shows_view()
+    {
+        AssertView(Create().Panel());
+    }
+
+    [Fact]
+    public async Task Forms_with_invalid_input_are_shown_again_without_calling_the_service()
+    {
+        var election = new ElectionFormViewModel { Opis = "W" };
+        var controller = Create();
+        controller.ModelState.AddModelError("DataRozpoczecia", "wymagane");
+        Assert.Same(election, AssertView(await controller.CreateElection(election)).Model);
+
+        _admin.GetElectionAsync(5).Returns(new ElectionFormViewModel { Opis = "W", Status = ElectionStatus.Upcoming });
+        controller = Create();
+        controller.ModelState.AddModelError("DataRozpoczecia", "wymagane");
+        Assert.Same(election, AssertView(await controller.EditElection(5, election)).Model);
+
+        var candidate = new CandidateFormViewModel { Imie = "A" };
+        controller = Create();
+        controller.ModelState.AddModelError("Nazwisko", "wymagane");
+        Assert.Same(candidate, AssertView(await controller.AddCandidate(candidate)).Model);
+        Assert.NotNull(controller.ViewBag.Elections);
+
+        await _admin.DidNotReceiveWithAnyArgs().AddElectionAsync(default!, default);
+        await _admin.DidNotReceiveWithAnyArgs().UpdateElectionAsync(default, default!, default);
+        await _admin.DidNotReceiveWithAnyArgs().AddCandidateAsync(default!, default);
+    }
+
+    [Fact]
+    public async Task EditElection_get_shows_the_stored_election()
+    {
+        var stored = new ElectionFormViewModel { Opis = "W", Status = ElectionStatus.Ongoing };
+        _admin.GetElectionAsync(5).Returns(stored);
+        var controller = Create();
+
+        var view = AssertView(await controller.EditElection(5));
+
+        Assert.Same(stored, view.Model);
+        Assert.Equal(5, (int)controller.ViewBag.ElectionId);
+    }
+
+    [Theory]
+    [InlineData(UpdateElectionStatus.Conflict, "", "ktoś oddał głos")]
+    [InlineData(UpdateElectionStatus.InvalidDates, "DataZakonczenia", "musi być późniejsza")]
+    public async Task EditElection_reports_remaining_statuses(UpdateElectionStatus status, string field, string fragment)
+    {
+        var model = new ElectionFormViewModel { Opis = "W", DataRozpoczecia = DateTime.Now, DataZakonczenia = DateTime.Now.AddDays(1) };
+        _admin.GetElectionAsync(5).Returns(new ElectionFormViewModel { Opis = "W", Status = ElectionStatus.Ongoing });
+        _admin.UpdateElectionAsync(5, model, 9).Returns(status);
+        var controller = Create();
+
+        AssertView(await controller.EditElection(5, model));
+
+        Assert.Contains(controller.ModelState[field]!.Errors, e => e.ErrorMessage.Contains(fragment, StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task AddCandidate_after_voting_started_is_refused_with_a_message()
+    {
+        var model = new CandidateFormViewModel { Imie = "A", Nazwisko = "B", IdWybory = 2 };
+        _admin.AddCandidateAsync(model, 9).Returns(AddCandidateStatus.ElectionStarted);
+        var controller = Create();
+
+        AssertView(await controller.AddCandidate(model));
+
+        Assert.Contains(controller.ModelState["IdWybory"]!.Errors, e => e.ErrorMessage.Contains("już się rozpoczęło", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task DeleteCandidate_get_lists_candidates_of_the_selected_election()
+    {
+        var list = new CandidateListViewModel { SelectedElectionId = 2 };
+        _admin.GetCandidatesAsync(2).Returns(list);
+
+        Assert.Same(list, AssertView(await Create().DeleteCandidate(2)).Model);
+    }
+
+    [Theory]
+    [InlineData(UserActionStatus.NoChange, "już aktywne", false)]
+    [InlineData(UserActionStatus.NotFound, "nie istnieje", true)]
+    public async Task ActivateUser_reports_every_outcome(UserActionStatus status, string fragment, bool isError)
+    {
+        _admin.ActivateUserAsync(3, 9).Returns(status);
+        var controller = Create();
+
+        AssertRedirect(await controller.ActivateUser(3), "Users");
+
+        Assert.Contains(fragment, Assert.IsType<string>(controller.TempData["StatusMessage"]), StringComparison.Ordinal);
+        Assert.Equal(isError, controller.TempData.ContainsKey("StatusIsError"));
+    }
+
+    [Theory]
+    [InlineData(UserActionStatus.Success, true, "dostało uprawnienia", false)]
+    [InlineData(UserActionStatus.Success, false, "nie ma już uprawnień", false)]
+    [InlineData(UserActionStatus.NoChange, true, "ma już takie uprawnienia", false)]
+    [InlineData(UserActionStatus.NotFound, true, "nie istnieje", true)]
+    public async Task SetAdministrator_reports_every_outcome(UserActionStatus status, bool isAdmin, string fragment, bool isError)
+    {
+        _admin.SetAdministratorAsync(3, isAdmin, 9).Returns(status);
+        var controller = Create();
+
+        AssertRedirect(await controller.SetAdministrator(3, isAdmin), "Users");
+
+        Assert.Contains(fragment, Assert.IsType<string>(controller.TempData["StatusMessage"]), StringComparison.Ordinal);
+        Assert.Equal(isError, controller.TempData.ContainsKey("StatusIsError"));
+    }
+
+    [Fact]
     public async Task Elections_shows_overview()
     {
         _chain.GetAdminOverviewAsync().Returns([new AdminElectionViewModel { Id = 1 }]);
@@ -40,6 +149,22 @@ public class AdminControllerTests
         Assert.Contains("wykryła nieprawidłowości", message, StringComparison.Ordinal);
         Assert.Contains("2, 4", message, StringComparison.Ordinal);
         Assert.Equal(true, controller.TempData["StatusIsError"]);
+    }
+
+    [Fact]
+    public async Task VerifyChain_and_PublishAnchor_report_success()
+    {
+        _chain.VerifyAndStoreAsync(3, "Manual", 9).Returns(new ChainVerificationResult(true, 5, "H", [], []));
+        var controller = Create();
+        AssertRedirect(await controller.VerifyChain(3), "Elections");
+        Assert.Contains("bez zastrzeżeń", Assert.IsType<string>(controller.TempData["StatusMessage"]), StringComparison.Ordinal);
+        Assert.False(controller.TempData.ContainsKey("StatusIsError"));
+
+        _chain.PublishAnchorAsync(3, ChainService.ReasonManual, 9).Returns(new ChainAnchorViewModel { BlockCount = 5 });
+        controller = Create();
+        AssertRedirect(await controller.PublishAnchor(3), "Elections");
+        Assert.Contains("Liczba głosów w rejestrze: 5", Assert.IsType<string>(controller.TempData["StatusMessage"]), StringComparison.Ordinal);
+        Assert.False(controller.TempData.ContainsKey("StatusIsError"));
     }
 
     [Fact]
@@ -105,6 +230,7 @@ public class AdminControllerTests
     [InlineData(DeleteCandidateStatus.Success, "usunięty")]
     [InlineData(DeleteCandidateStatus.HasVotes, "oddano już głosy")]
     [InlineData(DeleteCandidateStatus.NotFound, "nie istnieje")]
+    [InlineData(DeleteCandidateStatus.ElectionStarted, "już się rozpoczęło")]
     public async Task DeleteCandidate_post_reports_outcome(DeleteCandidateStatus status, string fragment)
     {
         _admin.DeleteCandidateAsync(4, 9).Returns(status);

@@ -166,12 +166,15 @@ dotnet test InternetVotingApplication.sln --settings tests/coverage.runsettings 
 ```
 
 Testy nie wymagają SQL Server ani SMTP: serwisy i testy integracyjne działają na SQLite in-memory,
-a poczta jest przechwytywana przez `FakeEmailSender`. Poziomy testów:
+a poczta jest przechwytywana przez `FakeEmailSender` (wysyłkę SMTP sprawdza mały serwer SMTP uruchamiany w teście).
+Jest ich 311, pokrycie kodu wynosi 99% linii i 91% gałęzi. CI odrzuca zmianę, gdy pokrycie spadnie poniżej 97% linii
+albo 88% gałęzi (krok „Coverage gate”). Z pomiaru wyłączone są tylko kod generowany (migracje, widoki Razor) i punkty
+startowe `Program.cs`. Poziomy testów:
 
 | Katalog | Co sprawdza |
 | --- | --- |
 | `Unit/` | algorytmy i reguły: PESEL, wiek, SHA-256, podpis ECDSA, weryfikacja łańcucha, walidacja formularzy, szablony e-mail, nagłówki, konfiguracja, weryfikator offline |
-| `Services/` | serwisy na prawdziwym EF Core (SQLite): rejestracja, logowanie, blokada, reset hasła, głosowanie, wyścigi, wyniki, kotwice, outbox, worker, seeding |
+| `Services/` | serwisy na prawdziwym EF Core (SQLite): rejestracja, logowanie, blokada, reset hasła, głosowanie, wyścigi, wyniki, kotwice, outbox, worker, seeding, start bazy; ścieżki błędów (konflikt współbieżności, naruszenie indeksu unikalnego, klucz obcy, nieudany rollback) wywoływane przez `FailingSaveInterceptor` |
 | `Controllers/` | kontrolery w izolacji (NSubstitute): przekierowania, komunikaty, `TempData`, mapowanie statusów |
 | `Integration/` | cała aplikacja przez `WebApplicationFactory`: strony publiczne, autoryzacja, CSRF, rate limiting, pełny przebieg wyborcy i administratora |
 
