@@ -41,7 +41,8 @@ public class DescriptionTests
     [InlineData("Background", "kontrola automatyczna")]
     [InlineData("Manual", "kontrola zlecona przez administratora")]
     [InlineData("Results", "kontrola przy wyświetleniu wyników")]
-    [InlineData("Vote", "Vote")]
+    [InlineData("Vote", "kontrola przy oddawaniu głosu")]
+    [InlineData("Other", "Other")]
     [InlineData(null, "")]
     public void Verification_triggers_have_polish_descriptions(string? trigger, string expected)
     {

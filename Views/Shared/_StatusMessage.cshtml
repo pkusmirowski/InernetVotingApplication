@@ -1,4 +1,4 @@
-@if (TempData["StatusMessage"] is string message && !string.IsNullOrEmpty(message))
+@if (TempData[StatusMessageExtensions.MessageKey] is string message && !string.IsNullOrEmpty(message))
 {
-    <div class="alert @(TempData["StatusIsError"] is true ? "alert-danger" : "alert-success")" role="alert">@message</div>
+    <div class="alert @(TempData[StatusMessageExtensions.IsErrorKey] is true ? "alert-danger" : "alert-success")" role="alert">@message</div>
 }

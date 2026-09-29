@@ -24,7 +24,7 @@ inną.
 | Serwisy | `IUserService`, `IElectionService`, `IAdminService` | te same interfejsy; wyniki i łańcuch wydzielone do `ResultsService` i `ChainService` |
 | Encje i tabele | `Uzytkownik`, `Kandydat`, `DataWyborow`, `GlosowanieWyborcze`, `GlosUzytkownika`, `Administrator` | te same polskie nazwy tabel i kolumn; `Administrator` nadal decyduje o roli |
 | Łańcuch | `Blockchain/BlockChainHelper.cs`, `BlockHelper.cs`, `HashHelper.cs` | te same pliki, SHA-256, wielkie litery hex |
-| Walidacja PESEL | `ExtensionMethods/PESELValidation.cs` | logika bez zmian |
+| Walidacja PESEL | `ExtensionMethods/PESELValidation.cs` | logika bez zmian, teraz w `Validation/PeselValidation.cs` |
 | Wiek 18–120 | `AgeAttribute` | bez zmian, komunikat po polsku |
 | Wygląd | szablon Bootstrap „Ninestars”, polskie etykiety | ten sam szablon i `style.css`; teksty prostszym językiem |
 | Widoki | strony konta, panelu, głosowania i strony główne | wszystkie pod tymi samymi ścieżkami |
@@ -86,7 +86,7 @@ Przegląd 2026-09-29 znalazł błędy, które pojawiły się dopiero w przebudow
    produkcji; klucz podpisu mógł się po cichu wygenerować na nowo, blokując głosowanie.
 7. **Sesje nie widziały zmian konta.** Odebrana rola administratora działała do wylogowania, a zmiana hasła nie
    kończyła innych sesji. Teraz każde żądanie zalogowanego użytkownika jest sprawdzane z bazą
-   (`Services/SessionValidator.cs`).
+   (`Security/SessionValidator.cs`).
 8. **Tokeny resetu hasła w bazie jawnie.** Teraz zapisywany jest tylko ich hash.
 9. **Strona błędu przy limicie żądań.** Zablokowane przez limit żądanie POST bez tokenu pokazywało błąd 400 zamiast
    429; adres strony błędu przyjmował też dowolny kod (np. 0 lub 999).

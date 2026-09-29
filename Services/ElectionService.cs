@@ -131,24 +131,9 @@ public class ElectionService(
             return (new VoteOutcome(VoteStatus.ElectionNotFound), false);
         }
 
-        switch (election.GetStatus(now))
+        if (await CheckVotingRulesAsync(election, userId, candidateId, now) is { } refused)
         {
-            case ElectionStatus.Upcoming:
-                return (new VoteOutcome(VoteStatus.ElectionNotStarted, ElectionName: election.Opis), false);
-            case ElectionStatus.Ended:
-                return (new VoteOutcome(VoteStatus.ElectionEnded, ElectionName: election.Opis), false);
-            default:
-                break;
-        }
-
-        if (!await context.Kandydats.AnyAsync(k => k.Id == candidateId && k.IdWybory == electionId))
-        {
-            return (new VoteOutcome(VoteStatus.CandidateNotInElection, ElectionName: election.Opis), false);
-        }
-
-        if (await HasVotedAsync(userId, electionId))
-        {
-            return (new VoteOutcome(VoteStatus.AlreadyVoted, ElectionName: election.Opis), false);
+            return (new VoteOutcome(refused, ElectionName: election.Opis), false);
         }
 
         var head = await context.GlosowanieWyborczes
@@ -161,28 +146,11 @@ public class ElectionService(
         {
             await transaction.RollbackAsync();
             context.ChangeTracker.Clear();
-            await chainService.VerifyAndStoreAsync(electionId, "Vote");
+            await chainService.VerifyAndStoreAsync(electionId, ChainService.TriggerVote);
             return (new VoteOutcome(VoteStatus.ChainCorrupted, ElectionName: election.Opis), false);
         }
 
-        var block = new GlosowanieWyborcze
-        {
-            Indeks = election.LiczbaBlokow,
-            IdKandydat = candidateId,
-            IdWybory = electionId,
-            IdPoprzednie = head?.Id,
-            ZnacznikCzasu = now,
-            Nonce = BlockHelper.NewNonce(),
-            IdKlucza = signer.KeyId,
-        };
-        block.Hash = BlockHelper.ComputeHash(block, head?.Hash);
-        block.Podpis = signer.Sign(block.Hash);
-
-        election.HashGlowy = block.Hash;
-        election.LiczbaBlokow++;
-        election.Wersja++;
-
-        context.GlosowanieWyborczes.Add(block);
+        var block = AppendBlock(election, head, candidateId, now);
 
         // Only the day is stored: an exact time equal to the block timestamp would let anyone reading the
         // database join a voter to their block.
@@ -219,6 +187,51 @@ public class ElectionService(
 
         logger.LogInformation("Vote recorded in election {ElectionId}, block {Index}", electionId, block.Indeks);
         return (new VoteOutcome(VoteStatus.Success, block.Hash, election.Opis), false);
+    }
+
+    /// <summary>The rules of the original application: the election is open, the candidate stands in it, one vote per voter.</summary>
+    private async Task<VoteStatus?> CheckVotingRulesAsync(DataWyborow election, int userId, int candidateId, DateTime now)
+    {
+        switch (election.GetStatus(now))
+        {
+            case ElectionStatus.Upcoming:
+                return VoteStatus.ElectionNotStarted;
+            case ElectionStatus.Ended:
+                return VoteStatus.ElectionEnded;
+            default:
+                break;
+        }
+
+        if (!await context.Kandydats.AnyAsync(k => k.Id == candidateId && k.IdWybory == election.Id))
+        {
+            return VoteStatus.CandidateNotInElection;
+        }
+
+        return await HasVotedAsync(userId, election.Id) ? VoteStatus.AlreadyVoted : null;
+    }
+
+    /// <summary>Creates the next block after <paramref name="head"/>, signs it and moves the election's head state to it.</summary>
+    private GlosowanieWyborcze AppendBlock(DataWyborow election, GlosowanieWyborcze? head, int candidateId, DateTime now)
+    {
+        var block = new GlosowanieWyborcze
+        {
+            Indeks = election.LiczbaBlokow,
+            IdKandydat = candidateId,
+            IdWybory = election.Id,
+            IdPoprzednie = head?.Id,
+            ZnacznikCzasu = now,
+            Nonce = BlockHelper.NewNonce(),
+            IdKlucza = signer.KeyId,
+        };
+        block.Hash = BlockHelper.ComputeHash(block, head?.Hash);
+        block.Podpis = signer.Sign(block.Hash);
+
+        election.HashGlowy = block.Hash;
+        election.LiczbaBlokow++;
+        election.Wersja++;
+
+        context.GlosowanieWyborczes.Add(block);
+        return block;
     }
 
     /// <summary>A deadlock victim's transaction is already rolled back by the server; a second rollback must not hide the retry.</summary>

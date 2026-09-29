@@ -1,5 +1,6 @@
 using InternetVotingApplication.Configuration;
 using InternetVotingApplication.Models;
+using InternetVotingApplication.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
@@ -101,7 +102,7 @@ public static class DbInitializer
         context.DziennikAudytu.Add(new DziennikAudytu
         {
             Data = timeProvider.GetLocalNow().DateTime,
-            Akcja = "TestAccountsDisabled",
+            Akcja = AuditLog.Actions.TestAccountsDisabled,
             Szczegoly = $"Wyłączono {users.Count} kont testowych poza środowiskiem Development",
         });
         await context.SaveChangesAsync();
@@ -166,7 +167,7 @@ public static class DbInitializer
             context.DziennikAudytu.Add(new DziennikAudytu
             {
                 Data = now,
-                Akcja = "TestAccountsSeeded",
+                Akcja = AuditLog.Actions.TestAccountsSeeded,
                 Szczegoly = $"Utworzono {created} kont testowych (Seeding:TestAccounts)",
             });
             await context.SaveChangesAsync();

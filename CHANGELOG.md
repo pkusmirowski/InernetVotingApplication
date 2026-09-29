@@ -4,6 +4,30 @@ Format zbliżony do [Keep a Changelog](https://keepachangelog.com/pl/1.1.0/). We
 inżynierskiej (.NET 6, sesja jako mechanizm logowania, łańcuch hashy bez podpisów). Wersja 2.0.0 to przebudowa opisana
 w `docs/`.
 
+## [2.2.0] - 2026-09-29
+
+Wersja finalna.
+
+### Wybory prezydenckie
+
+- Aplikacja wraca do założenia pracy inżynierskiej: nazwa „Wybory Prezydenckie” w nagłówku, tytule stron,
+  stopce i nadawcy wiadomości; dane przykładowe (tylko Development) to wybory prezydenckie: I i II tura 2025
+  oraz nadchodzące wybory 2030.
+- Mechanizm wyborów pozostaje ogólny, więc w rozwiniętej wersji można nim przeprowadzić także inne głosowania,
+  np. referendum (opisane w README i `docs/OCENA_ZMIAN.md`).
+
+### Porządek w kodzie
+
+- Foldery zgodne z przestrzeniami nazw: modele formularzy w `ViewModels/`, walidatory i komunikaty walidacji
+  w `Validation/`, szablony e-mail w `Services/Mail/EmailTemplates.cs`, role, polityki, nagłówki bezpieczeństwa
+  i kontrola sesji w `Security/`, `AppVersion` w `Configuration/`; w katalogu głównym tylko `Program.cs`
+  i `Startup.cs`. `PESELValidation.cs` → `PeselValidation.cs` (nazwa pliku jak nazwa klasy).
+- Stałe zamiast powtarzanych napisów: wyzwalacze kontroli rejestru (`ChainService.Trigger*`), kody audytu kont
+  testowych, klucze `TempData` (`StatusMessageExtensions`).
+- Bez powielonego kodu: jedna metoda wydawania ciasteczka logowania, jeden blok wylogowania w menu; długie metody
+  podzielone (reguły głosowania, budowa bloku, reguły zmiany dat).
+- Usunięte resztki: nieużywane animacje CSS i profil IIS Express; zasady czystego kodu opisane w `docs/INSTRUKCJA.md`.
+
 ## [2.1.0] - 2026-09-29
 
 ### Panel administratora

@@ -29,6 +29,11 @@ public class ChainService(
     public const string ReasonElectionEnded = "ElectionEnded";
     public const string ReasonManual = "Manual";
 
+    public const string TriggerBackground = "Background";
+    public const string TriggerManual = "Manual";
+    public const string TriggerResults = "Results";
+    public const string TriggerVote = "Vote";
+
     private readonly ChainOptions _options = chainOptions.Value;
 
     /// <summary>Plain-language name of an anchor reason, for pages, e-mails and the audit log.</summary>
@@ -43,9 +48,10 @@ public class ChainService(
     /// <summary>Plain-language name of what started a verification.</summary>
     public static string DescribeTrigger(string? trigger) => trigger switch
     {
-        "Background" => "kontrola automatyczna",
-        "Manual" => "kontrola zlecona przez administratora",
-        "Results" => "kontrola przy wyświetleniu wyników",
+        TriggerBackground => "kontrola automatyczna",
+        TriggerManual => "kontrola zlecona przez administratora",
+        TriggerResults => "kontrola przy wyświetleniu wyników",
+        TriggerVote => "kontrola przy oddawaniu głosu",
         _ => trigger ?? string.Empty,
     };
 
@@ -107,7 +113,7 @@ public class ChainService(
             logger.LogError("Chain of election {ElectionId} failed verification: {Details}", electionId, details);
             await auditLog.LogAsync(AuditLog.Actions.ChainCorrupted, $"Wybory {electionId}: {details}", actorUserId);
         }
-        else if (trigger == "Manual")
+        else if (trigger == TriggerManual)
         {
             await auditLog.LogAsync(AuditLog.Actions.ChainVerified, $"Wybory {electionId}: kontrola bez zastrzeżeń, sprawdzono głosów: {result.BlockCount}", actorUserId);
         }

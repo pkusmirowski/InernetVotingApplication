@@ -205,10 +205,9 @@ wyodrębnić:
 
 ### 3.6 Niespójności strukturalne (dziedzictwo pierwotnej wersji)
 
-- Modele formularzy `Logowanie`, `ChangePassword`, `PasswordRecovery` leżą w `Models/` obok encji,
-  a reszta w `ViewModels/`. Powinny być razem w `ViewModels/`.
-- Folder `ExtensionMethods/` zawiera walidatory, atrybuty i szablony e-mail, które nie są extension
-  methods. Naturalny podział: `Validation/` (PESEL, wiek, e-mail), `Services/Mail/EmailTemplates`.
+- Wykonane w wersji 2.2.0: modele formularzy (`Logowanie`, `ChangePassword`, `PasswordRecovery`) są w `ViewModels/`,
+  walidatory w `Validation/`, szablony e-mail w `Services/Mail/EmailTemplates.cs`, sprawy bezpieczeństwa
+  w `Security/`; w `ExtensionMethods/` zostały tylko metody rozszerzające.
 - `DbContext` leży w `Models/` zamiast w `Data/` (jak w pierwotnej wersji).
 - Nazwy encji po polsku (`DataWyborow` znaczy "data wyborów", a jest to encja "Wybory"), reszta kodu
   po angielsku. Do decyzji autora; ważna jest konsekwencja i słowniczek w pracy.

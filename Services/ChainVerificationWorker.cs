@@ -48,7 +48,7 @@ public sealed class ChainVerificationWorker(
         foreach (var electionId in await chain.GetActiveElectionIdsAsync())
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var result = await chain.VerifyAndStoreAsync(electionId, "Background");
+            var result = await chain.VerifyAndStoreAsync(electionId, ChainService.TriggerBackground);
             logger.LogInformation("Election {ElectionId}: {Blocks} blocks, valid={Valid}", electionId, result.BlockCount, result.IsValid);
 
             var end = await context.DataWyborows.AsNoTracking().Where(e => e.Id == electionId).Select(e => e.DataZakonczenia).SingleAsync(cancellationToken);

@@ -27,12 +27,16 @@ Pełny opis uruchamiania, konfiguracji, testów i łańcucha głosów. Krótkie 
 | Katalog | Zawartość |
 | --- | --- |
 | `Controllers/` | `Account`, `Election`, `Admin`, `Home`, `Setup` (diagnostyka, tylko Development) |
-| `Services/` | logika domenowa (`UserService`, `ElectionService`, `ResultsService`, `AdminService`, `ChainService`), dziennik audytu, kontrola sesji (`SessionValidator`), zadania w tle (`ChainVerificationWorker`) i poczta (`Services/Mail`) |
+| `Services/` | logika domenowa (`UserService`, `ElectionService`, `ResultsService`, `AdminService`, `ChainService`), dziennik audytu, zadania w tle (`ChainVerificationWorker`) i poczta z szablonami wiadomości (`Services/Mail`) |
+| `Security/` | role i polityki autoryzacji, nagłówki bezpieczeństwa, kontrola sesji (`SessionValidator`) |
+| `Validation/` | walidacja PESEL, wieku i e-maila oraz polskie komunikaty walidacji |
 | `Blockchain/` | serializacja bloku, hashowanie, podpis ECDSA, weryfikacja łańcucha i głowy |
-| `Models/` | encje EF Core, `DbContext`, enumy statusów, modele formularzy logowania i haseł |
-| `ViewModels/` | modele widoków i formularzy |
+| `Models/` | encje EF Core (polskie nazwy z pierwotnej wersji), `DbContext`, enumy statusów |
+| `ViewModels/` | modele widoków i formularzy (w tym logowanie i hasła) |
+| `Interfaces/` | interfejsy serwisów |
+| `ExtensionMethods/` | metody rozszerzające (użytkownik z ciasteczka, komunikaty statusu) |
 | `Data/` | wybór silnika bazy, inicjalizacja (migracje, awans administratorów, konta testowe, dane przykładowe) |
-| `Configuration/` | klasy opcji (`App`, `Database`, `Smtp`, `Mail`, `Security`, `Seeding`, `Signing`, `Chain`) |
+| `Configuration/` | klasy opcji (`App`, `Database`, `Smtp`, `Mail`, `Security`, `Seeding`, `Signing`, `Chain`) i numer wersji |
 | `Migrations/` | migracje EF Core |
 | `tests/InternetVotingApplication.Tests/` | testy jednostkowe, serwisów (SQLite in-memory) i integracyjne (`WebApplicationFactory`) |
 | `tools/ChainVerifier/` | niezależny weryfikator eksportu łańcucha (konsola, bez zależności od aplikacji) |
@@ -75,7 +79,6 @@ Profile startowe (`Properties/launchSettings.json`):
 | `https (SQL Server)` | SQL Server, a gdy nie odpowiada: SQLite (tylko Development) | domyślny, codzienna praca |
 | `https (SQLite)` | zawsze plik SQLite, bez sondy SQL Servera | bez SQL Servera, szybkie klikanie |
 | `http` | jak `https (SQL Server)`, bez TLS | problemy z certyfikatem deweloperskim |
-| `IIS Express` | jak `https (SQL Server)` | jeśli wolisz IIS Express |
 
 ### Bez Visual Studio
 
@@ -178,6 +181,16 @@ startowe `Program.cs`. Poziomy testów:
 Projekt używa aktualnych konwencji C# 14 / .NET 10: przestrzenie nazw w zapisie plikowym, konstruktory
 podstawowe, rekordy, wyrażenia kolekcji, `TimeProvider`, `required`/nullable, `GeneratedRegex`.
 Reguły są w `.editorconfig` na poziomie ostrzeżeń, `dotnet format` je egzekwuje, a CI odrzuca odstępstwa.
+
+Zasady czystego kodu przyjęte w projekcie:
+
+- każdy plik leży w folderze zgodnym z przestrzenią nazw, a nazwa pliku to nazwa typu; w katalogu głównym są tylko
+  `Program.cs` i `Startup.cs`;
+- encje i tabele mają polskie nazwy z pierwotnej wersji pracy (schemat bazy), reszta kodu jest po angielsku;
+- stałe zamiast powtarzanych napisów (role, polityki, wyzwalacze kontroli rejestru, kody audytu, klucze `TempData`);
+- metody robią jedną rzecz: reguły głosowania, budowa bloku i reguły zmiany dat są wydzielone;
+- komentarze wyjaśniają „dlaczego”, a nie powtarzają kodu;
+- build bez ostrzeżeń (analizatory Roslynator i AsyncFixer), każda zmiana z testem, próg pokrycia w CI.
 
 ## Łańcuch głosów
 

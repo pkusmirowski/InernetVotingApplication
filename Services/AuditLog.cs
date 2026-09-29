@@ -18,6 +18,8 @@ public sealed class AuditLog(InternetVotingContext context, TimeProvider timePro
         public const string AdminPromoted = "AdminPromoted";
         public const string AdminRevoked = "AdminRevoked";
         public const string UserActivated = "UserActivated";
+        public const string TestAccountsSeeded = "TestAccountsSeeded";
+        public const string TestAccountsDisabled = "TestAccountsDisabled";
 
         /// <summary>Plain-language name of an action, for the audit page. Unknown codes are shown as they are.</summary>
         public static string Describe(string? action) => action switch
@@ -33,8 +35,8 @@ public sealed class AuditLog(InternetVotingContext context, TimeProvider timePro
             AdminPromoted => "Nadano uprawnienia administratora",
             AdminRevoked => "Odebrano uprawnienia administratora",
             UserActivated => "Aktywowano konto",
-            "TestAccountsSeeded" => "Utworzono konta testowe",
-            "TestAccountsDisabled" => "Wyłączono konta testowe poza środowiskiem Development",
+            TestAccountsSeeded => "Utworzono konta testowe",
+            TestAccountsDisabled => "Wyłączono konta testowe poza środowiskiem Development",
             _ => action ?? string.Empty,
         };
     }

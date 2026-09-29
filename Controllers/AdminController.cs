@@ -28,8 +28,8 @@ public class AdminController(IAdminService adminService, IChainService chainServ
     [HttpPost]
     public async Task<IActionResult> VerifyChain(int id)
     {
-        var result = await chainService.VerifyAndStoreAsync(id, "Manual", User.GetUserId());
-        SetStatus(
+        var result = await chainService.VerifyAndStoreAsync(id, ChainService.TriggerManual, User.GetUserId());
+        TempData.SetStatus(
             result.IsValid
                 ? $"Kontrola rejestru głosów zakończona bez zastrzeżeń. Sprawdzono głosów: {result.BlockCount}."
                 : $"Kontrola rejestru głosów wykryła nieprawidłowości. Numery błędnych wpisów: {string.Join(", ", result.InvalidBlockIds.Concat(result.InvalidSignatureBlockIds).Distinct())}.",
@@ -41,7 +41,7 @@ public class AdminController(IAdminService adminService, IChainService chainServ
     public async Task<IActionResult> PublishAnchor(int id)
     {
         var anchor = await chainService.PublishAnchorAsync(id, ChainService.ReasonManual, User.GetUserId());
-        SetStatus(
+        TempData.SetStatus(
             anchor switch
             {
                 null => "Wybory nie istnieją.",
@@ -75,7 +75,7 @@ public class AdminController(IAdminService adminService, IChainService chainServ
         switch (await adminService.AddElectionAsync(model, User.GetUserId()))
         {
             case AddElectionStatus.Success:
-                TempData["StatusMessage"] = $"Wybory \"{model.Opis}\" zostały utworzone.";
+                TempData.SetStatus($"Wybory \"{model.Opis}\" zostały utworzone.");
                 return RedirectToAction(nameof(CreateElection));
             case AddElectionStatus.Duplicate:
                 ModelState.AddModelError(nameof(model.Opis), "Wybory o tej nazwie już istnieją.");
@@ -120,7 +120,7 @@ public class AdminController(IAdminService adminService, IChainService chainServ
         switch (await adminService.UpdateElectionAsync(id, model, User.GetUserId()))
         {
             case UpdateElectionStatus.Success:
-                TempData["StatusMessage"] = $"Wybory \"{model.Opis}\" zostały zapisane.";
+                TempData.SetStatus($"Wybory \"{model.Opis}\" zostały zapisane.");
                 return RedirectToAction(nameof(Elections));
             case UpdateElectionStatus.NotFound:
                 return NotFound();
@@ -151,7 +151,7 @@ public class AdminController(IAdminService adminService, IChainService chainServ
     public async Task<IActionResult> DeleteElection(int id)
     {
         var status = await adminService.DeleteElectionAsync(id, User.GetUserId());
-        SetStatus(
+        TempData.SetStatus(
             status switch
             {
                 DeleteElectionStatus.Success => "Wybory zostały usunięte.",
@@ -173,7 +173,7 @@ public class AdminController(IAdminService adminService, IChainService chainServ
     public async Task<IActionResult> ActivateUser(int id)
     {
         var status = await adminService.ActivateUserAsync(id, User.GetUserId());
-        SetStatus(
+        TempData.SetStatus(
             status switch
             {
                 UserActionStatus.Success => "Konto zostało aktywowane.",
@@ -189,7 +189,7 @@ public class AdminController(IAdminService adminService, IChainService chainServ
     public async Task<IActionResult> SetAdministrator(int id, bool isAdmin)
     {
         var status = await adminService.SetAdministratorAsync(id, isAdmin, User.GetUserId());
-        SetStatus(
+        TempData.SetStatus(
             status switch
             {
                 UserActionStatus.Success => isAdmin ? "Konto dostało uprawnienia administratora." : "Konto nie ma już uprawnień administratora.",
@@ -221,7 +221,7 @@ public class AdminController(IAdminService adminService, IChainService chainServ
         switch (await adminService.AddCandidateAsync(model, User.GetUserId()))
         {
             case AddCandidateStatus.Success:
-                TempData["StatusMessage"] = $"Kandydat {model.Imie} {model.Nazwisko} został dodany.";
+                TempData.SetStatus($"Kandydat {model.Imie} {model.Nazwisko} został dodany.");
                 return RedirectToAction(nameof(AddCandidate), new { electionId = model.IdWybory });
             case AddCandidateStatus.Duplicate:
                 ModelState.AddModelError(nameof(model.Nazwisko), "Ten kandydat już bierze udział w wybranych wyborach.");
@@ -249,7 +249,7 @@ public class AdminController(IAdminService adminService, IChainService chainServ
     public async Task<IActionResult> DeleteCandidate(int id, int? electionId)
     {
         var status = await adminService.DeleteCandidateAsync(id, User.GetUserId());
-        SetStatus(
+        TempData.SetStatus(
             status switch
             {
                 DeleteCandidateStatus.Success => "Kandydat został usunięty.",
@@ -260,16 +260,6 @@ public class AdminController(IAdminService adminService, IChainService chainServ
             isError: status != DeleteCandidateStatus.Success);
 
         return RedirectToAction(nameof(DeleteCandidate), new { electionId });
-    }
-
-    /// <summary>Message shown after the redirect; failures are flagged so that the view does not render them as a success.</summary>
-    private void SetStatus(string message, bool isError = false)
-    {
-        TempData["StatusMessage"] = message;
-        if (isError)
-        {
-            TempData["StatusIsError"] = true;
-        }
     }
 
     private async Task PopulateElectionsAsync(int? selected)

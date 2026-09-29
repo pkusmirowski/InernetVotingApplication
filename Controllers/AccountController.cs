@@ -148,13 +148,10 @@ public class AccountController(
                 var claims = User.Claims
                     .Where(c => c.Type != SessionValidator.PasswordStampClaim)
                     .Append(new Claim(SessionValidator.PasswordStampClaim, state.PasswordStamp));
-                await HttpContext.SignInAsync(
-                    CookieAuthenticationDefaults.AuthenticationScheme,
-                    new ClaimsPrincipal(new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme)),
-                    new AuthenticationProperties { IsPersistent = false });
+                await SignInWithClaimsAsync(claims);
             }
 
-            TempData["StatusMessage"] = "Hasło zostało zmienione.";
+            TempData.SetStatus("Hasło zostało zmienione.");
             return RedirectToAction(nameof(ChangePassword));
         }
 
@@ -213,7 +210,7 @@ public class AccountController(
             return View("ResetPasswordInvalid");
         }
 
-        TempData["StatusMessage"] = "Nowe hasło zostało zapisane. Możesz się teraz zalogować.";
+        TempData.SetStatus("Nowe hasło zostało zapisane. Możesz się teraz zalogować.");
         return RedirectToAction(nameof(Login));
     }
 
@@ -245,15 +242,19 @@ public class AccountController(
 
     private Task SignInAsync(Uzytkownik user, bool isAdmin)
     {
-        var claims = new List<Claim>
-        {
+        return SignInWithClaimsAsync(
+        [
             new(ClaimTypes.NameIdentifier, user.Id.ToString(System.Globalization.CultureInfo.InvariantCulture)),
             new(ClaimTypes.Email, user.Email),
             new(ClaimTypes.Name, $"{user.Imie} {user.Nazwisko}"),
             new(ClaimTypes.Role, isAdmin ? Roles.Admin : Roles.Voter),
             new(SessionValidator.PasswordStampClaim, UserService.PasswordStamp(user.Haslo)),
-        };
+        ]);
+    }
 
+    /// <summary>Issues the session cookie; the session ends with the browser (not persistent).</summary>
+    private Task SignInWithClaimsAsync(IEnumerable<Claim> claims)
+    {
         var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
         return HttpContext.SignInAsync(
             CookieAuthenticationDefaults.AuthenticationScheme,

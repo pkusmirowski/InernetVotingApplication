@@ -219,24 +219,9 @@ public class AdminService(InternetVotingContext context, IAuditLog auditLog, Tim
         var newStart = startChanged ? model.DataRozpoczecia.Value : election.DataRozpoczecia;
         var newEnd = endChanged ? model.DataZakonczenia.Value : election.DataZakonczenia;
 
-        switch (election.GetStatus(Now()))
+        if (await CheckDateChangeAsync(election, startChanged, endChanged, newStart, newEnd) is { } refused)
         {
-            case ElectionStatus.Ended when startChanged || endChanged:
-                return UpdateElectionStatus.ElectionEnded;
-            case ElectionStatus.Ongoing when startChanged:
-                return UpdateElectionStatus.StartLocked;
-            case ElectionStatus.Ongoing when endChanged:
-                var lastVote = await context.GlosowanieWyborczes
-                    .Where(g => g.IdWybory == electionId)
-                    .MaxAsync(g => (DateTime?)g.ZnacznikCzasu);
-                if (newEnd <= newStart || (lastVote.HasValue && newEnd < lastVote.Value))
-                {
-                    return UpdateElectionStatus.EndBeforeLastVote;
-                }
-
-                break;
-            default:
-                break;
+            return refused;
         }
 
         var before = $"{election.Opis} ({election.DataRozpoczecia:g} - {election.DataZakonczenia:g})";
@@ -373,6 +358,27 @@ public class AdminService(InternetVotingContext context, IAuditLog auditLog, Tim
         logger.LogInformation("User {UserId} administrator role set to {IsAdmin}", userId, isAdmin);
         await auditLog.LogAsync(isAdmin ? AuditLog.Actions.AdminPromoted : AuditLog.Actions.AdminRevoked, $"{user.Email} (id {userId}, panel administratora)", actorUserId);
         return UserActionStatus.Success;
+    }
+
+    /// <summary>Which date changes an election in its current state allows; null when the change is allowed.</summary>
+    private async Task<UpdateElectionStatus?> CheckDateChangeAsync(DataWyborow election, bool startChanged, bool endChanged, DateTime newStart, DateTime newEnd)
+    {
+        switch (election.GetStatus(Now()))
+        {
+            case ElectionStatus.Ended when startChanged || endChanged:
+                return UpdateElectionStatus.ElectionEnded;
+            case ElectionStatus.Ongoing when startChanged:
+                return UpdateElectionStatus.StartLocked;
+            case ElectionStatus.Ongoing when endChanged:
+                var lastVote = await context.GlosowanieWyborczes
+                    .Where(g => g.IdWybory == election.Id)
+                    .MaxAsync(g => (DateTime?)g.ZnacznikCzasu);
+                return newEnd <= newStart || (lastVote.HasValue && newEnd < lastVote.Value)
+                    ? UpdateElectionStatus.EndBeforeLastVote
+                    : null;
+            default:
+                return null;
+        }
     }
 
     private static DateTime ToMinute(DateTime value) => new(value.Ticks - (value.Ticks % TimeSpan.TicksPerMinute), value.Kind);

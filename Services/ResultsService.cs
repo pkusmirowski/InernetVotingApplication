@@ -101,7 +101,7 @@ public class ResultsService(InternetVotingContext context, IChainService chainSe
             return last;
         }
 
-        await chainService.VerifyAndStoreAsync(electionId, "Results");
+        await chainService.VerifyAndStoreAsync(electionId, ChainService.TriggerResults);
         return await chainService.GetLastVerificationAsync(electionId);
     }
 }
