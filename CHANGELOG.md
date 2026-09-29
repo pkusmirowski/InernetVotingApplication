@@ -32,6 +32,14 @@ w `docs/`.
 - Komunikaty o niepowodzeniu w panelu administratora są czerwone, a nie zielone (`StatusIsError`).
 - Dziennik audytu pokazuje polskie opisy zdarzeń zamiast kodów; przed oddaniem głosu aplikacja pyta o potwierdzenie.
 
+### Porządki
+
+- Usunięte nieużywane pliki: puste migracje `init2`/`init3`, `GeneratePassword`, `ArrayExtensions`,
+  `GlosowanieWyborczeItemComparer`, `Properties/serviceDependencies.json`, biblioteki i obrazy szablonu
+  (`isotope-layout`, `glightbox`, `php-email-form`, `img/portfolio`, `img/clients`, `img/team`); katalog `.vs/`
+  usunięty z repozytorium.
+- Konta testowe i klucz `Seeding:TestAccounts` opisane w `docs/INSTRUKCJA.md`.
+
 ## [2.0.0] - 2026-09-28
 
 ### Platforma
