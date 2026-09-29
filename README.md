@@ -26,7 +26,8 @@ SQL Server jest opcjonalny: bez niego aplikacja w trybie Development uruchomi si
 2. Wybierz profil **`https (SQL Server)`** i naciśnij **F5**.
 3. Otworzy się strona `/setup`, która pokazuje stan aplikacji i co zrobić dalej.
 
-Bez Visual Studio: dwuklik w `run.cmd`. Testy: `dotnet test` albo `run-tests.cmd`.
+Bez Visual Studio: dwuklik w `Aplikacja.cmd`, menu do włączania i wyłączania aplikacji (otwiera też przeglądarkę).
+Testy: `dotnet test` albo `run-tests.cmd`.
 
 E-maile w trybie Development trafiają do plików w `App_Data/mail/`. Konta testowe: `admin@test.local` / `Admin123!`
 (administrator) i `wyborca1@test.local` … `wyborca5@test.local` / `Wyborca123!`.

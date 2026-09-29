@@ -27,6 +27,8 @@ Wersja finalna.
 - Bez powielonego kodu: jedna metoda wydawania ciasteczka logowania, jeden blok wylogowania w menu; długie metody
   podzielone (reguły głosowania, budowa bloku, reguły zmiany dat).
 - Usunięte resztki: nieużywane animacje CSS i profil IIS Express; zasady czystego kodu opisane w `docs/INSTRUKCJA.md`.
+- `Aplikacja.cmd`: menu do włączania i wyłączania aplikacji bez Visual Studio; skrypty PowerShell zapisane z BOM,
+  żeby polskie znaki wyświetlały się poprawnie w Windows PowerShell.
 
 ## [2.1.0] - 2026-09-29
 

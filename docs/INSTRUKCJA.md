@@ -82,7 +82,10 @@ Profile startowe (`Properties/launchSettings.json`):
 
 ### Bez Visual Studio
 
-Dwuklik w `run.cmd` (albo `run.cmd -Sqlite`). Skrypt sprawdza SDK, wykrywa instancje SQL Server i stan ich
+Najprościej: dwuklik w `Aplikacja.cmd`. Otwiera się menu: 1 włącza aplikację (SQL Server), 2 włącza ją na SQLite,
+3 wyłącza, 4 otwiera ją w przeglądarce. Aplikacja działa w osobnym oknie, a po starcie otwiera się przeglądarka.
+
+Bezpośrednio: dwuklik w `run.cmd` (albo `run.cmd -Sqlite`). Skrypt sprawdza SDK, wykrywa instancje SQL Server i stan ich
 usług, proponuje connection string dla instancji nazwanej, uruchamia aplikację i otwiera przeglądarkę.
 Testy: `run-tests.cmd`. W terminalu: `dotnet run --project InternetVotingApplication.csproj --launch-profile "https (SQL Server)"`.
 

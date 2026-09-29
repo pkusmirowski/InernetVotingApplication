@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
   Uruchamia aplikację do głosowania na tym komputerze i otwiera stronę diagnostyczną.
 
