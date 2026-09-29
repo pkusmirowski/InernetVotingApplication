@@ -34,7 +34,7 @@ public class InfrastructureTests
     [Fact]
     public void Application_version_comes_from_assembly_metadata()
     {
-        Assert.StartsWith("2.0.0", AppVersion.Value, StringComparison.Ordinal);
+        Assert.StartsWith("2.1.0", AppVersion.Value, StringComparison.Ordinal);
         Assert.DoesNotContain('+', AppVersion.Value);
     }
 

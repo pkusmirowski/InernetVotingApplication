@@ -70,7 +70,7 @@ Kierunek zależności (wynik z analizy `using` w kodzie):
 | Services/Mail | Interfaces, Configuration |
 | Data | Configuration, Models |
 
-Rozmiar: ok. 2,6 tys. linii kodu produkcyjnego (w tym ~1 tys. widoków) i 1,1 tys. linii testów.
+Rozmiar (wersja 2.1.0): ok. 7,3 tys. linii kodu produkcyjnego (w tym ~1,6 tys. widoków) i 5,3 tys. linii testów.
 
 ### 1.3 Model danych
 
@@ -209,7 +209,7 @@ wyodrębnić:
   a reszta w `ViewModels/`. Powinny być razem w `ViewModels/`.
 - Folder `ExtensionMethods/` zawiera walidatory, atrybuty i szablony e-mail, które nie są extension
   methods. Naturalny podział: `Validation/` (PESEL, wiek, e-mail), `Services/Mail/EmailTemplates`.
-- `DbContext` leży w `Models/` zamiast w `Data/` (zostawiony ze względu na stare migracje).
+- `DbContext` leży w `Models/` zamiast w `Data/` (jak w pierwotnej wersji).
 - Nazwy encji po polsku (`DataWyborow` znaczy "data wyborów", a jest to encja "Wybory"), reszta kodu
   po angielsku. Do decyzji autora; ważna jest konsekwencja i słowniczek w pracy.
 - Tabela `Administrator` jako osobna encja zamiast kolumny roli: poprawne (pozwala na więcej ról
@@ -223,7 +223,7 @@ wyodrębnić:
 
 > Częściowo usunięte w etapie 2: `/health`, Serilog. Reverse proxy i migracje jako krok wdrożenia nadal otwarte.
 
-- Brak `health checks` (`/health`) i metryk; kompozycja Docker nie ma reverse proxy z TLS.
+- Brak metryk i reverse proxy z TLS (aplikacja działa lokalnie).
 - Logowanie tylko do konsoli; brak korelacji żądań w logach (Serilog + `RequestId`).
 - Migracje przy starcie (`ApplyMigrationsOnStartup`) są wygodne w developmencie, ale w produkcji
   z wieloma instancjami to wyścig; tam migracje powinny być krokiem wdrożenia.
@@ -281,7 +281,7 @@ i najbardziej wartościowy naukowo (kompromis między weryfikowalnością a tajn
 
 ## 4a. Stan realizacji planu etapu 2 (2026-09-25)
 
-Wykonane (szczegóły w `docs/PLAN_ETAP_2.md`):
+Wykonane:
 
 1. Stan głowy w `DataWyborow` + weryfikacja przyrostowa przy głosie + pełna weryfikacja w tle
    (`ChainVerificationWorker`, tabela `WeryfikacjaLancucha`). Krytyczna sekcja czyta dwa wiersze zamiast
@@ -303,7 +303,7 @@ błąd i kod wyjścia 1.
 
 Finalizacja (2026-09-28, wersja 2.0.0): migracja na .NET 10 LTS (wsparcie do listopada 2028), build, testy
 i formatowanie zweryfikowane na SDK 10, wersja aplikacji w stopce i na `/setup`, `CHANGELOG.md`,
-plan i status w `docs/PLAN_FINALIZACJI.md`.
+historia zmian w `CHANGELOG.md`.
 
 Nadal otwarte: tajność głosu (3.2, wymaga mieszania lub ślepych podpisów), przeniesienie modeli formularzy
 i walidatorów do właściwych folderów (3.6, wymaga usuwania plików), UTC w bazie, wiele węzłów weryfikujących.
@@ -319,7 +319,7 @@ Porównanie z pierwotną wersją autora (commit `7266c79`) i przegląd poprawno�
 - fałszywy alarm o naruszeniu łańcucha, gdy głos wpadł między odczytem wyborów i bloków,
 - zmiany w trwających i zakończonych wyborach (daty, kandydaci) oraz wyniki cząstkowe widoczne dla
   administratora,
-- konta testowe i automatyczne generowanie klucza poza Development, strefa czasowa w obrazie Dockera,
+- konta testowe i automatyczne generowanie klucza poza Development,
 - sesje: każde żądanie zalogowanego użytkownika jest sprawdzane z bazą (`SessionValidator`), więc zmiana roli
   działa od razu, a zmiana hasła lub dezaktywacja kończy inne sesje,
 - tokeny resetu hasła zapisywane jako hash,

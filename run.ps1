@@ -77,6 +77,6 @@ else {
 }
 
 Write-Step "Uruchamiam aplikację (profil: $profile). Zatrzymanie: Ctrl+C"
-Write-Host 'Przeglądarka otworzy się na https://localhost:5001/Home/Setup (strona diagnostyczna).'
+Write-Host 'Przeglądarka otworzy się na https://localhost:5001/setup (strona diagnostyczna).'
 & dotnet run --project InternetVotingApplication.csproj --launch-profile $profile
 exit $LASTEXITCODE

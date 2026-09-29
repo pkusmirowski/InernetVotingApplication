@@ -16,7 +16,7 @@ Technologie: .NET 10, ASP.NET Core MVC, Entity Framework Core, SQL Server, Boots
 
 ## Uruchomienie
 
-Potrzebne: [.NET SDK 10](https://dotnet.microsoft.com/download/dotnet/10.0) i Visual Studio 2022 17.14+ (lub 2026).
+Potrzebne: [.NET SDK 10](https://dotnet.microsoft.com/download/dotnet/10.0) i Visual Studio 2026.
 SQL Server jest opcjonalny: bez niego aplikacja w trybie Development uruchomi się na pliku SQLite.
 
 1. Otwórz `InternetVotingApplication.sln`.
@@ -37,4 +37,4 @@ E-maile w trybie Development trafiają do plików w `App_Data/mail/`. Konta test
 
 ## Licencja
 
-MIT, patrz `LICENSE`.
+GNU GPL v3, patrz `LICENSE`.

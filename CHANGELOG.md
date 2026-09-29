@@ -4,7 +4,7 @@ Format zbliżony do [Keep a Changelog](https://keepachangelog.com/pl/1.1.0/). We
 inżynierskiej (.NET 6, sesja jako mechanizm logowania, łańcuch hashy bez podpisów). Wersja 2.0.0 to przebudowa opisana
 w `docs/`.
 
-## [Unreleased]
+## [2.1.0] - 2026-09-29
 
 ### Panel administratora
 
@@ -27,7 +27,6 @@ w `docs/`.
   „Szczegóły techniczne”.
 - Komunikaty mówią, co zrobić dalej (np. wyszukiwarka głosu podaje, ile znaków ma wpisany kod), a strony błędów
   404, 403, 429 i 400 mają własne opisy.
-
 - Komunikaty walidacji, które framework generował po angielsku (za długi tekst, błędna data lub liczba), są po polsku
   (`ValidationMessages`).
 - Komunikaty o niepowodzeniu w panelu administratora są czerwone, a nie zielone (`StatusIsError`).
@@ -53,7 +52,7 @@ w `docs/`.
 - Strona błędu zwraca 429 także dla zablokowanego przez limit żądania POST bez tokenu (wcześniej 400) i przyjmuje
   tylko kody 400–599.
 - Poza Development `Signing:AutoGenerateKey` jest wymuszone na wyłączone (brak klucza zatrzymuje start zamiast
-  po cichu tworzyć nowy, z którym stare głosy się nie weryfikują). Obraz Dockera działa w strefie `Europe/Warsaw`.
+  po cichu tworzyć nowy, z którym stare głosy się nie weryfikują).
 
 ### Porządki
 
@@ -62,6 +61,24 @@ w `docs/`.
   (`isotope-layout`, `glightbox`, `php-email-form`, `img/portfolio`, `img/clients`, `img/team`); katalog `.vs/`
   usunięty z repozytorium.
 - Konta testowe i klucz `Seeding:TestAccounts` opisane w `docs/INSTRUKCJA.md`.
+
+### Wersja finalna
+
+- Nazwa aplikacji „Głosowanie internetowe” zamiast „Wybory Prezydenckie” (aplikacja obsługuje dowolne głosowania).
+- Kontakt tylko z konfiguracji (`App:ContactEmail`); fikcyjny adres, telefon i e-mail usunięte ze stopki i strony
+  Kontakt. Bez skonfigurowanego adresu sekcja kontaktu jest ukryta.
+- Komunikaty o kopiach kontrolnych mówią o wysyłce do komisji tylko wtedy, gdy są skonfigurowani odbiorcy.
+- Czcionki systemowe zamiast Google Fonts (żadne dane odwiedzających nie trafiają do Google, zgodnie z polityką
+  prywatności); usunięte biblioteki AOS i Boxicons, nieużywane pliki Bootstrapa i obrazy szablonu (`wwwroot` z 10 MB
+  do niecałego 1 MB) oraz martwy kod szablonu w `main.js` i `style.css`.
+- Pasek „tryb SQLite” tylko w Development; stopka pokazuje linki logowania tylko niezalogowanym.
+- Poprawione okno potwierdzenia usuwania wyborów (tekst ucinany przez cudzysłów).
+- Domyślna baza `InternetVotingV2`: pierwotna wersja pracy używała nazwy `InternetVoting` z innym schematem. Błąd 2714
+  (tabele z innej wersji) ma własne wyjaśnienie przy starcie.
+- E-mail z kodem głosu zawiera link do wyszukiwarki, gdy ustawiono `App:PublicBaseUrl`.
+- Usunięte pliki Dockera (nieużywane) i robocze dokumenty planów; licencja w dokumentacji zgodna z plikiem
+  `LICENSE` (GNU GPL v3); wymagane Visual Studio 2026.
+- Testy: 311 → 315, pokrycie 99,2% linii i 91,7% gałęzi, powyżej progu CI (97% linii, 88% gałęzi).
 
 ## [2.0.0] - 2026-09-28
 
