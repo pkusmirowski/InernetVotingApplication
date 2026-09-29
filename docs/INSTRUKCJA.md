@@ -14,9 +14,10 @@ Pełny opis uruchamiania, konfiguracji, testów i łańcucha głosów. Krótkie 
   i jest zapisywana w dzienniku weryfikacji.
 - Kotwice: podpisane migawki głowy wysyłane e-mailem do komisji co N bloków i po zakończeniu wyborów.
 - Publiczna wyszukiwarka głosu po hashu, publiczna strona łańcucha (`/Election/Chain/{id}`) i eksport JSON
-  (`/Election/Export/{id}`) weryfikowalny niezależnym narzędziem `tools/ChainVerifier`.
+  (`/Election/Export/{id}`, dostępny po zakończeniu wyborów) weryfikowalny niezależnym narzędziem `tools/ChainVerifier`.
 - Panel administratora: wybory i łańcuchy (weryfikacja na żądanie, publikacja kotwicy), kandydaci,
-  dziennik audytu.
+  użytkownicy i role, dziennik audytu. Kandydatów można zmieniać tylko przed rozpoczęciem głosowania; w trwających
+  wyborach data rozpoczęcia jest zablokowana, a zakończonych nie można ponownie otworzyć.
 - Poczta przez outbox (tabela + dispatcher z ponawianiem): wiadomość zapisuje się w tej samej transakcji
   co głos i nie ginie przy restarcie.
 - Ograniczenie liczby żądań na logowaniu i rejestracji, `/health`, logi strukturalne (Serilog).

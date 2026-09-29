@@ -13,7 +13,8 @@ w `docs/`.
 - Lista użytkowników (`/Admin/Users`): aktywacja konta bez e-maila, nadawanie i odbieranie roli administratora
   (bez odebrania jej sobie ani ostatniemu administratorowi).
 - Konta testowe w Development (`Seeding:TestAccounts`): `admin@test.local` / `Admin123!` i `wyborca1..5@test.local` /
-  `Wyborca123!`, aktywne od startu, wypisane na stronie `/setup`. Poza Development opcja jest wymuszona na wyłączoną.
+  `Wyborca123!`, aktywne od startu, wypisane na stronie `/setup`. Poza Development opcja jest wymuszona na wyłączoną,
+  a konta testowe znalezione w bazie są przy starcie dezaktywowane i tracą rolę administratora.
 - Profile startowe otwierają `/Setup` (wcześniej `Home/Setup`, adres nieistniejący).
 
 ### Język interfejsu
@@ -31,6 +32,23 @@ w `docs/`.
   (`ValidationMessages`).
 - Komunikaty o niepowodzeniu w panelu administratora są czerwone, a nie zielone (`StatusIsError`).
 - Dziennik audytu pokazuje polskie opisy zdarzeń zamiast kodów; przed oddaniem głosu aplikacja pyta o potwierdzenie.
+
+### Poprawki po przeglądzie (porównanie z wersją pierwotną, `docs/OCENA_ZMIAN.md`)
+
+- Głos, który przegrał wyścig z innym głosem, jest ponawiany. W 2.0.0 kolejka poczty zapisywała blok przed obsługą
+  konfliktu, więc zamiast ponowienia był błąd 500.
+- Tajność głosu: wpis o udziale w wyborach ma tylko datę (dzień), nie ten sam znacznik czasu co blok; wiadomość,
+  której nie udało się wysłać po ostatniej próbie, jest usuwana z kolejki (wcześniej zostawała z adresem i kodem).
+- Kontrola rejestru czyta wybory i głosy w jednej transakcji, więc głos oddany w trakcie kontroli nie wywołuje
+  fałszywego alarmu o naruszeniu.
+- Panel administratora: kandydatów można dodawać i usuwać tylko przed rozpoczęciem głosowania; w trwających wyborach
+  data rozpoczęcia jest zablokowana, a zakończenie można przesunąć najwcześniej na chwilę ostatniego głosu;
+  zakończonych wyborów nie można ponownie otworzyć (tylko poprawić nazwę). Wyścig przy usuwaniu daje komunikat
+  zamiast błędu 500.
+- Brak wyników cząstkowych także dla administratora: liczba głosów na kandydata i eksport rejestru dopiero po
+  zakończeniu wyborów.
+- Poza Development `Signing:AutoGenerateKey` jest wymuszone na wyłączone (brak klucza zatrzymuje start zamiast
+  po cichu tworzyć nowy, z którym stare głosy się nie weryfikują). Obraz Dockera działa w strefie `Europe/Warsaw`.
 
 ### Porządki
 

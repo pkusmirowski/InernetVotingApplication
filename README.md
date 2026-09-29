@@ -32,6 +32,7 @@ E-maile w trybie Development trafiają do plików w `App_Data/mail/`. Konta test
 
 - [`docs/INSTRUKCJA.md`](docs/INSTRUKCJA.md): konfiguracja, tryby bazy danych, rozwiązywanie problemów, testy, opis łańcucha głosów.
 - [`docs/ARCHITEKTURA.md`](docs/ARCHITEKTURA.md): architektura systemu.
+- [`docs/OCENA_ZMIAN.md`](docs/OCENA_ZMIAN.md): porównanie z pierwotną wersją pracy i wyniki przeglądu.
 - [`CHANGELOG.md`](CHANGELOG.md): historia zmian.
 
 ## Licencja
