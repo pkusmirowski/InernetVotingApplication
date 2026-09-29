@@ -3,6 +3,7 @@
     ViewData["Title"] = "Rejestracja";
 }
 <h2>Rejestracja</h2>
+<p>Załóż konto, żeby głosować. Po rejestracji wyślemy Ci wiadomość e-mail z linkiem, którym aktywujesz konto.</p>
 <hr />
 <div class="row">
     <div class="col-md-6">
@@ -22,11 +23,13 @@
                 <label asp-for="Pesel" class="form-label"></label>
                 <input asp-for="Pesel" class="form-control" inputmode="numeric" maxlength="11" />
                 <span asp-validation-for="Pesel" class="text-danger"></span>
+                <div class="form-text">11 cyfr, bez spacji. Numer PESEL potwierdza, że masz prawo głosować.</div>
             </div>
             <div class="form-group mb-3">
                 <label asp-for="Email" class="form-label"></label>
                 <input asp-for="Email" class="form-control" autocomplete="email" />
                 <span asp-validation-for="Email" class="text-danger"></span>
+                <div class="form-text">Na ten adres wyślemy link aktywacyjny, a po głosowaniu kod potwierdzenia głosu.</div>
             </div>
             <div class="form-group mb-3">
                 <label asp-for="DataUrodzenia" class="form-label"></label>
@@ -37,14 +40,14 @@
                 <label asp-for="Haslo" class="form-label"></label>
                 <input asp-for="Haslo" class="form-control" autocomplete="new-password" />
                 <span asp-validation-for="Haslo" class="text-danger"></span>
-                <div class="form-text">Co najmniej 8 znaków, mała i duża litera, cyfra oraz znak specjalny.</div>
+                <div class="form-text">Co najmniej 8 znaków, w tym mała litera, duża litera, cyfra i znak specjalny (na przykład ! lub #).</div>
             </div>
             <div class="form-group mb-3">
                 <label asp-for="ConfirmPassword" class="form-label"></label>
                 <input asp-for="ConfirmPassword" class="form-control" autocomplete="new-password" />
                 <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
             </div>
-            <button type="submit" class="btn btn-primary">Zarejestruj się</button>
+            <button type="submit" class="btn btn-primary">Załóż konto</button>
         </form>
     </div>
 </div>

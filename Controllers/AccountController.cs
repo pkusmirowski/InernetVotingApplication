@@ -3,6 +3,7 @@ using InternetVotingApplication.Configuration;
 using InternetVotingApplication.ExtensionMethods;
 using InternetVotingApplication.Interfaces;
 using InternetVotingApplication.Models;
+using InternetVotingApplication.Services;
 using InternetVotingApplication.ViewModels;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -47,19 +48,19 @@ public class AccountController(
             case RegistrationStatus.Success:
                 return View("RegisterConfirmation", model);
             case RegistrationStatus.EmailTaken:
-                ModelState.AddModelError(nameof(model.Email), "Konto z tym adresem e-mail już istnieje.");
+                ModelState.AddModelError(nameof(model.Email), "Konto z tym adresem e-mail już istnieje. Zaloguj się albo użyj opcji „Przypomnij hasło”.");
                 break;
             case RegistrationStatus.PeselTaken:
-                ModelState.AddModelError(nameof(model.Pesel), "Konto z tym numerem PESEL już istnieje.");
+                ModelState.AddModelError(nameof(model.Pesel), "Konto z tym numerem PESEL już istnieje. Jeśli to Twoje konto, zaloguj się albo użyj opcji „Przypomnij hasło”.");
                 break;
             case RegistrationStatus.InvalidPesel:
-                ModelState.AddModelError(nameof(model.Pesel), "Numer PESEL jest niepoprawny.");
+                ModelState.AddModelError(nameof(model.Pesel), "Ten numer PESEL jest nieprawidłowy. Sprawdź, czy wszystkie cyfry są wpisane poprawnie.");
                 break;
             case RegistrationStatus.InvalidEmail:
-                ModelState.AddModelError(nameof(model.Email), "Adres e-mail jest niepoprawny.");
+                ModelState.AddModelError(nameof(model.Email), "Ten adres e-mail jest nieprawidłowy. Sprawdź, czy nie ma w nim literówki.");
                 break;
             default:
-                ModelState.AddModelError(string.Empty, "Rejestracja nie powiodła się.");
+                ModelState.AddModelError(string.Empty, "Nie udało się założyć konta. Spróbuj ponownie za chwilę.");
                 break;
         }
 
@@ -94,13 +95,13 @@ public class AccountController(
                 logger.LogInformation("User {UserId} signed in", outcome.User!.Id);
                 return RedirectAfterLogin(outcome.IsAdmin, model.ReturnUrl);
             case LoginStatus.NotActivated:
-                ModelState.AddModelError(string.Empty, "Konto nie zostało jeszcze aktywowane. Sprawdź swoją skrzynkę e-mail.");
+                ModelState.AddModelError(string.Empty, "Konto nie jest jeszcze aktywne. Otwórz wiadomość e-mail, którą wysłaliśmy po rejestracji, i kliknij link aktywacyjny.");
                 break;
             case LoginStatus.LockedOut:
-                ModelState.AddModelError(string.Empty, "Konto zostało tymczasowo zablokowane po zbyt wielu nieudanych próbach logowania. Spróbuj ponownie później.");
+                ModelState.AddModelError(string.Empty, "Po kilku nieudanych próbach logowania konto zostało na pewien czas zablokowane. To zabezpieczenie przed zgadywaniem hasła. Spróbuj ponownie później.");
                 break;
             default:
-                ModelState.AddModelError(string.Empty, "Nieprawidłowy adres e-mail lub hasło.");
+                ModelState.AddModelError(string.Empty, "Nieprawidłowy adres e-mail lub hasło. Sprawdź, czy dane są wpisane poprawnie.");
                 break;
         }
 
@@ -139,6 +140,19 @@ public class AccountController(
 
         if (await userService.ChangePasswordAsync(User.GetUserId(), model))
         {
+            // The new password changes the session stamp: other sessions end, this one gets a fresh cookie.
+            var state = await userService.GetSessionStateAsync(User.GetUserId());
+            if (state != null)
+            {
+                var claims = User.Claims
+                    .Where(c => c.Type != SessionValidator.PasswordStampClaim)
+                    .Append(new Claim(SessionValidator.PasswordStampClaim, state.PasswordStamp));
+                await HttpContext.SignInAsync(
+                    CookieAuthenticationDefaults.AuthenticationScheme,
+                    new ClaimsPrincipal(new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme)),
+                    new AuthenticationProperties { IsPersistent = false });
+            }
+
             TempData["StatusMessage"] = "Hasło zostało zmienione.";
             return RedirectToAction(nameof(ChangePassword));
         }
@@ -198,7 +212,7 @@ public class AccountController(
             return View("ResetPasswordInvalid");
         }
 
-        TempData["StatusMessage"] = "Hasło zostało ustawione. Możesz się zalogować.";
+        TempData["StatusMessage"] = "Nowe hasło zostało zapisane. Możesz się teraz zalogować.";
         return RedirectToAction(nameof(Login));
     }
 
@@ -236,6 +250,7 @@ public class AccountController(
             new(ClaimTypes.Email, user.Email),
             new(ClaimTypes.Name, $"{user.Imie} {user.Nazwisko}"),
             new(ClaimTypes.Role, isAdmin ? Roles.Admin : Roles.Voter),
+            new(SessionValidator.PasswordStampClaim, UserService.PasswordStamp(user.Haslo)),
         };
 
         var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);

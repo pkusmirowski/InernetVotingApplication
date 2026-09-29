@@ -139,6 +139,28 @@ public class ViewModelValidationTests
     }
 
     [Fact]
+    public void Too_long_values_are_reported_in_polish()
+    {
+        var model = ValidRegistration();
+        model.Imie = new string('a', 51);
+
+        var error = Assert.Single(Validate(model), r => r.MemberNames.Contains("Imie"));
+        Assert.Equal("To pole może mieć najwyżej 50 znaków.", error.ErrorMessage);
+    }
+
+    [Fact]
+    public void No_form_model_falls_back_to_an_english_framework_message()
+    {
+        object[] emptyForms =
+        [
+            new RegisterViewModel(), new Logowanie(), new PasswordRecovery(), new ChangePassword(),
+            new ResetPasswordViewModel(), new CandidateFormViewModel(), new ElectionFormViewModel(), new KandydatViewModel(),
+        ];
+
+        Assert.All(emptyForms.SelectMany(Validate), r => Assert.DoesNotContain("field", r.ErrorMessage, StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
     public void Voting_form_requires_a_candidate()
     {
         Assert.Contains(Validate(new KandydatViewModel { ElectionId = 1 }), r => r.MemberNames.Contains("SelectedCandidateId"));

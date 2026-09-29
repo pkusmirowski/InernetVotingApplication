@@ -172,12 +172,18 @@ public sealed class UserServiceTests : IDisposable
         await context.SaveChangesAsync();
         var service = CreateService(context);
 
-        await service.RequestPasswordResetAsync("jan@example.com", token => $"https://app/reset/{token}");
-        await service.RequestPasswordResetAsync("unknown@example.com", token => $"https://app/reset/{token}");
+        var token = Guid.Empty;
+        await service.RequestPasswordResetAsync("jan@example.com", t => $"https://app/reset/{token = t}");
+        await service.RequestPasswordResetAsync("unknown@example.com", t => $"https://app/reset/{t}");
 
         var mail = Assert.Single(_email.Sent);
-        var token = context.Uzytkowniks.Single().TokenResetuHasla!.Value;
         Assert.Contains(token.ToString(), mail.HtmlBody, StringComparison.Ordinal);
+
+        // Only a hash of the token is stored; the value from the database does not work as a link.
+        var stored = context.Uzytkowniks.Single().TokenResetuHasla!.Value;
+        Assert.NotEqual(token, stored);
+        Assert.Equal(UserService.HashToken(token), stored);
+        Assert.False(await service.IsPasswordResetTokenValidAsync(stored));
 
         Assert.True(await service.IsPasswordResetTokenValidAsync(token));
         Assert.True(await service.ResetPasswordAsync(token, "Brand#New1"));
@@ -195,12 +201,38 @@ public sealed class UserServiceTests : IDisposable
         await context.SaveChangesAsync();
         var service = CreateService(context);
 
-        await service.RequestPasswordResetAsync("jan@example.com", _ => "x");
-        var token = context.Uzytkowniks.Single().TokenResetuHasla!.Value;
+        var token = Guid.Empty;
+        await service.RequestPasswordResetAsync("jan@example.com", t => (token = t).ToString());
+        Assert.True(await service.IsPasswordResetTokenValidAsync(token));
         _clock.Advance(TimeSpan.FromHours(2));
 
         Assert.False(await service.IsPasswordResetTokenValidAsync(token));
         Assert.False(await service.ResetPasswordAsync(token, "Brand#New1"));
+    }
+
+    [Fact]
+    public async Task Session_state_follows_role_activation_and_password_changes()
+    {
+        using var context = _db.CreateContext();
+        var user = TestData.User();
+        context.Uzytkowniks.Add(user);
+        await context.SaveChangesAsync();
+        var service = CreateService(context);
+
+        var before = await service.GetSessionStateAsync(user.Id);
+        Assert.NotNull(before);
+        Assert.True(before.IsActive);
+        Assert.False(before.IsAdmin);
+        Assert.Equal(UserService.PasswordStamp(user.Haslo), before.PasswordStamp);
+
+        context.Administrators.Add(new Administrator { IdUzytkownik = user.Id });
+        await context.SaveChangesAsync();
+        Assert.True((await service.GetSessionStateAsync(user.Id))!.IsAdmin);
+
+        Assert.True(await service.ChangePasswordAsync(user.Id, new ChangePassword { Password = "Correct#Horse1", NewPassword = "Brand#New1", ConfirmNewPassword = "Brand#New1" }));
+        Assert.NotEqual(before.PasswordStamp, (await service.GetSessionStateAsync(user.Id))!.PasswordStamp);
+
+        Assert.Null(await service.GetSessionStateAsync(999));
     }
 
     [Fact]

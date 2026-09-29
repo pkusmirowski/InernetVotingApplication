@@ -1,4 +1,5 @@
 using System.Data;
+using System.Data.Common;
 using InternetVotingApplication.Blockchain;
 using InternetVotingApplication.Configuration;
 using InternetVotingApplication.ExtensionMethods;
@@ -6,6 +7,7 @@ using InternetVotingApplication.Interfaces;
 using InternetVotingApplication.Models;
 using InternetVotingApplication.ViewModels;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Options;
 
 namespace InternetVotingApplication.Services;
@@ -18,7 +20,8 @@ public class ElectionService(
     IEmailSender emailSender,
     IOptions<ChainOptions> chainOptions,
     TimeProvider timeProvider,
-    ILogger<ElectionService> logger) : IElectionService
+    ILogger<ElectionService> logger,
+    IOptions<AppOptions>? appOptions = null) : IElectionService
 {
     private const int MaxAttempts = 3;
 
@@ -180,25 +183,29 @@ public class ElectionService(
         election.Wersja++;
 
         context.GlosowanieWyborczes.Add(block);
-        context.GlosUzytkownikas.Add(new GlosUzytkownika { IdUzytkownik = userId, IdWybory = electionId, DataOddania = now });
 
-        var email = await context.Uzytkowniks.Where(u => u.Id == userId).Select(u => u.Email).SingleAsync();
-        await emailSender.SendAsync(Email.VoteReceipt(email, election.Opis, block.Hash));
+        // Only the day is stored: an exact time equal to the block timestamp would let anyone reading the
+        // database join a voter to their block.
+        context.GlosUzytkownikas.Add(new GlosUzytkownika { IdUzytkownik = userId, IdWybory = electionId, DataOddania = now.Date });
 
         try
         {
+            // The outbox sender saves the context, so the block, the participation row and the receipt are
+            // written by this call; it must sit inside the try for a lost race to be retried.
+            var email = await context.Uzytkowniks.Where(u => u.Id == userId).Select(u => u.Email).SingleAsync();
+            await emailSender.SendAsync(Email.VoteReceipt(email, election.Opis, block.Hash, SearchLink(block.Hash)));
             await context.SaveChangesAsync();
             await transaction.CommitAsync();
         }
         catch (DbUpdateConcurrencyException)
         {
             // Another vote in the same election committed first; the election row version moved on.
-            await transaction.RollbackAsync();
+            await RollbackQuietlyAsync(transaction);
             return (new VoteOutcome(VoteStatus.Conflict), true);
         }
         catch (DbUpdateException ex)
         {
-            await transaction.RollbackAsync();
+            await RollbackQuietlyAsync(transaction);
             context.ChangeTracker.Clear();
             if (await HasVotedAsync(userId, electionId))
             {
@@ -212,6 +219,19 @@ public class ElectionService(
 
         logger.LogInformation("Vote recorded in election {ElectionId}, block {Index}", electionId, block.Indeks);
         return (new VoteOutcome(VoteStatus.Success, block.Hash, election.Opis), false);
+    }
+
+    /// <summary>A deadlock victim's transaction is already rolled back by the server; a second rollback must not hide the retry.</summary>
+    private async Task RollbackQuietlyAsync(IDbContextTransaction transaction)
+    {
+        try
+        {
+            await transaction.RollbackAsync();
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or DbException)
+        {
+            logger.LogDebug(ex, "Rollback after a failed vote save was not needed");
+        }
     }
 
     /// <summary>Cheap integrity check: stored head matches the last block, and that block hashes and verifies.</summary>
@@ -261,6 +281,13 @@ public class ElectionService(
         {
             await chainService.PublishAnchorAsync(electionId, ChainService.ReasonPeriodic);
         }
+    }
+
+    /// <summary>Link to the public vote search, built only from the configured public address (never from the request).</summary>
+    private string? SearchLink(string hash)
+    {
+        var baseUrl = appOptions?.Value.PublicBaseUrl;
+        return string.IsNullOrWhiteSpace(baseUrl) ? null : $"{baseUrl.TrimEnd('/')}/Account/Search?hash={hash}";
     }
 
     private DateTime Now() => timeProvider.GetLocalNow().DateTime;

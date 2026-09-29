@@ -14,9 +14,10 @@ Pełny opis uruchamiania, konfiguracji, testów i łańcucha głosów. Krótkie 
   i jest zapisywana w dzienniku weryfikacji.
 - Kotwice: podpisane migawki głowy wysyłane e-mailem do komisji co N bloków i po zakończeniu wyborów.
 - Publiczna wyszukiwarka głosu po hashu, publiczna strona łańcucha (`/Election/Chain/{id}`) i eksport JSON
-  (`/Election/Export/{id}`) weryfikowalny niezależnym narzędziem `tools/ChainVerifier`.
+  (`/Election/Export/{id}`, dostępny po zakończeniu wyborów) weryfikowalny niezależnym narzędziem `tools/ChainVerifier`.
 - Panel administratora: wybory i łańcuchy (weryfikacja na żądanie, publikacja kotwicy), kandydaci,
-  dziennik audytu.
+  użytkownicy i role, dziennik audytu. Kandydatów można zmieniać tylko przed rozpoczęciem głosowania; w trwających
+  wyborach data rozpoczęcia jest zablokowana, a zakończonych nie można ponownie otworzyć.
 - Poczta przez outbox (tabela + dispatcher z ponawianiem): wiadomość zapisuje się w tej samej transakcji
   co głos i nie ginie przy restarcie.
 - Ograniczenie liczby żądań na logowaniu i rejestracji, `/health`, logi strukturalne (Serilog).
@@ -25,22 +26,22 @@ Pełny opis uruchamiania, konfiguracji, testów i łańcucha głosów. Krótkie 
 
 | Katalog | Zawartość |
 | --- | --- |
-| `Controllers/` | `Account`, `Election`, `Admin`, `Home` |
-| `Services/` | logika domenowa (`UserService`, `ElectionService`, `AdminService`) i wysyłka poczty (`Services/Mail`) |
+| `Controllers/` | `Account`, `Election`, `Admin`, `Home`, `Setup` (diagnostyka, tylko Development) |
+| `Services/` | logika domenowa (`UserService`, `ElectionService`, `ResultsService`, `AdminService`, `ChainService`), dziennik audytu, kontrola sesji (`SessionValidator`), zadania w tle (`ChainVerificationWorker`) i poczta (`Services/Mail`) |
 | `Blockchain/` | serializacja bloku, hashowanie, podpis ECDSA, weryfikacja łańcucha i głowy |
 | `Models/` | encje EF Core, `DbContext`, enumy statusów, modele formularzy logowania i haseł |
 | `ViewModels/` | modele widoków i formularzy |
-| `Data/` | inicjalizacja bazy (migracje, awans administratorów) |
-| `Configuration/` | klasy opcji (`Smtp`, `Security`, `Seeding`, `Database`) |
+| `Data/` | wybór silnika bazy, inicjalizacja (migracje, awans administratorów, konta testowe, dane przykładowe) |
+| `Configuration/` | klasy opcji (`App`, `Database`, `Smtp`, `Mail`, `Security`, `Seeding`, `Signing`, `Chain`) |
 | `Migrations/` | migracje EF Core |
 | `tests/InternetVotingApplication.Tests/` | testy jednostkowe, serwisów (SQLite in-memory) i integracyjne (`WebApplicationFactory`) |
 | `tools/ChainVerifier/` | niezależny weryfikator eksportu łańcucha (konsola, bez zależności od aplikacji) |
-| `docs/` | analiza kodu i plan rozwoju |
+| `docs/` | architektura, ta instrukcja i porównanie z pierwotną wersją pracy (`OCENA_ZMIAN.md`) |
 
 ## Szybki start (Windows, Visual Studio)
 
 Potrzebujesz tylko **.NET SDK 10.0** (<https://dotnet.microsoft.com/download/dotnet/10.0>, albo
-`winget install Microsoft.DotNet.SDK.10`) i Visual Studio 2022 17.14+ lub Visual Studio 2026.
+`winget install Microsoft.DotNet.SDK.10`) i Visual Studio 2026 (projekt jest na .NET 10).
 SQL Server jest opcjonalny: bez niego aplikacja w trybie Development uruchomi się na pliku SQLite i powie Ci o tym.
 
 1. Otwórz `InternetVotingApplication.sln` w Visual Studio.
@@ -51,13 +52,21 @@ SQL Server jest opcjonalny: bez niego aplikacja w trybie Development uruchomi si
 Co dzieje się przy pierwszym starcie w trybie Development:
 
 - aplikacja sprawdza (maksymalnie 3 s), czy SQL Server `localhost` odpowiada; jeśli tak, tworzy bazę
-  `InternetVoting` migracjami EF Core; jeśli nie, przechodzi w **tryb zapasowy SQLite**
+  `InternetVotingV2` migracjami EF Core; jeśli nie, przechodzi w **tryb zapasowy SQLite**
   (`App_Data/voting-dev.db`) i wyświetla żółty pasek na dole każdej strony oraz wyjaśnienie w logu,
 - dodaje trzy przykładowe wybory z kandydatami (trwające, nadchodzące, zakończone),
 - generuje klucz podpisu bloków do `App_Data/signing-key.pem` (zrób jego kopię),
 - zapisuje każdy e-mail jako plik HTML w `App_Data/mail/` (aktywacja konta, reset hasła, potwierdzenie
   głosu, kotwice łańcucha) zamiast wysyłać go przez SMTP,
-- pierwsze aktywowane konto dostaje rolę administratora; kolejne są zwykłymi wyborcami.
+- tworzy konta testowe (`Seeding:TestAccounts`), aktywne, z jawnymi hasłami widocznymi na stronie `/setup`:
+
+  | Konto | Hasło | Rola |
+  | --- | --- | --- |
+  | `admin@test.local` | `Admin123!` | administrator |
+  | `wyborca1@test.local` … `wyborca5@test.local` | `Wyborca123!` | wyborcy |
+
+- pierwsze aktywowane konto dostaje rolę administratora, jeśli żaden administrator jeszcze nie istnieje
+  (z kontami testowymi już istnieje, więc kolejne rejestracje to zwykli wyborcy).
 
 Profile startowe (`Properties/launchSettings.json`):
 
@@ -89,30 +98,25 @@ SQL Serverze (tryb projektowy pomija sondę).
 Inna instancja SQL Server (Express, LocalDB) bez zmieniania plików w repozytorium:
 
 ```bash
-dotnet user-secrets set "ConnectionStrings:InternetVotingDBConnection" "Server=localhost\SQLEXPRESS;Database=InternetVoting;Trusted_Connection=True;TrustServerCertificate=True;"
+dotnet user-secrets set "ConnectionStrings:InternetVotingDBConnection" "Server=localhost\SQLEXPRESS;Database=InternetVotingV2;Trusted_Connection=True;TrustServerCertificate=True;"
 ```
 
 ### Rozwiązywanie problemów
 
 | Objaw | Przyczyna | Co zrobić |
 | --- | --- | --- |
-| `A compatible .NET SDK was not found` / `global.json` | brak SDK 10.0 | `winget install Microsoft.DotNet.SDK.10`, restart Visual Studio (wymagane 2022 17.14+ lub 2026) |
+| `A compatible .NET SDK was not found` / `global.json` | brak SDK 10.0 | `winget install Microsoft.DotNet.SDK.10`, restart Visual Studio (wymagane Visual Studio 2026) |
 | żółty pasek „Tryb zapasowy" mimo zainstalowanego SQL Servera | usługa zatrzymana | `services.msc` → „SQL Server (MSSQLSERVER)" → Uruchom; restart aplikacji |
 | pasek „Tryb zapasowy", w logu kod 2/53/26 | inna nazwa instancji lub wyłączony TCP/IP | `Server=localhost\SQLEXPRESS` lub `(localdb)\MSSQLLocalDB` w user secrets; SQL Server Configuration Manager → Protocols → TCP/IP |
 | w logu kod 18456 | konto Windows bez loginu na serwerze | w SSMS dodaj login dla konta Windows albo użyj loginu SQL |
-| w logu kod 4060 | brak bazy i brak uprawnień do jej utworzenia | nadaj koncie rolę `dbcreator` albo utwórz pustą bazę `InternetVoting` |
+| w logu kod 4060 | brak bazy i brak uprawnień do jej utworzenia | nadaj koncie rolę `dbcreator` albo utwórz pustą bazę `InternetVotingV2` |
+| w logu kod 2714, „tabele z innej wersji aplikacji” | połączenie wskazuje starą bazę (np. z pierwotnej wersji pracy) | wskaż nową bazę albo zrób kopię starej i ją usuń |
 | dane „zniknęły" po włączeniu SQL Servera | wcześniej pracowałeś na SQLite | to inna baza; zarejestruj się ponownie albo wróć profilem `https (SQLite)` |
 | `SQLite Error 1: no such column` | stary plik SQLite po zmianie modelu | usuń `App_Data/voting-dev.db` |
 | brak e-maila aktywacyjnego | poczta idzie do plików | otwórz najnowszy plik z `App_Data/mail/` |
 | przeglądarka ostrzega o certyfikacie | brak zaufanego certyfikatu deweloperskiego | `dotnet dev-certs https --trust` albo profil `http` |
 | port 5001 zajęty | inna aplikacja | zmień `applicationUrl` w `Properties/launchSettings.json` |
 | po utracie `App_Data/signing-key.pem` weryfikacja podpisów nie przechodzi | nowy klucz | przywróć kopię pliku; bez niej stare bloki są niepodpisane poprawnie |
-
-Wariant z Dockerem (SQL Server + Mailpit na <http://localhost:8025> + aplikacja na <http://localhost:8080>):
-
-```bash
-docker compose up --build
-```
 
 ### Konto administratora w produkcji
 
@@ -135,7 +139,7 @@ Wartości wrażliwe nie są przechowywane w repozytorium. Lokalnie użyj user se
 | `Smtp:Host`, `Smtp:Port`, `Smtp:SecureSocket`, `Smtp:UserName`, `Smtp:Password`, `Smtp:FromAddress` | serwer poczty; `Smtp:Enabled=false` tylko loguje wiadomości |
 | `Security:MaxFailedLoginAttempts`, `Security:LockoutDuration`, `Security:PasswordResetTokenLifetime` | polityka blokady konta i ważność linku resetu |
 | `App:PublicBaseUrl` | publiczny adres aplikacji do budowania linków w e-mailach (w produkcji obowiązkowy: bez niego link powstaje z nagłówka `Host` żądania) |
-| `Seeding:AdminEmails`, `Seeding:FirstActivatedUserIsAdmin`, `Seeding:SampleData` | administratorzy i dane przykładowe (dwa ostatnie działają wyłącznie w środowisku Development, poza nim są ignorowane) |
+| `Seeding:AdminEmails`, `Seeding:FirstActivatedUserIsAdmin`, `Seeding:SampleData`, `Seeding:TestAccounts` | administratorzy, dane przykładowe i konta testowe (trzy ostatnie działają wyłącznie w środowisku Development, poza nim są ignorowane) |
 | `Smtp:PickupDirectory` | katalog na pliki HTML z pocztą zamiast wysyłki (rozwój) |
 | `Signing:PrivateKeyPem`, `Signing:KeyFilePath`, `Signing:AutoGenerateKey` | klucz ECDSA do podpisu bloków i kotwic |
 | `Chain:VerificationInterval`, `Chain:AnchorEveryBlocks`, `Chain:AnchorRecipients`, `Chain:VerifyEndedElectionsFor` | częstość weryfikacji w tle, kotwice i ich odbiorcy |
@@ -157,12 +161,15 @@ dotnet test InternetVotingApplication.sln --settings tests/coverage.runsettings 
 ```
 
 Testy nie wymagają SQL Server ani SMTP: serwisy i testy integracyjne działają na SQLite in-memory,
-a poczta jest przechwytywana przez `FakeEmailSender`. Poziomy testów:
+a poczta jest przechwytywana przez `FakeEmailSender` (wysyłkę SMTP sprawdza mały serwer SMTP uruchamiany w teście).
+Jest ich 315, pokrycie kodu wynosi 99% linii i 92% gałęzi. CI odrzuca zmianę, gdy pokrycie spadnie poniżej 97% linii
+albo 88% gałęzi (krok „Coverage gate”). Z pomiaru wyłączone są tylko kod generowany (migracje, widoki Razor) i punkty
+startowe `Program.cs`. Poziomy testów:
 
 | Katalog | Co sprawdza |
 | --- | --- |
 | `Unit/` | algorytmy i reguły: PESEL, wiek, SHA-256, podpis ECDSA, weryfikacja łańcucha, walidacja formularzy, szablony e-mail, nagłówki, konfiguracja, weryfikator offline |
-| `Services/` | serwisy na prawdziwym EF Core (SQLite): rejestracja, logowanie, blokada, reset hasła, głosowanie, wyścigi, wyniki, kotwice, outbox, worker, seeding |
+| `Services/` | serwisy na prawdziwym EF Core (SQLite): rejestracja, logowanie, blokada, reset hasła, głosowanie, wyścigi, wyniki, kotwice, outbox, worker, seeding, start bazy; ścieżki błędów (konflikt współbieżności, naruszenie indeksu unikalnego, klucz obcy, nieudany rollback) wywoływane przez `FailingSaveInterceptor` |
 | `Controllers/` | kontrolery w izolacji (NSubstitute): przekierowania, komunikaty, `TempData`, mapowanie statusów |
 | `Integration/` | cała aplikacja przez `WebApplicationFactory`: strony publiczne, autoryzacja, CSRF, rate limiting, pełny przebieg wyborcy i administratora |
 
@@ -221,4 +228,4 @@ Zwraca kod 0 dla poprawnego łańcucha, 1 dla niepoprawnego.
 
 ## Licencja
 
-MIT, patrz `LICENSE`.
+GNU GPL v3, patrz `LICENSE`.

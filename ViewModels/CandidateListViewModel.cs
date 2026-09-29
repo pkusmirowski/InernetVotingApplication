@@ -12,7 +12,11 @@ public class CandidateListItemViewModel
 
     public string ElectionName { get; set; } = string.Empty;
 
-    public int VoteCount { get; set; }
+    /// <summary>Votes for the candidate; null until the election ends, so no partial results are shown.</summary>
+    public int? VoteCount { get; set; }
+
+    /// <summary>Candidates can be removed only before voting starts.</summary>
+    public bool CanDelete { get; set; }
 }
 
 public class CandidateListViewModel

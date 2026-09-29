@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.RegularExpressions;
+using InternetVotingApplication.Services;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 
@@ -30,6 +31,7 @@ public sealed partial class AdminFlowTests : IClassFixture<VotingWebApplicationF
             {
                 ["Seeding:FirstActivatedUserIsAdmin"] = "true",
                 ["Seeding:SampleData"] = "false",
+                ["Seeding:TestAccounts"] = "false",
                 ["Database:Provider"] = "Sqlite",
                 ["Database:SqliteConnectionString"] = "Data Source=:memory:",
                 ["Database:FallbackToSqliteWhenUnavailable"] = "false",
@@ -84,10 +86,10 @@ public sealed partial class AdminFlowTests : IClassFixture<VotingWebApplicationF
         Assert.Equal(HttpStatusCode.Redirect, verify.StatusCode);
 
         var audit = await client.GetAsync(new Uri("/Admin/Audit", UriKind.Relative));
-        var auditHtml = await audit.Content.ReadAsStringAsync();
-        Assert.Contains("AdminPromoted", auditHtml, StringComparison.Ordinal);
-        Assert.Contains("ElectionCreated", auditHtml, StringComparison.Ordinal);
-        Assert.Contains("ChainVerified", auditHtml, StringComparison.Ordinal);
+        var auditHtml = WebUtility.HtmlDecode(await audit.Content.ReadAsStringAsync());
+        Assert.Contains(AuditLog.Actions.Describe(AuditLog.Actions.AdminPromoted), auditHtml, StringComparison.Ordinal);
+        Assert.Contains(AuditLog.Actions.Describe(AuditLog.Actions.ElectionCreated), auditHtml, StringComparison.Ordinal);
+        Assert.Contains(AuditLog.Actions.Describe(AuditLog.Actions.ChainVerified), auditHtml, StringComparison.Ordinal);
 
         // A voter (non-admin) is redirected away from admin pages.
         var voterClient = factory.CreateClient(new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactoryClientOptions { BaseAddress = new Uri("https://localhost"), AllowAutoRedirect = false });
@@ -109,6 +111,29 @@ public sealed partial class AdminFlowTests : IClassFixture<VotingWebApplicationF
         var denied = await voterClient.GetAsync(new Uri("/Admin/Elections", UriKind.Relative));
         Assert.Equal(HttpStatusCode.Redirect, denied.StatusCode);
         Assert.StartsWith("/Account/AccessDenied", denied.LocationPath(), StringComparison.Ordinal);
+
+        // Role changes reach a session that is already open, without logging in again.
+        var usersHtml = await (await client.GetAsync(new Uri("/Admin/Users", UriKind.Relative))).Content.ReadAsStringAsync();
+        var voterId = Regex.Match(usersHtml, "ewa\\.wyborca@example\\.com[\\s\\S]*?/Admin/SetAdministrator/(\\d+)").Groups[1].Value;
+        Assert.NotEmpty(voterId);
+        await client.PostFormAsync("/Admin/Users", new Dictionary<string, string> { ["isAdmin"] = "true" }, postUrl: $"/Admin/SetAdministrator/{voterId}");
+        Assert.Equal(HttpStatusCode.OK, (await voterClient.GetAsync(new Uri("/Admin/Elections", UriKind.Relative))).StatusCode);
+        await client.PostFormAsync("/Admin/Users", new Dictionary<string, string> { ["isAdmin"] = "false" }, postUrl: $"/Admin/SetAdministrator/{voterId}");
+        Assert.StartsWith("/Account/AccessDenied", (await voterClient.GetAsync(new Uri("/Admin/Elections", UriKind.Relative))).LocationPath(), StringComparison.Ordinal);
+
+        // A password change keeps the current session and ends the others.
+        var secondSession = factory.CreateClient(new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactoryClientOptions { BaseAddress = new Uri("https://localhost"), AllowAutoRedirect = false });
+        await secondSession.PostFormAsync("/Account/Login", new Dictionary<string, string> { ["Email"] = "ewa.wyborca@example.com", ["Haslo"] = "Secret#Pass1" });
+        Assert.Equal(HttpStatusCode.OK, (await secondSession.GetAsync(new Uri("/Election/Dashboard", UriKind.Relative))).StatusCode);
+        var change = await voterClient.PostFormAsync("/Account/ChangePassword", new Dictionary<string, string>
+        {
+            ["Password"] = "Secret#Pass1",
+            ["NewPassword"] = "Other#Pass2",
+            ["ConfirmNewPassword"] = "Other#Pass2",
+        });
+        Assert.Equal("/Account/ChangePassword", change.LocationPath());
+        Assert.Equal(HttpStatusCode.OK, (await voterClient.GetAsync(new Uri("/Election/Dashboard", UriKind.Relative))).StatusCode);
+        Assert.StartsWith("/Account/Login", (await secondSession.GetAsync(new Uri("/Election/Dashboard", UriKind.Relative))).LocationPath(), StringComparison.Ordinal);
     }
 
     [Fact]
@@ -130,5 +155,9 @@ public sealed partial class AdminFlowTests : IClassFixture<VotingWebApplicationF
         Assert.Equal(HttpStatusCode.OK, first.StatusCode);
         Assert.Equal(HttpStatusCode.OK, second.StatusCode);
         Assert.Equal(HttpStatusCode.TooManyRequests, third.StatusCode);
+
+        // A limited POST without an antiforgery token still reports 429, not the token error of the error page.
+        using var bare = await client.PostAsync(new Uri("/Account/Login", UriKind.Relative), null);
+        Assert.Equal(HttpStatusCode.TooManyRequests, bare.StatusCode);
     }
 }

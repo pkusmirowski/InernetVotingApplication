@@ -139,7 +139,7 @@ public class AccountControllerTests
 
     [Theory]
     [InlineData(LoginStatus.InvalidCredentials, "Nieprawidłowy")]
-    [InlineData(LoginStatus.NotActivated, "aktywowane")]
+    [InlineData(LoginStatus.NotActivated, "nie jest jeszcze aktywne")]
     [InlineData(LoginStatus.LockedOut, "zablokowane")]
     public async Task Login_post_failure_shows_message_and_does_not_sign_in(LoginStatus status, string fragment)
     {
@@ -230,6 +230,84 @@ public class AccountControllerTests
 
         AssertRedirect(result, "Login");
         Assert.NotNull(controller.TempData["StatusMessage"]);
+    }
+
+    [Fact]
+    public async Task Register_post_from_a_signed_in_user_goes_to_dashboard()
+    {
+        AssertRedirect(await Create(Voter()).Register(Registration()), "Dashboard", "Election");
+        await _users.DidNotReceiveWithAnyArgs().RegisterAsync(default!, default!);
+    }
+
+    [Fact]
+    public async Task Register_post_with_unexpected_status_shows_a_general_error()
+    {
+        _users.RegisterAsync(Arg.Any<RegisterViewModel>(), Arg.Any<Func<Guid, string>>()).Returns((RegistrationStatus)99);
+        var controller = Create();
+
+        AssertView(await controller.Register(Registration()));
+
+        Assert.NotEmpty(controller.ModelState[string.Empty]!.Errors);
+    }
+
+    [Fact]
+    public async Task Forms_with_invalid_input_are_shown_again_without_calling_the_service()
+    {
+        var login = new Logowanie { Email = "x" };
+        var controller = Create();
+        controller.ModelState.AddModelError("Haslo", "wymagane");
+        Assert.Same(login, AssertView(await controller.Login(login)).Model);
+
+        var change = new ChangePassword();
+        controller = Create(Voter());
+        controller.ModelState.AddModelError("NewPassword", "wymagane");
+        Assert.Same(change, AssertView(await controller.ChangePassword(change)).Model);
+
+        var recovery = new PasswordRecovery();
+        controller = Create();
+        controller.ModelState.AddModelError("Email", "wymagane");
+        Assert.Same(recovery, AssertView(await controller.PasswordRecovery(recovery)).Model);
+
+        var reset = new ResetPasswordViewModel { Token = Guid.NewGuid() };
+        controller = Create();
+        controller.ModelState.AddModelError("NewPassword", "wymagane");
+        Assert.Same(reset, AssertView(await controller.ResetPassword(reset)).Model);
+
+        await _users.DidNotReceiveWithAnyArgs().LoginAsync(default!);
+        await _users.DidNotReceiveWithAnyArgs().ChangePasswordAsync(default, default!);
+        await _users.DidNotReceiveWithAnyArgs().RequestPasswordResetAsync(default!, default!);
+        await _users.DidNotReceiveWithAnyArgs().ResetPasswordAsync(default, default!);
+    }
+
+    [Fact]
+    public async Task ResetPassword_post_with_used_or_expired_token_shows_invalid_page()
+    {
+        var model = new ResetPasswordViewModel { Token = Guid.NewGuid(), NewPassword = "Secret#Pass1", ConfirmNewPassword = "Secret#Pass1" };
+        _users.ResetPasswordAsync(model.Token, model.NewPassword).Returns(false);
+
+        AssertView(await Create().ResetPassword(model), "ResetPasswordInvalid");
+    }
+
+    [Fact]
+    public void AccessDenied_shows_view()
+    {
+        AssertView(Create(Voter()).AccessDenied());
+    }
+
+    [Fact]
+    public async Task ChangePassword_renews_the_current_session_with_the_new_password_stamp()
+    {
+        _users.ChangePasswordAsync(1, Arg.Any<ChangePassword>()).Returns(true);
+        _users.GetSessionStateAsync(1).Returns(new SessionState(true, false, "NEWSTAMP"));
+        var controller = Create(Voter());
+
+        AssertRedirect(await controller.ChangePassword(new ChangePassword { Password = "a", NewPassword = "b", ConfirmNewPassword = "b" }), "ChangePassword");
+
+        await _authentication.Received(1).SignInAsync(
+            Arg.Any<HttpContext>(),
+            Arg.Any<string>(),
+            Arg.Is<ClaimsPrincipal>(p => p.FindFirstValue(InternetVotingApplication.Services.SessionValidator.PasswordStampClaim) == "NEWSTAMP" && p.IsInRole(Roles.Voter)),
+            Arg.Any<AuthenticationProperties>());
     }
 
     [Fact]

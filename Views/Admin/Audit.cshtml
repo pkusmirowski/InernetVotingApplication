@@ -3,7 +3,7 @@
     ViewData["Title"] = "Dziennik audytu";
 }
 <h2>Dziennik audytu</h2>
-<p class="text-muted">Ostatnie @Model.Count wpisów: działania administratorów i zdarzenia łańcucha.</p>
+<p class="text-muted">Ostatnie @Model.Count wpisów: działania administratorów i zdarzenia w rejestrach głosów.</p>
 <hr />
 @if (Model.Count == 0)
 {
@@ -14,15 +14,15 @@ else
     <div class="table-responsive">
         <table class="table table-sm table-striped">
             <thead>
-                <tr><th>Czas</th><th>Użytkownik</th><th>Akcja</th><th>Szczegóły</th></tr>
+                <tr><th>Data i godzina</th><th>Kto (numer konta)</th><th>Co się stało</th><th>Szczegóły</th></tr>
             </thead>
             <tbody>
                 @foreach (var entry in Model)
                 {
                     <tr>
                         <td class="text-nowrap">@entry.Date.ToString("g")</td>
-                        <td>@(entry.UserId?.ToString() ?? "system")</td>
-                        <td><code>@entry.Action</code></td>
+                        <td>@(entry.UserId?.ToString() ?? "automatycznie")</td>
+                        <td class="@(entry.Action == InternetVotingApplication.Services.AuditLog.Actions.ChainCorrupted ? "text-danger fw-bold" : "")">@InternetVotingApplication.Services.AuditLog.Actions.Describe(entry.Action)</td>
                         <td class="small">@entry.Details</td>
                     </tr>
                 }

@@ -146,6 +146,16 @@ public sealed class DatabaseProviderResolverTests : IDisposable
     }
 
     [Fact]
+    public void Explain_recognises_an_old_database_with_other_tables()
+    {
+        var text = DatabaseProviderResolver.Explain(SqlServerConnection, "There is already an object named 'Uzytkownik' in the database.", 2714);
+
+        Assert.Contains("tabele z innej wersji aplikacji", text, StringComparison.Ordinal);
+        Assert.Contains("InternetVotingV2", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("Nie udało się połączyć", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Configure_applies_matching_ef_provider()
     {
         var sqlServer = new DbContextOptionsBuilder();

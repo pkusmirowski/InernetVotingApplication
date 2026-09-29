@@ -40,10 +40,21 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
                 {
                     options.FirstActivatedUserIsAdmin = false;
                     options.SampleData = false;
+                    options.TestAccounts = false;
                 }
             });
         services.AddOptions<SecurityOptions>().Bind(Configuration.GetSection(SecurityOptions.SectionName));
-        services.AddOptions<SigningOptions>().Bind(Configuration.GetSection(SigningOptions.SectionName));
+        services.AddOptions<SigningOptions>()
+            .Bind(Configuration.GetSection(SigningOptions.SectionName))
+            .PostConfigure(options =>
+            {
+                // A silently generated key would make every existing chain fail verification and block voting;
+                // outside development a missing key must stop the start-up instead.
+                if (!Environment.IsDevelopment())
+                {
+                    options.AutoGenerateKey = false;
+                }
+            });
         services.AddOptions<ChainOptions>().Bind(Configuration.GetSection(ChainOptions.SectionName));
 
         services.AddOptions<DatabaseOptions>().Bind(Configuration.GetSection(DatabaseOptions.SectionName));
@@ -88,6 +99,7 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
                 options.Cookie.HttpOnly = true;
                 options.Cookie.SameSite = SameSiteMode.Lax;
                 options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+                options.Events.OnValidatePrincipal = SessionValidator.ValidateAsync;
             });
 
         services.AddAuthorizationBuilder()
@@ -111,7 +123,10 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
             .AddDbContextCheck<InternetVotingContext>("database");
 
         services.AddControllersWithViews(options =>
-            options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute()));
+        {
+            options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
+            ValidationMessages.UsePolish(options.ModelBindingMessageProvider);
+        });
     }
 
     public void Configure(WebApplication app)

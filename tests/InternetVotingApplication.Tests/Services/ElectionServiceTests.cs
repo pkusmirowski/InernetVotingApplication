@@ -1,6 +1,7 @@
 using InternetVotingApplication.Blockchain;
 using InternetVotingApplication.Models;
 using InternetVotingApplication.Services;
+using InternetVotingApplication.Services.Mail;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Time.Testing;
 
@@ -238,8 +239,71 @@ public sealed class ElectionServiceTests : IDisposable
         Assert.Equal(ElectionStatus.Ended, list.Elections.Single(e => e.Opis == "Minione").Status);
     }
 
+    [Fact]
+    public async Task Vote_that_loses_a_race_is_retried_with_the_outbox_sender()
+    {
+        using var context = _db.CreateContext();
+        var (user, election, a, _) = await SeedAsync(context);
+        // The real outbox sender saves the context; the first call simulates another vote committing just before.
+        var sender = new RacingOutboxSender(new QueuedEmailSender(new EmailQueue(context, _clock)), context, election.Id);
+        var service = new ElectionService(context, TestData.Signer, CreateChain(context), sender, TestData.ChainOptions(), _clock, TestData.Logger<ElectionService>());
+
+        var outcome = await service.CastVoteAsync(user.Id, election.Id, a.Id);
+
+        Assert.Equal(VoteStatus.Success, outcome.Status);
+        Assert.Equal(2, sender.Calls);
+        using var check = _db.CreateContext();
+        Assert.Single(check.GlosowanieWyborczes);
+        Assert.Single(check.GlosUzytkownikas);
+        Assert.Single(check.WiadomosciEmail);
+    }
+
+    [Fact]
+    public async Task Receipt_links_to_the_vote_search_when_a_public_address_is_configured()
+    {
+        using var context = _db.CreateContext();
+        var (user, election, a, _) = await SeedAsync(context);
+        var appOptions = Microsoft.Extensions.Options.Options.Create(new InternetVotingApplication.Configuration.AppOptions { PublicBaseUrl = "https://glosowanie.pl/" });
+        var service = new ElectionService(context, TestData.Signer, CreateChain(context), _email, TestData.ChainOptions(), _clock, TestData.Logger<ElectionService>(), appOptions);
+
+        var outcome = await service.CastVoteAsync(user.Id, election.Id, a.Id);
+
+        Assert.Contains($"https://glosowanie.pl/Account/Search?hash={outcome.Hash}", Assert.Single(_email.Sent).HtmlBody, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Participation_row_does_not_carry_the_block_time()
+    {
+        _clock.Advance(TimeSpan.FromMinutes(37));
+        using var context = _db.CreateContext();
+        var (user, election, a, _) = await SeedAsync(context);
+
+        await CreateService(context).CastVoteAsync(user.Id, election.Id, a.Id);
+
+        var block = Assert.Single(context.GlosowanieWyborczes);
+        var participation = Assert.Single(context.GlosUzytkownikas);
+        Assert.Equal(block.ZnacznikCzasu.Date, participation.DataOddania);
+        Assert.NotEqual(block.ZnacznikCzasu, participation.DataOddania);
+    }
+
     public void Dispose()
     {
         _db.Dispose();
+    }
+
+    /// <summary>On the first message bumps the election version in the open transaction, as a competing vote would.</summary>
+    private sealed class RacingOutboxSender(QueuedEmailSender inner, InternetVotingContext context, int electionId) : InternetVotingApplication.Interfaces.IEmailSender
+    {
+        public int Calls { get; private set; }
+
+        public async Task SendAsync(EmailMessage message, CancellationToken cancellationToken = default)
+        {
+            if (++Calls == 1)
+            {
+                await context.Database.ExecuteSqlAsync($"UPDATE DataWyborow SET wersja = wersja + 1 WHERE id = {electionId}", cancellationToken);
+            }
+
+            await inner.SendAsync(message, cancellationToken);
+        }
     }
 }

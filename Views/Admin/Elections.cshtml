@@ -1,8 +1,12 @@
 @model IReadOnlyList<AdminElectionViewModel>
 @{
-    ViewData["Title"] = "Wybory i łańcuchy";
+    ViewData["Title"] = "Wybory i rejestry głosów";
 }
-<h2>Wybory i łańcuchy</h2>
+<h2>Wybory i rejestry głosów</h2>
+<p>
+    <a class="btn btn-primary btn-sm" asp-action="CreateElection">Stwórz nowe wybory</a>
+    <a class="btn btn-outline-primary btn-sm" asp-action="AddCandidate">Dodaj kandydata</a>
+</p>
 <hr />
 <partial name="_StatusMessage" />
 @if (Model.Count == 0)
@@ -19,9 +23,9 @@ else
                     <th>Status</th>
                     <th>Kandydaci</th>
                     <th>Głosujący</th>
-                    <th>Bloki</th>
-                    <th>Weryfikacja</th>
-                    <th>Kotwice</th>
+                    <th>Zapisane głosy</th>
+                    <th>Kontrola rejestru</th>
+                    <th>Kopie kontrolne</th>
                     <th></th>
                 </tr>
             </thead>
@@ -43,11 +47,11 @@ else
                         <td>
                             @if (e.LastVerification is null)
                             {
-                                <span class="text-muted">brak</span>
+                                <span class="text-muted">jeszcze nie było</span>
                             }
                             else
                             {
-                                <span class="badge @(e.LastVerification.IsValid ? "bg-success" : "bg-danger")">@(e.LastVerification.IsValid ? "OK" : "BŁĄD")</span>
+                                <span class="badge @(e.LastVerification.IsValid ? "bg-success" : "bg-danger")">@(e.LastVerification.IsValid ? "bez zastrzeżeń" : "nieprawidłowości")</span>
                                 <div class="small text-muted">@e.LastVerification.Date.ToString("g")</div>
                             }
                         </td>
@@ -60,13 +64,21 @@ else
                         </td>
                         <td class="text-end text-nowrap">
                             <form asp-action="VerifyChain" asp-route-id="@e.Id" method="post" class="d-inline">
-                                <button type="submit" class="btn btn-sm btn-outline-primary">Weryfikuj</button>
+                                <button type="submit" class="btn btn-sm btn-outline-primary">Skontroluj rejestr</button>
                             </form>
                             <form asp-action="PublishAnchor" asp-route-id="@e.Id" method="post" class="d-inline">
-                                <button type="submit" class="btn btn-sm btn-outline-secondary">Kotwica</button>
+                                <button type="submit" class="btn btn-sm btn-outline-secondary">Wyślij kopię kontrolną</button>
                             </form>
-                            <a class="btn btn-sm btn-link" asp-controller="Election" asp-action="Chain" asp-route-id="@e.Id">Łańcuch</a>
+                            <a class="btn btn-sm btn-link" asp-controller="Election" asp-action="Chain" asp-route-id="@e.Id">Rejestr głosów</a>
                             <a class="btn btn-sm btn-link" asp-action="DeleteCandidate" asp-route-electionId="@e.Id">Kandydaci</a>
+                            <a class="btn btn-sm btn-link" asp-action="AddCandidate" asp-route-electionId="@e.Id">Dodaj kandydata</a>
+                            <a class="btn btn-sm btn-outline-secondary" asp-action="EditElection" asp-route-id="@e.Id">Edytuj</a>
+                            @if (e.BlockCount == 0)
+                            {
+                                <form asp-action="DeleteElection" asp-route-id="@e.Id" method="post" class="d-inline" data-confirm="Usunąć wybory „@e.Opis” razem z kandydatami?">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Usuń</button>
+                                </form>
+                            }
                         </td>
                     </tr>
                 }

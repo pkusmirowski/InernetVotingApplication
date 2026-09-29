@@ -72,6 +72,30 @@
         </div>
     }
 </div>
+@if (Model.TestAccounts.Count > 0)
+{
+    <h4 class="mt-4">Konta testowe</h4>
+    <p class="text-muted small">Konta są aktywne, hasła są jawne: tylko środowisko Development (<code>Seeding:TestAccounts</code>).</p>
+    <div class="table-responsive">
+        <table class="table table-sm align-middle">
+            <thead>
+                <tr><th>Rola</th><th>E-mail</th><th>Hasło</th><th>Imię i nazwisko</th><th>PESEL</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var account in Model.TestAccounts)
+                {
+                    <tr>
+                        <td>@(account.IsAdmin ? "administrator" : "wyborca")</td>
+                        <td><code>@account.Email</code></td>
+                        <td><code>@account.Password</code></td>
+                        <td>@account.Imie @account.Nazwisko</td>
+                        <td class="hash-value small">@account.Pesel</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
 <h4 class="mt-4">Co dalej</h4>
 <ol>
     @foreach (var step in Model.NextSteps)

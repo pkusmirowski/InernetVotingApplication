@@ -3,13 +3,15 @@
     ViewData["Title"] = "Sprawdź głos";
 }
 <h2>Sprawdź swój głos</h2>
-<p>Wprowadź hash otrzymany po oddaniu głosu. Jeśli głos znajduje się w łańcuchu, zobaczysz jego dane oraz wynik weryfikacji integralności całego łańcucha wyborów.</p>
+<p>Po oddaniu głosu każdy wyborca dostaje kod potwierdzenia: na ekranie i w wiadomości e-mail. Wklej go poniżej, a pokażemy, czy głos jest zapisany i czy nikt go nie zmienił.</p>
 <hr />
 <form asp-action="Search" method="get" class="mb-4">
+    <label asp-for="Hash" class="form-label"></label>
     <div class="input-group">
-        <input class="form-control hash-value" asp-for="Hash" name="hash" placeholder="64 znaki szesnastkowe" />
-        <button type="submit" class="btn btn-primary">Szukaj</button>
+        <input class="form-control hash-value" asp-for="Hash" name="hash" placeholder="Wklej kod z ekranu lub z wiadomości e-mail" />
+        <button type="submit" class="btn btn-primary">Sprawdź</button>
     </div>
+    <div class="form-text">Kod ma 64 znaki: cyfry i litery od A do F. Najłatwiej skopiować go w całości z wiadomości e-mail.</div>
 </form>
 @if (Model.Searched)
 {
@@ -18,29 +20,50 @@
         <div class="alert @(Model.ChainValid ? "alert-success" : "alert-danger")" role="alert">
             @if (Model.ChainValid)
             {
-                <span>Głos został znaleziony, a łańcuch tych wyborów jest nienaruszony (weryfikacja @(Model.VerifiedAt?.ToString("g"))).</span>
+                <p class="mb-1"><b>Głos jest zapisany i nikt go nie zmienił.</b></p>
+                <p class="mb-0">Ten głos znajduje się w rejestrze głosów i jest liczony w wynikach wyborów. Ostatnia kontrola rejestru: @(Model.VerifiedAt?.ToString("g")).</p>
             }
             else
             {
-                <span>Głos został znaleziony, ale łańcuch tych wyborów <b>nie przechodzi weryfikacji</b>. Skontaktuj się z administratorem.</span>
+                <p class="mb-1"><b>Głos jest zapisany, ale kontrola rejestru głosów wykryła nieprawidłowości.</b></p>
+                <p class="mb-0">Oznacza to, że głosy zapisane w tych wyborach mogły zostać zmienione. <a asp-controller="Home" asp-action="Contact" class="alert-link">Skontaktuj się z nami</a> i podaj nazwę wyborów.</p>
             }
         </div>
         <div class="table-responsive">
             <table class="table table-striped">
                 <tbody>
                     <tr><th scope="row">Wybory</th><td>@Model.ElectionName</td></tr>
-                    <tr><th scope="row">Kandydat</th><td>@Model.CandidateName @Model.CandidateSurname</td></tr>
-                    <tr><th scope="row">Numer bloku</th><td>@Model.BlockIndex</td></tr>
-                    <tr><th scope="row">Czas zapisu</th><td>@Model.Timestamp.ToString("g")</td></tr>
-                    <tr><th scope="row">Hash</th><td class="hash-value">@Model.Hash</td></tr>
-                    <tr><th scope="row">Podpis bloku</th><td class="hash-value small">@Model.Signature</td></tr>
-                    <tr><th scope="row">Łańcuch</th><td><a asp-controller="Election" asp-action="Chain" asp-route-id="@Model.ElectionId">stan łańcucha, kotwice i eksport</a></td></tr>
+                    <tr><th scope="row">Głos oddany na</th><td>@Model.CandidateName @Model.CandidateSurname</td></tr>
+                    <tr><th scope="row">Data i godzina zapisania głosu</th><td>@Model.Timestamp.ToString("g")</td></tr>
                 </tbody>
             </table>
         </div>
+        <details class="mb-3">
+            <summary>Szczegóły techniczne</summary>
+            <div class="table-responsive mt-2">
+                <table class="table table-sm">
+                    <tbody>
+                        <tr><th scope="row">Numer wpisu w rejestrze (blok)</th><td>@Model.BlockIndex</td></tr>
+                        <tr><th scope="row">Kod potwierdzenia (hash SHA-256)</th><td class="hash-value">@Model.Hash</td></tr>
+                        <tr><th scope="row">Podpis elektroniczny wpisu</th><td class="hash-value small">@Model.Signature</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </details>
+        <a class="btn btn-outline-primary btn-sm" asp-controller="Election" asp-action="Chain" asp-route-id="@Model.ElectionId">Zobacz rejestr głosów tych wyborów</a>
     }
     else
     {
-        <div class="alert alert-warning" role="alert">Nie znaleziono głosu o podanym hashu.</div>
+        <div class="alert alert-warning" role="alert">
+            <p class="mb-1"><b>Nie znaleziono głosu z takim kodem.</b></p>
+            @if (Model.Hash?.Length != 64)
+            {
+                <p class="mb-0">Wpisany kod ma @(Model.Hash?.Length ?? 0) znaków, a powinien mieć 64. Skopiuj kod jeszcze raz, w całości i bez spacji.</p>
+            }
+            else
+            {
+                <p class="mb-0">Sprawdź, czy kod jest skopiowany dokładnie tak, jak w wiadomości e-mail z potwierdzeniem oddania głosu. Jeśli kod jest poprawny, a głosu nadal nie widać, <a asp-controller="Home" asp-action="Contact" class="alert-link">skontaktuj się z nami</a>.</p>
+            }
+        </div>
     }
 }

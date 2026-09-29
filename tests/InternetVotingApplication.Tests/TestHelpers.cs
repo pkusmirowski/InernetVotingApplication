@@ -5,6 +5,7 @@ using InternetVotingApplication.Models;
 using InternetVotingApplication.Services.Mail;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Time.Testing;
@@ -57,6 +58,31 @@ public sealed class FakeSqlServerProbe(bool ok, string? error = null, int? error
     }
 }
 
+/// <summary>
+/// Makes <c>SaveChanges</c> fail with the given exception while <paramref name="when"/> matches the pending changes,
+/// at most <paramref name="times"/> times. Used to reach the error paths of races (unique index, concurrency token,
+/// foreign key) that a single test connection cannot produce for real.
+/// </summary>
+public sealed class FailingSaveInterceptor(Func<DbContext, bool> when, Func<Exception> exception, int times = 1) : SaveChangesInterceptor
+{
+    public int Failures { get; private set; }
+
+    public override ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
+    {
+        if (Failures < times && eventData.Context is { } context && when(context))
+        {
+            Failures++;
+            throw exception();
+        }
+
+        return base.SavingChangesAsync(eventData, result, cancellationToken);
+    }
+
+    /// <summary>Matches a save that adds, changes or removes an entity of type <typeparamref name="T"/>.</summary>
+    public static Func<DbContext, bool> Pending<T>(EntityState state)
+        where T : class => context => context.ChangeTracker.Entries<T>().Any(e => e.State == state);
+}
+
 /// <summary>An in-memory SQLite database that lives as long as the connection is open.</summary>
 public sealed class SqliteDatabase : IDisposable
 {
@@ -70,10 +96,11 @@ public sealed class SqliteDatabase : IDisposable
         context.Database.EnsureCreated();
     }
 
-    public InternetVotingContext CreateContext()
+    public InternetVotingContext CreateContext(params IInterceptor[] interceptors)
     {
         var options = new DbContextOptionsBuilder<InternetVotingContext>()
             .UseSqlite(_connection)
+            .AddInterceptors(interceptors)
             .Options;
         return new InternetVotingContext(options);
     }

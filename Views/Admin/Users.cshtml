@@ -1,0 +1,85 @@
+@model IReadOnlyList<UserListItemViewModel>
+@using InternetVotingApplication.ExtensionMethods
+@{
+    ViewData["Title"] = "Użytkownicy";
+    var currentUserId = User.GetUserId();
+}
+<h2>Użytkownicy</h2>
+<p class="text-muted">Konta wyborców i administratorów. Aktywacja z tego miejsca zastępuje kliknięcie linku z e-maila.</p>
+<hr />
+<partial name="_StatusMessage" />
+@if (Model.Count == 0)
+{
+    <p>Brak kont.</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped align-middle">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Imię i nazwisko</th>
+                    <th>E-mail</th>
+                    <th>Rejestracja</th>
+                    <th>Status</th>
+                    <th>Rola</th>
+                    <th>Oddane głosy</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var u in Model)
+                {
+                    <tr>
+                        <td>@u.Id</td>
+                        <td>@u.Imie @u.Nazwisko @(u.Id == currentUserId ? "(Ty)" : "")</td>
+                        <td>@u.Email</td>
+                        <td class="text-nowrap">@u.DataRejestracji.ToString("g")</td>
+                        <td>
+                            @if (u.IsActive)
+                            {
+                                <span class="badge bg-success">aktywne</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-warning text-dark">nieaktywne</span>
+                            }
+                            @if (u.IsLockedOut)
+                            {
+                                <span class="badge bg-danger">zablokowane</span>
+                            }
+                        </td>
+                        <td>@(u.IsAdmin ? "administrator" : "wyborca")</td>
+                        <td>@u.VoteCount</td>
+                        <td class="text-end text-nowrap">
+                            @if (!u.IsActive)
+                            {
+                                <form asp-action="ActivateUser" asp-route-id="@u.Id" method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-outline-success">Aktywuj</button>
+                                </form>
+                            }
+                            @if (u.IsAdmin)
+                            {
+                                @if (u.Id != currentUserId)
+                                {
+                                    <form asp-action="SetAdministrator" asp-route-id="@u.Id" method="post" class="d-inline" data-confirm="Czy na pewno odebrać uprawnienia administratora kontu @u.Email?">
+                                        <input type="hidden" name="isAdmin" value="false" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Odbierz uprawnienia administratora</button>
+                                    </form>
+                                }
+                            }
+                            else
+                            {
+                                <form asp-action="SetAdministrator" asp-route-id="@u.Id" method="post" class="d-inline" data-confirm="Czy na pewno nadać uprawnienia administratora kontu @u.Email? Administrator może zarządzać wyborami i kontami.">
+                                    <input type="hidden" name="isAdmin" value="true" />
+                                    <button type="submit" class="btn btn-sm btn-outline-primary">Nadaj uprawnienia administratora</button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

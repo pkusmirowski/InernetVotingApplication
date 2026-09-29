@@ -1,22 +1,23 @@
 @inject InternetVotingApplication.Data.DatabaseInfo DatabaseInfo
 @inject IWebHostEnvironment HostEnvironment
+@inject Microsoft.Extensions.Options.IOptions<InternetVotingApplication.Configuration.AppOptions> AppOptions
+@{
+    var contactEmail = AppOptions.Value.ContactEmail;
+    var signedIn = User.Identity?.IsAuthenticated == true;
+}
 <!DOCTYPE html>
 <html lang="pl">
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <title>@ViewData["Title"] - Aplikacja do głosowań internetowych</title>
-    <meta content="Aplikacja do głosowań internetowych z wewnętrznym łańcuchem hashy weryfikującym oddane głosy" name="description">
+    <title>@ViewData["Title"] – Głosowanie internetowe</title>
+    <meta content="Głosowanie internetowe. Po oddaniu głosu dostajesz kod potwierdzenia i możesz sprawdzić, czy Twój głos jest zapisany." name="description">
 
     <link href="~/assets/img/favicon.png" rel="icon">
     <link href="~/assets/img/apple-touch-icon.png" rel="apple-touch-icon">
 
-    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Raleway:300,300i,400,400i,600,600i,700,700i" rel="stylesheet">
-
-    <link href="~/assets/vendor/aos/aos.css" rel="stylesheet">
     <link href="~/assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link href="~/assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
-    <link href="~/assets/vendor/boxicons/css/boxicons.min.css" rel="stylesheet">
     <link href="~/assets/css/style.css" rel="stylesheet" asp-append-version="true">
     <link href="~/assets/css/site.css" rel="stylesheet" asp-append-version="true">
 </head>
@@ -24,12 +25,12 @@
     <header id="header" class="fixed-top d-flex align-items-center">
         <div class="container d-flex align-items-center justify-content-between">
             <div class="logo">
-                <h1 class="text-light"><span><a class="nav-link text-dark" asp-controller="Home" asp-action="Index">Wybory Prezydenckie</a></span></h1>
+                <h1 class="text-light"><span><a class="nav-link text-dark" asp-controller="Home" asp-action="Index">Głosowanie internetowe</a></span></h1>
             </div>
             <nav id="navbar" class="navbar">
                 <ul>
                     <li><a class="nav-link text-dark" asp-controller="Home" asp-action="Index">Strona główna</a></li>
-                    @if (User.Identity?.IsAuthenticated != true)
+                    @if (!signedIn)
                     {
                         <li><a class="nav-link" asp-controller="Account" asp-action="Register">Rejestracja</a></li>
                         <li><a class="nav-link" asp-controller="Account" asp-action="Login">Zaloguj się</a></li>
@@ -41,6 +42,7 @@
                         <li><a class="nav-link" asp-controller="Admin" asp-action="Panel">Panel administratora</a></li>
                         <li><a class="nav-link" asp-controller="Admin" asp-action="Elections">Wybory</a></li>
                         <li><a class="nav-link" asp-controller="Admin" asp-action="AddCandidate">Dodaj kandydata</a></li>
+                        <li><a class="nav-link" asp-controller="Admin" asp-action="Users">Użytkownicy</a></li>
                         <li><a class="nav-link" asp-controller="Admin" asp-action="Audit">Audyt</a></li>
                         <li><a class="nav-link" asp-controller="Account" asp-action="ChangePassword">Zmiana hasła</a></li>
                         <li>
@@ -85,37 +87,37 @@
         <div class="footer-top">
             <div class="container">
                 <div class="row">
-                    <div class="col-lg-4 col-md-6 footer-contact">
-                        <h3>Kontakt</h3>
-                        <p>
-                            ul. Przykładowa 40/50 <br>
-                            Warszawa, 55-555<br>
-                            Polska <br><br>
-                            <strong>Numer telefonu:</strong> +48 000000000<br>
-                            <strong>Adres e-mail:</strong> info@twojadomena.pl<br>
-                        </p>
-                    </div>
+                    @if (!string.IsNullOrWhiteSpace(contactEmail))
+                    {
+                        <div class="col-lg-4 col-md-6 footer-contact">
+                            <h3>Kontakt</h3>
+                            <p><strong>Adres e-mail:</strong> <a href="mailto:@contactEmail">@contactEmail</a></p>
+                        </div>
+                    }
                     <div class="col-lg-4 col-md-6 footer-links">
                         <h4>Przydatne linki</h4>
                         <ul>
-                            <li><i class="bx bx-chevron-right"></i> <a asp-controller="Home" asp-action="Index">Strona główna</a></li>
-                            <li><i class="bx bx-chevron-right"></i> <a asp-controller="Account" asp-action="Register">Rejestracja</a></li>
-                            <li><i class="bx bx-chevron-right"></i> <a asp-controller="Account" asp-action="Login">Zaloguj się</a></li>
-                            <li><i class="bx bx-chevron-right"></i> <a asp-controller="Account" asp-action="PasswordRecovery">Przypomnij hasło</a></li>
-                            <li><i class="bx bx-chevron-right"></i> <a asp-controller="Account" asp-action="Search">Sprawdź głos</a></li>
-                            <li><i class="bx bx-chevron-right"></i> <a asp-controller="Home" asp-action="Privacy">Prywatność</a></li>
+                            <li><i class="bi bi-chevron-right"></i> <a asp-controller="Home" asp-action="Index">Strona główna</a></li>
+                            @if (!signedIn)
+                            {
+                                <li><i class="bi bi-chevron-right"></i> <a asp-controller="Account" asp-action="Register">Rejestracja</a></li>
+                                <li><i class="bi bi-chevron-right"></i> <a asp-controller="Account" asp-action="Login">Zaloguj się</a></li>
+                                <li><i class="bi bi-chevron-right"></i> <a asp-controller="Account" asp-action="PasswordRecovery">Przypomnij hasło</a></li>
+                            }
+                            <li><i class="bi bi-chevron-right"></i> <a asp-controller="Account" asp-action="Search">Sprawdź głos</a></li>
+                            <li><i class="bi bi-chevron-right"></i> <a asp-controller="Home" asp-action="Privacy">Prywatność</a></li>
                         </ul>
                     </div>
                     <div class="col-lg-4 col-md-6 footer-links">
                         <h4>O aplikacji</h4>
-                        <p>Każdy oddany głos jest blokiem w łańcuchu hashy SHA-256 danych wyborów. Wyborca otrzymuje hash swojego głosu i może w każdej chwili sprawdzić, czy jest on obecny w nienaruszonym łańcuchu.</p>
+                        <p>Każdy oddany głos trafia do rejestru, w którym każda zmiana zostałaby wykryta. Po głosowaniu dostajesz kod potwierdzenia i możesz w każdej chwili sprawdzić, czy Twój głos jest zapisany bez zmian.</p>
                     </div>
                 </div>
             </div>
         </div>
         <div class="container py-4">
             <div class="copyright">
-                &copy; @DateTime.Now.Year - Aplikacja do głosowań internetowych <strong><span><a asp-controller="Home" asp-action="Privacy">Prywatność</a></span></strong>
+                &copy; @DateTime.Now.Year – Głosowanie internetowe
             </div>
             <div class="credits">
                 Wersja @AppVersion.Value &middot; Szablon: <a href="https://bootstrapmade.com/">BootstrapMade</a>
@@ -123,7 +125,7 @@
         </div>
     </footer>
 
-    @if (DatabaseInfo.IsSqlite)
+    @if (DatabaseInfo.IsSqlite && HostEnvironment.IsDevelopment())
     {
         <div class="dev-banner alert @(DatabaseInfo.IsFallback ? "alert-warning" : "alert-info") mb-0" role="status">
             @if (DatabaseInfo.IsFallback)
@@ -134,10 +136,7 @@
             {
                 <b>Tryb deweloperski:</b> <span>baza SQLite w pliku <code>@DatabaseInfo.SqliteFilePath</code>.</span>
             }
-            @if (HostEnvironment.IsDevelopment())
-            {
-                <a href="~/setup" class="ms-2">Diagnostyka</a>
-            }
+            <a href="~/setup" class="ms-2">Diagnostyka</a>
         </div>
     }
     else if (HostEnvironment.IsDevelopment())
@@ -151,7 +150,6 @@
     <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
 
     <script src="~/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-    <script src="~/assets/vendor/aos/aos.js"></script>
     <script src="~/assets/js/main.js" asp-append-version="true"></script>
     <script src="~/assets/js/site.js" asp-append-version="true"></script>
 

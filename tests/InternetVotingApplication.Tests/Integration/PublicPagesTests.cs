@@ -1,4 +1,5 @@
 using System.Net;
+using Microsoft.Extensions.Configuration;
 
 namespace InternetVotingApplication.Tests.Integration;
 
@@ -28,6 +29,39 @@ public sealed class PublicPagesTests : IClassFixture<VotingWebApplicationFactory
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("nosniff", response.Headers.GetValues("X-Content-Type-Options").Single());
         Assert.Contains("Content-Security-Policy", response.Headers.Select(h => h.Key));
+    }
+
+    [Fact]
+    public async Task Pages_show_no_placeholder_contact_data_or_external_fonts()
+    {
+        var client = _factory.CreateHttpsClient();
+
+        foreach (var url in new[] { "/", "/Home/Contact", "/Home/Privacy" })
+        {
+            var html = WebUtility.HtmlDecode(await client.GetStringAsync(new Uri(url, UriKind.Relative)));
+            Assert.DoesNotContain("Przykładowa", html, StringComparison.Ordinal);
+            Assert.DoesNotContain("twojadomena", html, StringComparison.Ordinal);
+            Assert.DoesNotContain("000 000 000", html, StringComparison.Ordinal);
+            Assert.DoesNotContain("fonts.googleapis", html, StringComparison.Ordinal);
+            Assert.Contains("Głosowanie internetowe", html, StringComparison.Ordinal);
+        }
+
+        var contact = WebUtility.HtmlDecode(await client.GetStringAsync(new Uri("/Home/Contact", UriKind.Relative)));
+        Assert.Contains("nie zostały jeszcze skonfigurowane", contact, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Configured_contact_email_appears_in_footer_and_on_contact_page()
+    {
+        using var factory = _factory.WithWebHostBuilder(builder =>
+            builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(new Dictionary<string, string?> { ["App:ContactEmail"] = "kontakt@glosowanie.pl" })));
+        var client = factory.CreateClient(new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactoryClientOptions { BaseAddress = new Uri("https://localhost") });
+
+        var home = await client.GetStringAsync(new Uri("/", UriKind.Relative));
+        var contact = await client.GetStringAsync(new Uri("/Home/Contact", UriKind.Relative));
+
+        Assert.Contains("mailto:kontakt@glosowanie.pl", home, StringComparison.Ordinal);
+        Assert.Contains("mailto:kontakt@glosowanie.pl", contact, StringComparison.Ordinal);
     }
 
     [Theory]
@@ -78,6 +112,30 @@ public sealed class PublicPagesTests : IClassFixture<VotingWebApplicationFactory
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         Assert.Contains("nie istnieje", await response.Content.ReadAsStringAsync(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Registration_errors_are_shown_in_polish()
+    {
+        var client = _factory.CreateHttpsClient();
+
+        var response = await client.PostFormAsync("/Account/Register", new Dictionary<string, string>
+        {
+            ["Imie"] = new string('a', 51),
+            ["Nazwisko"] = "Testowa",
+            ["Pesel"] = "44051401359",
+            ["Email"] = "zla.data@example.com",
+            ["DataUrodzenia"] = "to nie jest data",
+            ["Haslo"] = "Secret#Pass1",
+            ["ConfirmPassword"] = "Secret#Pass1",
+        });
+
+        var html = WebUtility.HtmlDecode(await response.Content.ReadAsStringAsync());
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Contains("To pole może mieć najwyżej 50 znaków.", html, StringComparison.Ordinal);
+        Assert.Contains("jest nieprawidłowa", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("The value", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("The field", html, StringComparison.Ordinal);
     }
 
     [Fact]

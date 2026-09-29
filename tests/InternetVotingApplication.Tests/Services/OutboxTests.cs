@@ -65,7 +65,13 @@ public sealed class OutboxTests : IDisposable
         _clock.Advance(TimeSpan.FromMinutes(5));
         Assert.Equal(0, await dispatcher.ProcessOnceAsync(CancellationToken.None));
 
-        // Max attempts reached: no more tries even when SMTP recovers.
+        // Max attempts reached: the message (which may link an e-mail address to a vote hash) is removed,
+        // so nothing is sent even when SMTP recovers.
+        using (var check = _db.CreateContext())
+        {
+            Assert.Empty(check.WiadomosciEmail);
+        }
+
         transport.Fail = false;
         _clock.Advance(TimeSpan.FromHours(1));
         Assert.Equal(0, await dispatcher.ProcessOnceAsync(CancellationToken.None));

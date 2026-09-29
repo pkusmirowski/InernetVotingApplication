@@ -1,11 +1,12 @@
 @model RegisterViewModel
 @{
-    ViewData["Title"] = "Rejestracja zakończona";
+    ViewData["Title"] = "Konto założone";
 }
-<h2>Rejestracja zakończona</h2>
+<h2>Konto założone. Został jeszcze jeden krok</h2>
 <hr />
 <div class="alert alert-success" role="alert">
     <p class="mb-1"><b>@Model.Imie @Model.Nazwisko</b>, Twoje konto zostało utworzone.</p>
-    <p class="mb-0">Na adres <b>@Model.Email</b> wysłaliśmy link aktywacyjny. Kliknij go, aby móc się zalogować.</p>
+    <p class="mb-0">Na adres <b>@Model.Email</b> wysłaliśmy link aktywacyjny. Otwórz tę wiadomość i kliknij link. Dopiero potem można się zalogować.</p>
 </div>
+<p class="text-muted small">Nie widzisz wiadomości? Odczekaj kilka minut i sprawdź folder ze spamem.</p>
 <a class="btn btn-primary" asp-action="Login">Przejdź do logowania</a>

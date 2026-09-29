@@ -1,36 +1,26 @@
+@inject Microsoft.Extensions.Options.IOptions<InternetVotingApplication.Configuration.AppOptions> AppOptions
 @{
     ViewData["Title"] = "Kontakt";
+    var contactEmail = AppOptions.Value.ContactEmail;
 }
 <h2>Kontakt</h2>
-        <hr />
-        <section id="contact" class="contact">
-            <div class="container">
-                <div class="row">
-                    <div class="col-lg-5 d-flex align-items-stretch">
-                        <div class="info">
-                            <div class="address">
-                                <i class="bi bi-geo-alt"></i>
-                                <h4>Lokalizacja:</h4>
-                                <p>ul. Lorem ipsum 40/50, Warszawa, Polska 55-555</p>
-                            </div>
-                            <div class="email">
-                                <i class="bi bi-envelope"></i>
-                                <h4>Adres E-mail:</h4>
-                                <p>info@twojadomena.pl</p>
-                            </div>
-                            <div class="phone">
-                                <i class="bi bi-phone"></i>
-                                <h4>Numer telefonu:</h4>
-                                <p>+48 123456789</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-7 mt-5 mt-lg-0 d-flex align-items-stretch">
-                        <div class="w-100 d-flex flex-column justify-content-center">
-                            <h4>Napisz do nas</h4>
-                            <p>Masz pytanie dotyczące rejestracji, aktywacji konta lub weryfikacji głosu? Napisz na adres <a href="mailto:info@twojadomena.pl">info@twojadomena.pl</a>. Odpowiadamy w dni robocze.</p>
-                        </div>
-                    </div>
-                </div>
+<hr />
+<section id="contact" class="contact">
+    @if (string.IsNullOrWhiteSpace(contactEmail))
+    {
+        <p>Dane kontaktowe nie zostały jeszcze skonfigurowane. Administrator może je ustawić w konfiguracji aplikacji (<code>App:ContactEmail</code>).</p>
+        <p>Odpowiedzi na najczęstsze pytania znajdziesz na <a asp-controller="Home" asp-action="Index">stronie głównej</a>.</p>
+    }
+    else
+    {
+        <div class="info">
+            <div class="email">
+                <i class="bi bi-envelope"></i>
+                <h4>Adres e-mail:</h4>
+                <p><a href="mailto:@contactEmail">@contactEmail</a></p>
             </div>
-        </section>
+        </div>
+        <h4 class="mt-4">Napisz do nas</h4>
+        <p>Masz pytanie o rejestrację, aktywację konta albo sprawdzanie głosu? Napisz na adres <a href="mailto:@contactEmail">@contactEmail</a>.</p>
+    }
+</section>

@@ -11,11 +11,12 @@ Technologie: .NET 10, ASP.NET Core MVC, Entity Framework Core, SQL Server, Boots
 - rejestracja z walidacją PESEL, aktywacja konta e-mailem, logowanie z rolami wyborca / administrator,
 - głosowanie (jeden głos na wybory), potwierdzenie z hashem, wyniki po zakończeniu wyborów,
 - łańcuch głosów podpisany kluczem ECDSA, weryfikacja w tle, publiczna strona łańcucha i eksport JSON,
-- panel administratora: wybory, kandydaci, weryfikacja łańcucha, dziennik audytu.
+- panel administratora: wybory (dodawanie, edycja, usuwanie), kandydaci, użytkownicy i role, weryfikacja łańcucha,
+  dziennik audytu.
 
 ## Uruchomienie
 
-Potrzebne: [.NET SDK 10](https://dotnet.microsoft.com/download/dotnet/10.0) i Visual Studio 2022 17.14+ (lub 2026).
+Potrzebne: [.NET SDK 10](https://dotnet.microsoft.com/download/dotnet/10.0) i Visual Studio 2026.
 SQL Server jest opcjonalny: bez niego aplikacja w trybie Development uruchomi się na pliku SQLite.
 
 1. Otwórz `InternetVotingApplication.sln`.
@@ -24,14 +25,16 @@ SQL Server jest opcjonalny: bez niego aplikacja w trybie Development uruchomi si
 
 Bez Visual Studio: dwuklik w `run.cmd`. Testy: `dotnet test` albo `run-tests.cmd`.
 
-E-maile w trybie Development trafiają do plików w `App_Data/mail/`. Pierwsze aktywowane konto zostaje administratorem.
+E-maile w trybie Development trafiają do plików w `App_Data/mail/`. Konta testowe: `admin@test.local` / `Admin123!`
+(administrator) i `wyborca1@test.local` … `wyborca5@test.local` / `Wyborca123!`.
 
 ## Dokumentacja
 
 - [`docs/INSTRUKCJA.md`](docs/INSTRUKCJA.md): konfiguracja, tryby bazy danych, rozwiązywanie problemów, testy, opis łańcucha głosów.
 - [`docs/ARCHITEKTURA.md`](docs/ARCHITEKTURA.md): architektura systemu.
+- [`docs/OCENA_ZMIAN.md`](docs/OCENA_ZMIAN.md): porównanie z pierwotną wersją pracy i wyniki przeglądu.
 - [`CHANGELOG.md`](CHANGELOG.md): historia zmian.
 
 ## Licencja
 
-MIT, patrz `LICENSE`.
+GNU GPL v3, patrz `LICENSE`.

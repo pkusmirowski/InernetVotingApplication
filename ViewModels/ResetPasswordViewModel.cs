@@ -5,7 +5,7 @@ namespace InternetVotingApplication.ViewModels;
 
 public class ResetPasswordViewModel
 {
-    [Required]
+    [Required(ErrorMessage = "Link do ustawienia hasła jest niepełny. Otwórz go ponownie z wiadomości e-mail.")]
     public Guid Token { get; set; }
 
     [Required(ErrorMessage = "Podaj nowe hasło")]
@@ -16,7 +16,7 @@ public class ResetPasswordViewModel
 
     [Required(ErrorMessage = "Powtórz nowe hasło")]
     [DataType(DataType.Password)]
-    [Display(Name = "Potwierdź nowe hasło")]
-    [Compare(nameof(NewPassword), ErrorMessage = "Hasła się nie zgadzają")]
+    [Display(Name = "Powtórz nowe hasło")]
+    [Compare(nameof(NewPassword), ErrorMessage = "Oba hasła muszą być takie same. Wpisz je ponownie.")]
     public string ConfirmNewPassword { get; set; } = string.Empty;
 }

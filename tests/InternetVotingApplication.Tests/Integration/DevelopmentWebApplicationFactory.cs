@@ -54,6 +54,8 @@ public sealed class DevelopmentWebApplicationFactory : WebApplicationFactory<Pro
                 // Sample data needs a database; outside Development the SQL Server here is unreachable on purpose.
                 ["Seeding:SampleData"] = EnvironmentName == "Development" ? "true" : "false",
                 ["Seeding:FirstActivatedUserIsAdmin"] = "true",
+                // The first-account-is-admin path is what these tests exercise; a seeded administrator would short-circuit it.
+                ["Seeding:TestAccounts"] = "false",
                 ["Chain:VerificationInterval"] = "01:00:00",
                 ["Mail:PollInterval"] = "01:00:00",
                 ["RateLimiting:AuthPermitLimit"] = "1000",

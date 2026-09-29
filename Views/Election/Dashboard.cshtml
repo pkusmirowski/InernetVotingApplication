@@ -3,10 +3,11 @@
     ViewData["Title"] = "Panel głosowania";
 }
 <h2>Panel głosowania</h2>
+<p>Tutaj widzisz wszystkie wybory. Gdy głosowanie trwa, możesz oddać głos. Wyniki pokazujemy po zakończeniu wyborów.</p>
 <hr />
 @if (Model.Elections.Count == 0)
 {
-    <p>Nie ma jeszcze żadnych wyborów.</p>
+    <p>Nie ma jeszcze żadnych wyborów. Zajrzyj tu ponownie później.</p>
 }
 else
 {
@@ -15,10 +16,10 @@ else
             <thead>
                 <tr>
                     <th scope="col">Wybory</th>
-                    <th scope="col">Rozpoczęcie</th>
-                    <th scope="col">Zakończenie</th>
-                    <th scope="col">Kandydaci</th>
-                    <th scope="col">Status</th>
+                    <th scope="col">Początek</th>
+                    <th scope="col">Koniec</th>
+                    <th scope="col">Liczba kandydatów</th>
+                    <th scope="col">Stan</th>
                     <th scope="col"></th>
                 </tr>
             </thead>
@@ -34,10 +35,10 @@ else
                             @switch (election.Status)
                             {
                                 case ElectionStatus.Upcoming:
-                                    <span class="badge bg-secondary">Nie rozpoczęte</span>
+                                    <span class="badge bg-secondary">Jeszcze się nie rozpoczęły</span>
                                     break;
                                 case ElectionStatus.Ongoing:
-                                    <span class="badge bg-success">Trwają</span>
+                                    <span class="badge bg-success">Głosowanie trwa</span>
                                     break;
                                 default:
                                     <span class="badge bg-dark">Zakończone</span>
@@ -45,7 +46,7 @@ else
                             }
                             @if (election.HasVoted)
                             {
-                                <span class="badge bg-info text-dark">Głos oddany</span>
+                                <span class="badge bg-info text-dark">Twój głos jest oddany</span>
                             }
                         </td>
                         <td>
@@ -53,14 +54,15 @@ else
                             {
                                 <a class="btn btn-sm btn-primary" asp-action="Voting" asp-route-id="@election.Id">Zagłosuj</a>
                             }
+                            else if (election.Status == ElectionStatus.Ended)
+                            {
+                                <a class="btn btn-sm btn-outline-secondary" asp-action="ElectionResult" asp-route-id="@election.Id">Zobacz wyniki</a>
+                            }
                             else
                             {
                                 <a class="btn btn-sm btn-outline-secondary" asp-action="ElectionResult" asp-route-id="@election.Id">Szczegóły</a>
                             }
-                            <a class="btn btn-sm btn-link" asp-action="Chain" asp-route-id="@election.Id">Łańcuch</a>
-                            @if (false)
-                            {
-                            }
+                            <a class="btn btn-sm btn-link" asp-action="Chain" asp-route-id="@election.Id">Rejestr głosów</a>
                         </td>
                     </tr>
                 }

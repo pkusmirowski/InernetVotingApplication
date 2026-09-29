@@ -39,9 +39,9 @@ else
                         <td>@candidate.ElectionName</td>
                         <td>@candidate.Imie</td>
                         <td>@candidate.Nazwisko</td>
-                        <td>@candidate.VoteCount</td>
+                        <td>@(candidate.VoteCount?.ToString() ?? "po zakończeniu")</td>
                         <td class="text-end">
-                            @if (candidate.VoteCount == 0)
+                            @if (candidate.CanDelete)
                             {
                                 <form asp-action="DeleteCandidate" method="post" class="d-inline" data-confirm="Usunąć kandydata @candidate.Imie @candidate.Nazwisko?">
                                     <input type="hidden" name="id" value="@candidate.Id" />
@@ -51,7 +51,7 @@ else
                             }
                             else
                             {
-                                <span class="text-muted small">Nie można usunąć: oddano głosy</span>
+                                <span class="text-muted small">Nie można usunąć: głosowanie już się rozpoczęło</span>
                             }
                         </td>
                     </tr>

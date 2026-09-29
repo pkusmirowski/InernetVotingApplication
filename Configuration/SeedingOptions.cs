@@ -16,4 +16,10 @@ public sealed class SeedingOptions
 
     /// <summary>Development convenience: create sample elections and candidates when the database has none.</summary>
     public bool SampleData { get; set; }
+
+    /// <summary>
+    /// Development convenience: create the fixed, activated accounts listed in <see cref="Data.TestAccounts"/>
+    /// (one administrator, several voters) when they do not exist yet.
+    /// </summary>
+    public bool TestAccounts { get; set; }
 }

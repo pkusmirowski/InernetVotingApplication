@@ -4,8 +4,8 @@ namespace InternetVotingApplication.ViewModels;
 
 public class VoteSearchViewModel
 {
-    [Display(Name = "Hash głosu")]
-    [StringLength(64)]
+    [Display(Name = "Kod potwierdzenia głosu")]
+    [StringLength(64, ErrorMessage = ValidationMessages.TooLong)]
     public string? Hash { get; set; }
 
     public bool Searched { get; set; }

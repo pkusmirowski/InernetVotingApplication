@@ -11,4 +11,7 @@ public sealed class AppOptions
     /// <c>Host</c> header is trustworthy (development, or a reverse proxy that overrides it).
     /// </summary>
     public string? PublicBaseUrl { get; set; }
+
+    /// <summary>Contact e-mail shown in the footer and on the contact page; when empty, no contact details are shown.</summary>
+    public string? ContactEmail { get; set; }
 }

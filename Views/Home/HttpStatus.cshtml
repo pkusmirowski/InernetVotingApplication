@@ -1,19 +1,17 @@
 @model int
 @{
-    ViewData["Title"] = $"Błąd {Model}";
+    var (title, message) = Model switch
+    {
+        404 => ("Nie znaleziono strony", "Strona, której szukasz, nie istnieje albo została przeniesiona. Sprawdź adres lub wróć na stronę główną."),
+        403 => ("Brak dostępu", "Twoje konto nie ma dostępu do tej strony."),
+        429 => ("Za dużo prób", "W krótkim czasie wysłano zbyt wiele próśb. Odczekaj minutę i spróbuj ponownie."),
+        400 => ("Nie udało się wysłać formularza", "Strona była otwarta zbyt długo albo formularz został wysłany dwa razy. Wróć do poprzedniej strony, odśwież ją i spróbuj ponownie."),
+        _ => ("Coś poszło nie tak", "Nie udało się wykonać tej operacji. Spróbuj ponownie za chwilę."),
+    };
+    ViewData["Title"] = title;
 }
-<h2>@Model</h2>
+<h2>@title</h2>
 <hr />
-@switch (Model)
-{
-    case 404:
-        <p>Strona, której szukasz, nie istnieje.</p>
-        break;
-    case 403:
-        <p>Nie masz uprawnień do tej strony.</p>
-        break;
-    default:
-        <p>Żądanie nie mogło zostać zrealizowane.</p>
-        break;
-}
+<p>@message</p>
+<p class="text-muted small">Kod błędu: @Model</p>
 <a class="btn btn-primary" asp-controller="Home" asp-action="Index">Wróć na stronę główną</a>

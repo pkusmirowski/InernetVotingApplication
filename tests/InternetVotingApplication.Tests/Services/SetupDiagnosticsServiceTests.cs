@@ -17,7 +17,7 @@ public sealed class SetupDiagnosticsServiceTests : IDisposable
     private readonly SqliteDatabase _db = new();
     private readonly string _root = Path.Combine(Path.GetTempPath(), "ivapp-tests", Guid.NewGuid().ToString("N"));
 
-    private SetupDiagnosticsService Create(InternetVotingContext context, DatabaseInfo? info = null, ISmtpTransport? transport = null, SeedingOptions? seeding = null)
+    private SetupDiagnosticsService Create(InternetVotingContext context, DatabaseInfo? info = null, ISmtpTransport? transport = null, SeedingOptions? seeding = null, SmtpOptions? smtp = null)
     {
         var environment = Substitute.For<IHostEnvironment>();
         environment.EnvironmentName.Returns("Development");
@@ -27,7 +27,7 @@ public sealed class SetupDiagnosticsServiceTests : IDisposable
         return new SetupDiagnosticsService(
             context, info, TestData.Signer, transport,
             Options.Create(new DatabaseOptions()),
-            Options.Create(new SmtpOptions { PickupDirectory = "mail" }),
+            Options.Create(smtp ?? new SmtpOptions { PickupDirectory = "mail" }),
             Options.Create(new SigningOptions { KeyFilePath = "App_Data/signing-key.pem", AutoGenerateKey = true }),
             Options.Create(seeding ?? new SeedingOptions { FirstActivatedUserIsAdmin = true, SampleData = true }),
             environment);
@@ -79,6 +79,47 @@ public sealed class SetupDiagnosticsServiceTests : IDisposable
         Assert.Equal("SQL Server nie odpowiedział", vm.FallbackExplanation);
         Assert.Contains(vm.NextSteps, s => s.Contains("services.msc", StringComparison.Ordinal));
         Assert.Contains(vm.Signing, i => i.Label == "Identyfikator klucza" && i.Value == TestData.Signer.KeyId);
+    }
+
+    [Fact]
+    public async Task Reports_migrations_for_sql_server_and_smtp_delivery()
+    {
+        using var context = _db.CreateContext();
+        var sqlServer = new DatabaseInfo(DatabaseProvider.SqlServer, DatabaseSelectionReason.Probed, "Server=x", "Server=x", new ProbeResult(true, null, null, TimeSpan.Zero), null, null);
+        var smtp = new SmtpOptions { Enabled = true, Host = "smtp.example.com", Port = 587, SecureSocket = "StartTls" };
+
+        var vm = await Create(context, sqlServer, Substitute.For<ISmtpTransport>(), smtp: smtp).CollectAsync();
+
+        Assert.Contains(vm.Database, i => i.Label == "Silnik" && i.Value.Contains("sonda OK", StringComparison.Ordinal));
+        // The schema was created without migrations, so the only migration is reported as pending.
+        Assert.Contains(vm.Database, i => i.Label == "Migracje" && i.State == SetupState.Warning && i.Hint!.Contains("InitialCreate", StringComparison.Ordinal));
+        Assert.Contains(vm.Mail, i => i.Label == "Tryb" && i.Value == "SMTP smtp.example.com:587 (StartTls)");
+    }
+
+    [Fact]
+    public async Task Reports_disabled_mail_and_lists_test_accounts()
+    {
+        using var context = _db.CreateContext();
+
+        var vm = await Create(context, seeding: new SeedingOptions { TestAccounts = true }, smtp: new SmtpOptions { Enabled = false }).CollectAsync();
+
+        Assert.Contains(vm.Mail, i => i.Label == "Tryb" && i.State == SetupState.Warning);
+        Assert.Equal(Data.TestAccounts.All.Count, vm.TestAccounts.Count);
+        Assert.Contains(vm.Data, i => i.Label == "Konta testowe");
+        Assert.Contains(vm.NextSteps, s => s.Contains("kont testowych", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Reports_a_database_that_fails_while_being_read()
+    {
+        var context = _db.CreateContext();
+        await context.DisposeAsync();
+
+        var vm = await Create(context).CollectAsync();
+
+        Assert.Contains(vm.Database, i => i.Label == "Dostęp do bazy" && i.State == SetupState.Error);
+        Assert.Contains(vm.Errors, e => e.StartsWith("Baza danych:", StringComparison.Ordinal));
+        Assert.Contains(vm.Errors, e => e.StartsWith("Dane:", StringComparison.Ordinal));
     }
 
     [Fact]

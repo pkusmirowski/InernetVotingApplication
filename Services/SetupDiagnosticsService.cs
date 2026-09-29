@@ -162,6 +162,12 @@ public sealed class SetupDiagnosticsService(
             vm.Data.Add(new SetupItem("Wybory / kandydaci", $"{elections} / {candidates}", elections > 0 ? SetupState.Ok : SetupState.Warning,
                 elections > 0 ? null : (seeding.SampleData ? "Dane przykładowe pojawią się po restarcie." : "Włącz Seeding:SampleData albo dodaj wybory w panelu administratora.")));
             vm.Data.Add(new SetupItem("Konta (aktywne)", $"{users} ({activeUsers})", SetupState.Ok));
+            if (seeding.TestAccounts)
+            {
+                vm.TestAccounts = Data.TestAccounts.All;
+                vm.Data.Add(new SetupItem("Konta testowe", $"{vm.TestAccounts.Count} (Seeding:TestAccounts)", SetupState.Ok, "Hasła są w tabeli poniżej."));
+            }
+
             vm.Data.Add(new SetupItem("Administratorzy", admins.ToString(System.Globalization.CultureInfo.InvariantCulture), admins > 0 ? SetupState.Ok : SetupState.Warning,
                 admins > 0 ? null : (seeding.FirstActivatedUserIsAdmin ? "Pierwsze aktywowane konto zostanie administratorem." : "Wpisz adres konta w Seeding:AdminEmails.")));
             vm.Data.Add(new SetupItem("Bloki głosów", blocks.ToString(System.Globalization.CultureInfo.InvariantCulture), SetupState.Ok));
@@ -183,7 +189,11 @@ public sealed class SetupDiagnosticsService(
             vm.NextSteps.Add("Uruchom usługę SQL Server (services.msc) i zrestartuj aplikację, jeśli chcesz pracować na SQL Serverze. Do klikania po aplikacji tryb zapasowy wystarcza.");
         }
 
-        if (adminExists == false)
+        if (vm.TestAccounts.Count > 0)
+        {
+            vm.NextSteps.Add("Zaloguj się jednym z kont testowych z tabeli poniżej: administrator zarządza wyborami w Panelu administratora, wyborcy głosują w Panelu głosowania.");
+        }
+        else if (adminExists == false)
         {
             vm.NextSteps.Add("Zarejestruj konto (menu Rejestracja), potem otwórz najnowszy plik z katalogu poczty i kliknij link aktywacyjny.");
             if (seedingOptions.Value.FirstActivatedUserIsAdmin)

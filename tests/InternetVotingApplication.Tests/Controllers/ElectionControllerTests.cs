@@ -68,6 +68,26 @@ public class ElectionControllerTests
     }
 
     [Fact]
+    public async Task Voting_page_that_disappeared_meanwhile_returns_404()
+    {
+        _elections.GetElectionStatusAsync(2).Returns(ElectionStatus.Ongoing);
+        _elections.HasVotedAsync(1, 2).Returns(false);
+        _elections.GetVotingPageAsync(2).Returns((KandydatViewModel?)null);
+
+        Assert.IsType<NotFoundResult>(await Create().Voting(2));
+        Assert.IsType<NotFoundResult>(await Create().Vote(new KandydatViewModel { ElectionId = 2 }));
+    }
+
+    [Fact]
+    public async Task Export_returns_404_when_the_chain_cannot_be_exported()
+    {
+        _elections.GetElectionStatusAsync(2).Returns(ElectionStatus.Ended);
+        _chain.ExportAsync(2).Returns((ChainExport?)null);
+
+        Assert.IsType<NotFoundResult>(await Create().Export(2));
+    }
+
+    [Fact]
     public async Task Vote_without_selection_redisplays_page_with_error()
     {
         _elections.GetVotingPageAsync(2).Returns(new KandydatViewModel { ElectionId = 2 });
@@ -186,14 +206,14 @@ public class ElectionControllerTests
     }
 
     [Fact]
-    public async Task Export_of_a_running_election_is_only_for_admins()
+    public async Task Export_of_a_running_election_is_hidden_from_everyone()
     {
         var export = new ChainExport("internet-voting-chain/v2", DateTime.Now, new ChainExportElection(3, "W", DateTime.Now, DateTime.Now, 0, null), "k", "pem", [], [], []);
         _chain.ExportAsync(3).Returns(export);
         _elections.GetElectionStatusAsync(3).Returns(ElectionStatus.Ongoing);
 
         Assert.IsType<NotFoundResult>(await Create().Export(3));
-        Assert.IsType<JsonResult>(await Create(admin: true).Export(3));
+        Assert.IsType<NotFoundResult>(await Create(admin: true).Export(3));
 
         _elections.GetElectionStatusAsync(3).Returns(ElectionStatus.Upcoming);
         Assert.IsType<NotFoundResult>(await Create().Export(3));

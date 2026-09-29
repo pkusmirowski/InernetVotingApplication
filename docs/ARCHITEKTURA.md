@@ -1,6 +1,7 @@
 # Analiza architektury systemu
 
-Stan po zmianach z gałęzi `claude/cool-faraday-rbysn2` (2026-09-25). Ocena odpowiada na pytanie:
+Stan po zmianach z gałęzi `claude/cool-faraday-rbysn2` (2026-09-25), uzupełniony po przeglądzie z 2026-09-29
+(sekcja 4b). Punkty 3.3, 3.4 i 3.7 opisują problemy, które już usunięto; zostały jako zapis decyzji. Ocena odpowiada na pytanie:
 czy architektura jest poprawna (spójna, bez błędów konstrukcyjnych) i odpowiednia (dopasowana do celu
 pracy inżynierskiej i do problemu, jakim jest głosowanie internetowe z weryfikowalnym rejestrem głosów).
 
@@ -69,7 +70,7 @@ Kierunek zależności (wynik z analizy `using` w kodzie):
 | Services/Mail | Interfaces, Configuration |
 | Data | Configuration, Models |
 
-Rozmiar: ok. 2,6 tys. linii kodu produkcyjnego (w tym ~1 tys. widoków) i 1,1 tys. linii testów.
+Rozmiar (wersja 2.1.0): ok. 7,3 tys. linii kodu produkcyjnego (w tym ~1,6 tys. widoków) i 5,3 tys. linii testów.
 
 ### 1.3 Model danych
 
@@ -157,6 +158,11 @@ Blok głosu i wpis o udziale są zapisywane w **jednej transakcji, w tej samej k
 `GlosowanieWyborcze.id` z `GlosUzytkownika.id` (albo znaczników czasu) odtwarza powiązanie wyborca → głos
 dla każdego, kto czyta bazę. Brak klucza obcego to kosmetyka, nie gwarancja.
 
+Stan po przeglądzie 2026-09-29: wpis o udziale ma już tylko datę (dzień), a nie ten sam znacznik czasu co blok,
+a wiadomość z kodem potwierdzenia jest usuwana z kolejki po wysłaniu albo po ostatniej nieudanej próbie.
+Zostaje korelacja przez kolejność identyfikatorów, odziedziczona z pierwotnej wersji; usuwa ją dopiero zmiana
+opisana niżej.
+
 Rozwiązanie architektoniczne: **rozdzielenie uprawnienia od oddania głosu w czasie i tożsamości**.
 Wyborca po zalogowaniu pobiera jednorazowy, losowy token urny (zapisany jako hash, bez powiązania
 z kolejnością), a głos oddaje w osobnym żądaniu, które nie przenosi tożsamości, tylko token.
@@ -164,6 +170,8 @@ Dodatkowo zapis bloku może być buforowany i wykonywany w losowej kolejności w
 model danych (nowa tabela tokenów) i przepływ w `ElectionService`, ale nie strukturę warstw.
 
 ### 3.3 Weryfikacja łańcucha nie skaluje się
+
+> Usunięte w etapie 2: stan głowy w `DataWyborow`, pełna weryfikacja w tle (sekcja 4a).
 
 Każde oddanie głosu i każde wejście na wyniki ładuje **cały łańcuch wyborów do pamięci** i weryfikuje
 go od zera. Dla jednego głosowania z 10 tys. głosów to 10 tys. odczytów i SHA-256 przy każdym głosie,
@@ -176,6 +184,8 @@ Pełną weryfikację uruchamiać w tle (`BackgroundService`, co kilka minut) i n
 zapisując wynik. Strony wyników i wyszukiwarki czytają zapisany wynik zamiast liczyć.
 
 ### 3.4 Kolejka poczty jest w pamięci procesu
+
+> Usunięte w etapie 2: outbox `WiadomoscEmail` z `EmailDispatcher` (sekcja 4a).
 
 `Channel<T>` znika przy restarcie; e-mail z hashem głosu może nie dojść, choć głos jest zapisany.
 Dla pracy inżynierskiej akceptowalne (hash widać na stronie potwierdzenia), ale poprawny wzorzec to
@@ -199,7 +209,7 @@ wyodrębnić:
   a reszta w `ViewModels/`. Powinny być razem w `ViewModels/`.
 - Folder `ExtensionMethods/` zawiera walidatory, atrybuty i szablony e-mail, które nie są extension
   methods. Naturalny podział: `Validation/` (PESEL, wiek, e-mail), `Services/Mail/EmailTemplates`.
-- `DbContext` leży w `Models/` zamiast w `Data/` (zostawiony ze względu na stare migracje).
+- `DbContext` leży w `Models/` zamiast w `Data/` (jak w pierwotnej wersji).
 - Nazwy encji po polsku (`DataWyborow` znaczy "data wyborów", a jest to encja "Wybory"), reszta kodu
   po angielsku. Do decyzji autora; ważna jest konsekwencja i słowniczek w pracy.
 - Tabela `Administrator` jako osobna encja zamiast kolumny roli: poprawne (pozwala na więcej ról
@@ -211,7 +221,9 @@ wyodrębnić:
 
 ### 3.7 Warstwa operacyjna
 
-- Brak `health checks` (`/health`) i metryk; kompozycja Docker nie ma reverse proxy z TLS.
+> Częściowo usunięte w etapie 2: `/health`, Serilog. Reverse proxy i migracje jako krok wdrożenia nadal otwarte.
+
+- Brak metryk i reverse proxy z TLS (aplikacja działa lokalnie).
 - Logowanie tylko do konsoli; brak korelacji żądań w logach (Serilog + `RequestId`).
 - Migracje przy starcie (`ApplyMigrationsOnStartup`) są wygodne w developmencie, ale w produkcji
   z wieloma instancjami to wyścig; tam migracje powinny być krokiem wdrożenia.
@@ -269,7 +281,7 @@ i najbardziej wartościowy naukowo (kompromis między weryfikowalnością a tajn
 
 ## 4a. Stan realizacji planu etapu 2 (2026-09-25)
 
-Wykonane (szczegóły w `docs/PLAN_ETAP_2.md`):
+Wykonane:
 
 1. Stan głowy w `DataWyborow` + weryfikacja przyrostowa przy głosie + pełna weryfikacja w tle
    (`ChainVerificationWorker`, tabela `WeryfikacjaLancucha`). Krytyczna sekcja czyta dwa wiersze zamiast
@@ -291,21 +303,45 @@ błąd i kod wyjścia 1.
 
 Finalizacja (2026-09-28, wersja 2.0.0): migracja na .NET 10 LTS (wsparcie do listopada 2028), build, testy
 i formatowanie zweryfikowane na SDK 10, wersja aplikacji w stopce i na `/setup`, `CHANGELOG.md`,
-plan i status w `docs/PLAN_FINALIZACJI.md`.
+historia zmian w `CHANGELOG.md`.
 
 Nadal otwarte: tajność głosu (3.2, wymaga mieszania lub ślepych podpisów), przeniesienie modeli formularzy
 i walidatorów do właściwych folderów (3.6, wymaga usuwania plików), UTC w bazie, wiele węzłów weryfikujących.
+
+## 4b. Przegląd 2026-09-29
+
+Porównanie z pierwotną wersją autora (commit `7266c79`) i przegląd poprawności; pełny raport w
+[`OCENA_ZMIAN.md`](OCENA_ZMIAN.md). Naprawione:
+
+- ponowienie głosu przy konflikcie współbieżnym (zapis przez kolejkę poczty był poza obsługą konfliktu, więc
+  kończył się błędem 500),
+- powiązanie wyborca → głos przez identyczny znacznik czasu i przez nieusuwane wiadomości w kolejce,
+- fałszywy alarm o naruszeniu łańcucha, gdy głos wpadł między odczytem wyborów i bloków,
+- zmiany w trwających i zakończonych wyborach (daty, kandydaci) oraz wyniki cząstkowe widoczne dla
+  administratora,
+- konta testowe i automatyczne generowanie klucza poza Development,
+- sesje: każde żądanie zalogowanego użytkownika jest sprawdzane z bazą (`SessionValidator`), więc zmiana roli
+  działa od razu, a zmiana hasła lub dezaktywacja kończy inne sesje,
+- tokeny resetu hasła zapisywane jako hash,
+- strona błędu zwraca 429 także dla zablokowanych żądań POST bez tokenu.
+
+Znane ograniczenia (świadomie pozostawione, aplikacja działa lokalnie):
+
+- brak `UseForwardedHeaders`: za reverse proxy limit żądań liczyłby wszystkich jako jeden adres;
+- jeden klucz podpisu: pole `IdKlucza` jest zapisywane, ale weryfikacja używa bieżącego klucza, więc wymiana
+  klucza wymaga ponownego podpisania łańcuchów;
+- czas lokalny serwera zamiast UTC (3.6).
 
 ## 5. Podsumowanie
 
 | Aspekt | Ocena | Komentarz |
 | --- | --- | --- |
 | Podział na warstwy | dobra | konsekwentny MVC + serwisy + czysty rdzeń łańcucha |
-| Dobór technologii | dobra | ASP.NET Core 9, EF Core, SQL Server; adekwatne i wspierane |
+| Dobór technologii | dobra | ASP.NET Core 10 LTS, EF Core 10, SQL Server; adekwatne i wspierane |
 | Testowalność | dobra | trzy poziomy testów bez zewnętrznych zależności |
 | Bezpieczeństwo aplikacyjne | dobra | auth frameworka, CSRF, lockout, sekrety poza kodem |
 | Integralność rejestru | dobra (po etapie 2) | podpisy ECDSA, kotwice poza systemem, weryfikacja niezależnym narzędziem; nadal jedna baza |
-| Tajność głosu | słaba | korelacja przez kolejność zapisu w jednej transakcji; nierozwiązane |
+| Tajność głosu | słaba | znacznik czasu nie łączy już wyborcy z głosem, ale kolejność zapisu tak; nierozwiązane |
 | Skalowalność | dobra (po etapie 2) | głos czyta głowę i ostatni blok; pełna weryfikacja w tle |
 | Odporność operacyjna | dobra (po etapie 2) | outbox z ponawianiem, `/health`, Serilog, rate limiting |
 | Spójność struktury | dostateczna | pozostałości pierwotnego układu folderów i nazw |

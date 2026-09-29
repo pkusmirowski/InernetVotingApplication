@@ -5,6 +5,9 @@ namespace InternetVotingApplication.Interfaces;
 
 public sealed record LoginOutcome(LoginStatus Status, Uzytkownik? User, bool IsAdmin);
 
+/// <summary>What a signed-in session is checked against on every request.</summary>
+public sealed record SessionState(bool IsActive, bool IsAdmin, string PasswordStamp);
+
 public interface IUserService
 {
     /// <summary>Creates an inactive account and sends the activation e-mail.</summary>
@@ -23,4 +26,7 @@ public interface IUserService
     Task<bool> IsPasswordResetTokenValidAsync(Guid token);
 
     Task<bool> ResetPasswordAsync(Guid token, string newPassword);
+
+    /// <summary>Current account state for session validation; null when the account no longer exists.</summary>
+    Task<SessionState?> GetSessionStateAsync(int userId);
 }

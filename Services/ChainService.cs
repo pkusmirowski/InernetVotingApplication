@@ -1,3 +1,4 @@
+using System.Data;
 using System.Globalization;
 using System.Text;
 using InternetVotingApplication.Blockchain;
@@ -29,16 +30,44 @@ public class ChainService(
 
     private readonly ChainOptions _options = chainOptions.Value;
 
+    /// <summary>Plain-language name of an anchor reason, for pages, e-mails and the audit log.</summary>
+    public static string DescribeReason(string? reason) => reason switch
+    {
+        ReasonPeriodic => "okresowa",
+        ReasonElectionEnded => "końcowa, wysłana po zamknięciu głosowania",
+        ReasonManual => "na polecenie administratora",
+        _ => reason ?? string.Empty,
+    };
+
+    /// <summary>Plain-language name of what started a verification.</summary>
+    public static string DescribeTrigger(string? trigger) => trigger switch
+    {
+        "Background" => "kontrola automatyczna",
+        "Manual" => "kontrola zlecona przez administratora",
+        "Results" => "kontrola przy wyświetleniu wyników",
+        _ => trigger ?? string.Empty,
+    };
+
     public async Task<ChainVerificationResult> VerifyAndStoreAsync(int electionId, string trigger, int? actorUserId = null)
     {
-        var election = await context.DataWyborows.AsNoTracking().SingleOrDefaultAsync(e => e.Id == electionId)
-            ?? throw new InvalidOperationException($"Election {electionId} does not exist.");
+        DataWyborow election;
+        List<GlosowanieWyborcze> blocks;
 
-        var blocks = await context.GlosowanieWyborczes
-            .AsNoTracking()
-            .Where(g => g.IdWybory == electionId)
-            .OrderBy(g => g.Indeks)
-            .ToListAsync();
+        // The head and the blocks are read in one serializable transaction: a vote committed between two separate
+        // reads would leave one block more than the head counts and be reported as tampering.
+        await using (var transaction = await context.Database.BeginTransactionAsync(IsolationLevel.Serializable))
+        {
+            election = await context.DataWyborows.AsNoTracking().SingleOrDefaultAsync(e => e.Id == electionId)
+                ?? throw new InvalidOperationException($"Election {electionId} does not exist.");
+
+            blocks = await context.GlosowanieWyborczes
+                .AsNoTracking()
+                .Where(g => g.IdWybory == electionId)
+                .OrderBy(g => g.Indeks)
+                .ToListAsync();
+
+            await transaction.CommitAsync();
+        }
 
         var result = BlockChainHelper.VerifyBlockChain(blocks, signer);
         var headMatches = BlockChainHelper.HeadMatches(election, blocks.Count == 0 ? null : blocks[^1]);
@@ -79,7 +108,7 @@ public class ChainService(
         }
         else if (trigger == "Manual")
         {
-            await auditLog.LogAsync(AuditLog.Actions.ChainVerified, $"Wybory {electionId}: {result.BlockCount} bloków poprawnych", actorUserId);
+            await auditLog.LogAsync(AuditLog.Actions.ChainVerified, $"Wybory {electionId}: kontrola bez zastrzeżeń, sprawdzono głosów: {result.BlockCount}", actorUserId);
         }
 
         return new ChainVerificationResult(isValid, result.BlockCount, result.HeadHash, result.InvalidBlockIds, result.InvalidSignatureBlockIds);
@@ -133,7 +162,7 @@ public class ChainService(
         }
 
         await auditLog.LogAsync(AuditLog.Actions.AnchorPublished,
-            $"Wybory {electionId}: {anchor.LiczbaBlokow} bloków, głowa {anchor.HashGlowy ?? "(pusta)"}, powód {reason}", actorUserId);
+            $"Wybory {electionId}: głosów w rejestrze: {anchor.LiczbaBlokow}, kod ostatniego wpisu: {anchor.HashGlowy ?? "(pusty rejestr)"}, rodzaj: {DescribeReason(reason)}", actorUserId);
         logger.LogInformation("Anchor published for election {ElectionId}: {Blocks} blocks, head {Head}", electionId, anchor.LiczbaBlokow, anchor.HashGlowy);
 
         return ToViewModel(anchor);

@@ -22,6 +22,10 @@ public class EmailTemplatesTests
         var receipt = Email.VoteReceipt("a@b.pl", "Wybory & Referendum", "HASH");
         Assert.Contains("HASH", receipt.HtmlBody, StringComparison.Ordinal);
         Assert.Contains("Wybory &amp; Referendum", receipt.HtmlBody, StringComparison.Ordinal);
+        Assert.DoesNotContain("<a ", receipt.HtmlBody, StringComparison.Ordinal);
+
+        var linked = Email.VoteReceipt("a@b.pl", "W", "HASH", "https://glosowanie.pl/Account/Search?hash=HASH");
+        Assert.Contains("href=\"https://glosowanie.pl/Account/Search?hash=HASH\"", linked.HtmlBody, StringComparison.Ordinal);
 
         var reset = Email.PasswordReset("a@b.pl", "https://app/reset?token=1", TimeSpan.FromMinutes(90));
         Assert.Contains("90 minut", reset.HtmlBody, StringComparison.Ordinal);
@@ -43,6 +47,6 @@ public class EmailTemplatesTests
         Assert.Contains("SIG==", mail.HtmlBody, StringComparison.Ordinal);
         Assert.Contains("KEY1", mail.HtmlBody, StringComparison.Ordinal);
         Assert.Contains("id 7", mail.HtmlBody, StringComparison.Ordinal);
-        Assert.Contains("Kotwica", mail.Subject, StringComparison.Ordinal);
+        Assert.Contains("Kopia kontrolna", mail.Subject, StringComparison.Ordinal);
     }
 }

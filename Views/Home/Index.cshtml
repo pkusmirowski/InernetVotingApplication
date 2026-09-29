@@ -1,4 +1,4 @@
-﻿@{
+@{
     ViewData["Title"] = "Strona główna";
     ViewData["FullWidth"] = true;
 }
@@ -7,8 +7,8 @@
     <div class="container">
         <div class="row gy-4">
             <div class="col-lg-6 order-2 order-lg-1 d-flex flex-column justify-content-center">
-                <h1>Witamy w aplikacji do głosowania w wyborach prezydenckich.</h1>
-                <h2>Konto jest wymagane, aby móc brać udział w głosowaniach wyborczych.</h2>
+                <h1>Zagłosuj przez internet.</h1>
+                <h2>Załóż konto, oddaj głos i sprawdź w każdej chwili, czy został zapisany.</h2>
                 <div>
                     <a asp-controller="Account" asp-action="Login" class="btn-get-started">Zaloguj się</a>
                     <a asp-controller="Account" asp-action="Register" class="btn-get-started">Zarejestruj się</a>
@@ -29,26 +29,30 @@
                     <img src="~/assets/img/vote1.png" class="img-fluid" alt="">
                 </div>
                 <div class="col-lg-6 pt-5 pt-lg-0">
-                    <h3>Witaj w aplikacji do głosowań prezydenckich</h3>
+                    <h3>Jak to działa</h3>
                     <p>
-                        Aplikacja ta umożliwia Ci wyrażenie swojego głosu i uczestnictwo w procesie wyborczym dotyczącym wyborów prezydenckich. Dzięki niej będziesz mógł/a oddać głos na kandydata, którego poglądy i program wyborczy najbardziej odpowiadają Twoim przekonaniom. Pamiętaj, że Twój głos ma znaczenie dla przyszłości kraju!
+                        Głosowanie zajmuje kilka minut. Potrzebujesz tylko komputera lub telefonu z dostępem do internetu i adresu e-mail.
                     </p>
                     <div class="row">
                         <div class="col-md-6">
-                            <i class="bx bx-receipt"></i>
-                            <h4>Informacje o kandydatach</h4>
-                            <p>Tutaj znajdziesz szczegółowe informacje na temat poszczególnych kandydatów biorących udział w wyborach prezydenckich. Zapoznaj się z ich programami wyborczymi i zaplanuj swój głos.</p>
+                            <i class="bi bi-person-plus"></i>
+                            <h4>1. Załóż konto</h4>
+                            <p>Podaj swoje dane i adres e-mail. Wyślemy Ci wiadomość z linkiem. Po jego kliknięciu konto jest gotowe.</p>
                         </div>
                         <div class="col-md-6">
-                            <i class="bx bx-cube-alt"></i>
-                            <h4>Uczestnictwo w wyborach</h4>
-                            <p>Zaplanuj swoje uczestnictwo w wyborach prezydenckich. Sprawdź daty, miejsca i godziny otwarcia lokali wyborczych oraz dowiedz się, jakie dokumenty musisz posiadać, aby móc oddać głos.</p>
+                            <i class="bi bi-check2-square"></i>
+                            <h4>2. Oddaj głos</h4>
+                            <p>Zaloguj się, wybierz wybory i zaznacz kandydata. W każdych wyborach możesz zagłosować jeden raz.</p>
                         </div>
                     </div>
                     <div class="row mt-4">
-                        <div class="col-md-12">
-                            <h4>Pomoc i wsparcie</h4>
-                            <p>Jeśli masz jakiekolwiek pytania lub potrzebujesz pomocy związanej z aplikacją do głosowań prezydenckich, skontaktuj się z naszym zespołem. Chętnie pomożemy i udzielimy wszelkich niezbędnych informacji.</p>
+                        <div class="col-md-6">
+                            <h4>3. Sprawdź swój głos</h4>
+                            <p>Po głosowaniu dostajesz kod potwierdzenia. Dzięki niemu sprawdzisz, czy głos jest zapisany i czy nikt go nie zmienił.</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h4>Potrzebujesz pomocy?</h4>
+                            <p>Jeśli coś nie działa albo masz pytania, <a asp-controller="Home" asp-action="Contact">napisz do nas</a>. Chętnie pomożemy.</p>
                         </div>
                     </div>
                 </div>
@@ -59,36 +63,36 @@
     <section id="services" class="services">
         <div class="container">
             <div class="section-title">
-                <h2>Informacje o głosowaniu</h2>
-                <p>Aplikacja do głosowania w wyborach prezydenckich</p>
+                <h2>Dlaczego można nam zaufać</h2>
+                <p>Najważniejsze zasady głosowania w tej aplikacji</p>
             </div>
             <div class="row">
                 <div class="col-md-6 col-lg-3">
                     <div class="icon-box">
-                        <div class="icon"><i class="bx bxl-dribbble"></i></div>
-                        <h4 class="title">Bezpieczne głosowanie</h4>
-                        <p class="description">Nasz system głosowania w wyborach prezydenckich opiera się na wewnętrznym łańcuchu blockchain, co zapewnia wysoki poziom bezpieczeństwa i niezmienność wyników. Każdy oddany głos jest zabezpieczony przed fałszerstwem i nieuprawnionym dostępem.</p>
+                        <div class="icon"><i class="bi bi-shield-lock"></i></div>
+                        <h4 class="title">Głosów nie da się podmienić</h4>
+                        <p class="description">Każdy głos trafia do rejestru i dostaje podpis elektroniczny. Gdyby ktoś zmienił lub usunął choć jeden głos, automatyczna kontrola to wykryje.</p>
                     </div>
                 </div>
                 <div class="col-md-6 col-lg-3">
                     <div class="icon-box">
-                        <div class="icon"><i class="bx bx-tachometer"></i></div>
-                        <h4 class="title">Szybkość i efektywność</h4>
-                        <p class="description">Dzięki zastosowaniu technologii blockchain, proces głosowania jest szybki i efektywny. Wyniki są rejestrowane natychmiastowo i dostępne do wglądu, co przyczynia się do skrócenia czasu przetwarzania danych oraz uniknięcia błędów związanych z tradycyjnymi metodami głosowania.</p>
+                        <div class="icon"><i class="bi bi-incognito"></i></div>
+                        <h4 class="title">Głos jest tajny</h4>
+                        <p class="description">W rejestrze głosów nie ma danych wyborców. Osobno zapisujemy tylko to, że Twoje konto wzięło udział w wyborach, żeby nikt nie zagłosował dwa razy.</p>
                     </div>
                 </div>
                 <div class="col-md-6 col-lg-3">
                     <div class="icon-box">
-                        <div class="icon"><i class="bx bx-file"></i></div>
-                        <h4 class="title">Sprawdzalność głosu</h4>
-                        <p class="description">Każdy uczestnik wyborów może sprawdzić poprawność oddanego głosu za pomocą unikalnego hashu. Dzięki temu, każdy obywatel może indywidualnie zweryfikować, czy jego głos został zarejestrowany i niezmieniony w systemie. Zapewniamy transparentność i zaufanie do całego procesu wyborczego.</p>
+                        <div class="icon"><i class="bi bi-search"></i></div>
+                        <h4 class="title">Możesz sprawdzić swój głos</h4>
+                        <p class="description">Po głosowaniu dostajesz kod potwierdzenia. Wpisujesz go w zakładce „Sprawdź głos” i widzisz, czy Twój głos jest zapisany bez zmian.</p>
                     </div>
                 </div>
                 <div class="col-md-6 col-lg-3">
                     <div class="icon-box">
-                        <div class="icon"><i class="bx bx-world"></i></div>
-                        <h4 class="title">Ułatwienie udziału w wyborach</h4>
-                        <p class="description">Nasza aplikacja do głosowania w wyborach prezydenckich umożliwia łatwe i wygodne uczestnictwo w procesie wyborczym. Dzięki niej możesz oddać swój głos z dowolnego miejsca i o dowolnej porze, co zwiększa dostępność dla wszystkich uprawnionych do głosowania obywateli.</p>
+                        <div class="icon"><i class="bi bi-globe"></i></div>
+                        <h4 class="title">Głosujesz, skąd chcesz</h4>
+                        <p class="description">Nie musisz nigdzie iść. Głos można oddać z domu lub z telefonu, o dowolnej porze w czasie trwania wyborów.</p>
                     </div>
                 </div>
             </div>
@@ -100,43 +104,43 @@
         <div class="container">
             <div class="section-title">
                 <h2>Najczęściej zadawane pytania</h2>
-                <p>Pytania dotyczące aplikacji do głosowania w wyborach prezydenckich</p>
+                <p>Krótkie odpowiedzi na to, o co pytacie najczęściej</p>
             </div>
             <ul class="faq-list">
                 <li>
-                    <div data-bs-toggle="collapse" class="collapsed question" href="#faq1">Czy można zweryfikować poprawność oddanego głosu za pomocą systemu blockchain? <i class="bi bi-chevron-down icon-show"></i><i class="bi bi-chevron-up icon-close"></i></div>
+                    <div data-bs-toggle="collapse" class="collapsed question" href="#faq1">Kto może głosować? <i class="bi bi-chevron-down icon-show"></i><i class="bi bi-chevron-up icon-close"></i></div>
                     <div id="faq1" class="collapse" data-bs-parent=".faq-list">
-                        <p>Tak, nasz system oparty na wewnętrznym łańcuchu blockchain umożliwia każdemu uczestnikowi wyborów sprawdzenie poprawności oddanego głosu za pomocą unikalnego hasha. Dzięki temu, możesz mieć pewność, że Twój głos został zarejestrowany i niezmieniony w systemie.</p>
+                        <p>Każda osoba pełnoletnia, która ma numer PESEL i założy konto w aplikacji. Po rejestracji trzeba jeszcze kliknąć link z wiadomości e-mail, żeby aktywować konto.</p>
                     </div>
                 </li>
                 <li>
-                    <div data-bs-toggle="collapse" href="#faq2" class="collapsed question">Czy proces głosowania jest bezpieczny i chroniony przed fałszerstwem? <i class="bi bi-chevron-down icon-show"></i><i class="bi bi-chevron-up icon-close"></i></div>
+                    <div data-bs-toggle="collapse" href="#faq2" class="collapsed question">Jak sprawdzić, czy mój głos został zapisany? <i class="bi bi-chevron-down icon-show"></i><i class="bi bi-chevron-up icon-close"></i></div>
                     <div id="faq2" class="collapse" data-bs-parent=".faq-list">
-                        <p>Tak, nasz system głosowania zapewnia wysoki poziom bezpieczeństwa i chroni przed fałszerstwem. Dzięki technologii blockchain, każdy oddany głos jest zabezpieczony i niemożliwy do sfałszowania. Możesz mieć pewność, że Twoje głosy będą liczone zgodnie z zasadami i przepisami wyborczymi.</p>
+                        <p>Po oddaniu głosu dostajesz kod potwierdzenia: widzisz go na ekranie i dostajesz w wiadomości e-mail. Otwórz zakładkę „Sprawdź głos” w menu u góry strony, wklej kod i kliknij „Sprawdź”. Zobaczysz, w jakich wyborach i na kogo oddano głos oraz czy nikt go nie zmienił.</p>
                     </div>
                 </li>
                 <li>
-                    <div data-bs-toggle="collapse" href="#faq3" class="collapsed question">Czy aplikacja umożliwia szybkie i efektywne przetwarzanie głosów? <i class="bi bi-chevron-down icon-show"></i><i class="bi bi-chevron-up icon-close"></i></div>
+                    <div data-bs-toggle="collapse" href="#faq3" class="collapsed question">Czy mój głos jest tajny? <i class="bi bi-chevron-down icon-show"></i><i class="bi bi-chevron-up icon-close"></i></div>
                     <div id="faq3" class="collapse" data-bs-parent=".faq-list">
-                        <p>Tak, nasza aplikacja do głosowania w wyborach prezydenckich zapewnia szybkie i efektywne przetwarzanie głosów. Dzięki zastosowaniu technologii blockchain, wyniki są rejestrowane natychmiastowo i dostępne do wglądu. Skracamy czas przetwarzania danych i minimalizujemy błędy związane z tradycyjnymi metodami głosowania.</p>
+                        <p>Tak. W rejestrze głosów zapisany jest tylko sam głos, bez danych wyborcy. Pamiętaj jednak, że kod potwierdzenia pokazuje, na kogo oddano głos, dlatego nie udostępniaj go innym osobom.</p>
                     </div>
                 </li>
                 <li>
-                    <div data-bs-toggle="collapse" href="#faq4" class="collapsed question">Czy aplikacja umożliwia udział w wyborach obywatelom z różnych miejsc? <i class="bi bi-chevron-down icon-show"></i><i class="bi bi-chevron-up icon-close"></i></div>
+                    <div data-bs-toggle="collapse" href="#faq4" class="collapsed question">Czy mogę zmienić głos po jego oddaniu? <i class="bi bi-chevron-down icon-show"></i><i class="bi bi-chevron-up icon-close"></i></div>
                     <div id="faq4" class="collapse" data-bs-parent=".faq-list">
-                        <p>Tak, nasza aplikacja do głosowania w wyborach prezydenckich umożliwia udział obywatelom z różnych miejsc. Dzięki mobilności i dostępności online, każdy uprawniony do głosowania obywatel może oddać swój głos z dowolnego miejsca i o dowolnej porze. Zapewniamy równy dostęp do procesu wyborczego dla wszystkich.</p>
+                        <p>Nie. W każdych wyborach można zagłosować tylko raz, a oddanego głosu nie da się zmienić ani cofnąć. Zanim klikniesz „Oddaj głos”, upewnij się, że zaznaczony jest właściwy kandydat.</p>
                     </div>
                 </li>
                 <li>
-                    <div data-bs-toggle="collapse" href="#faq5" class="collapsed question">Jak mogę sprawdzić, czy mój głos został poprawnie zarejestrowany? <i class="bi bi-chevron-down icon-show"></i><i class="bi bi-chevron-up icon-close"></i></div>
+                    <div data-bs-toggle="collapse" href="#faq5" class="collapsed question">Skąd wiadomo, że nikt nie zmienił wyników? <i class="bi bi-chevron-down icon-show"></i><i class="bi bi-chevron-up icon-close"></i></div>
                     <div id="faq5" class="collapse" data-bs-parent=".faq-list">
-                        <p>Aby sprawdzić, czy Twój głos został poprawnie zarejestrowany, skorzystaj z unikalnego hasha, który wyświetli ci się po oddaniu głosu oraz otrzymasz go na adres email. Możesz go wprowadzić w wyszukiwarkę znajdującą się na górze strony pod nazwą "Sprawdź głos" i zweryfikować poprawność swojego głosu. Dzięki temu, masz pełną kontrolę nad swoim udziałem w procesie wyborczym.</p>
+                        <p>Głosy są zapisywane w rejestrze, w którym każdy wpis jest powiązany z poprzednim i podpisany elektronicznie. Zmiana jednego głosu psuje to powiązanie, a automatyczna kontrola od razu to wykrywa. Dodatkowo co pewien czas zapisywana jest podpisana kopia kontrolna stanu rejestru (może być też wysyłana e-mailem do komisji wyborczej), a po zakończeniu wyborów cały rejestr można pobrać i sprawdzić samodzielnie.</p>
                     </div>
                 </li>
                 <li>
-                    <div data-bs-toggle="collapse" href="#faq6" class="collapsed question">Jakie są główne zalety systemu opartego na technologii blockchain? <i class="bi bi-chevron-down icon-show"></i><i class="bi bi-chevron-up icon-close"></i></div>
+                    <div data-bs-toggle="collapse" href="#faq6" class="collapsed question">Nie widzę wiadomości e-mail z linkiem albo z kodem. Co zrobić? <i class="bi bi-chevron-down icon-show"></i><i class="bi bi-chevron-up icon-close"></i></div>
                     <div id="faq6" class="collapse" data-bs-parent=".faq-list">
-                        <p>System oparty na wewnętrznym łańcuchu blockchain ma wiele zalet, takich jak: bezpieczeństwo - dzięki zdecentralizowanemu i niezmiennemu charakterowi blockchain, system jest odporny na ingerencje i manipulacje; przejrzystość - wszystkie transakcje są rejestrowane w publicznym łańcuchu bloków, co zapewnia transparentność procesu wyborczego; nieodwracalność - raz zarejestrowane głosy nie mogą zostać cofnięte lub zmienione, co gwarantuje integralność wyników; efektywność - system blockchain umożliwia szybkie i dokładne przetwarzanie głosów, minimalizując błędy i opóźnienia.</p>
+                        <p>Odczekaj kilka minut i sprawdź folder ze spamem. Upewnij się też, że przy rejestracji został podany właściwy adres e-mail. Jeśli wiadomości nadal nie ma, <a asp-controller="Home" asp-action="Contact">napisz do nas</a>.</p>
                     </div>
                 </li>
             </ul>

@@ -66,7 +66,7 @@ else {
         }
         if (-not $instances.ContainsKey('MSSQLSERVER')) {
             $named = ($instances.Keys | Select-Object -First 1)
-            $connection = "Server=localhost\$named;Database=InternetVoting;Trusted_Connection=True;MultipleActiveResultSets=True;TrustServerCertificate=True;"
+            $connection = "Server=localhost\$named;Database=InternetVotingV2;Trusted_Connection=True;MultipleActiveResultSets=True;TrustServerCertificate=True;"
             $answer = Read-Host "Brak domyślnej instancji. Zapisać w user secrets połączenie do localhost\$named? [t/N]"
             if ($answer -match '^[tTyY]') {
                 & dotnet user-secrets set 'ConnectionStrings:InternetVotingDBConnection' $connection --project InternetVotingApplication.csproj | Out-Null
@@ -77,6 +77,6 @@ else {
 }
 
 Write-Step "Uruchamiam aplikację (profil: $profile). Zatrzymanie: Ctrl+C"
-Write-Host 'Przeglądarka otworzy się na https://localhost:5001/Home/Setup (strona diagnostyczna).'
+Write-Host 'Przeglądarka otworzy się na https://localhost:5001/setup (strona diagnostyczna).'
 & dotnet run --project InternetVotingApplication.csproj --launch-profile $profile
 exit $LASTEXITCODE

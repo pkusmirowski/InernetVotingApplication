@@ -26,6 +26,20 @@ public class HomeControllerTests
         Assert.Equal(404, view.Model);
     }
 
+    [Theory]
+    [InlineData(0)]
+    [InlineData(200)]
+    [InlineData(999)]
+    public void HttpStatus_ignores_codes_that_are_not_errors(int code)
+    {
+        var controller = new HomeController().Prepare();
+
+        var view = AssertView(controller.HttpStatus(code));
+
+        Assert.Equal(404, controller.Response.StatusCode);
+        Assert.Equal(404, view.Model);
+    }
+
     [Fact]
     public void Error_exposes_request_id()
     {
