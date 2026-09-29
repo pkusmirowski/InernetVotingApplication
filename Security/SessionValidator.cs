@@ -3,7 +3,7 @@ using InternetVotingApplication.Interfaces;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
-namespace InternetVotingApplication.Services;
+namespace InternetVotingApplication.Security;
 
 /// <summary>
 /// Checks every signed-in request against the database, so that account changes reach existing sessions at once:
@@ -12,7 +12,7 @@ namespace InternetVotingApplication.Services;
 /// </summary>
 public static class SessionValidator
 {
-    /// <summary>Claim with <see cref="UserService.PasswordStamp"/> of the password the session was opened with.</summary>
+    /// <summary>Claim with <see cref="Services.UserService.PasswordStamp"/> of the password the session was opened with.</summary>
     public const string PasswordStampClaim = "pwd";
 
     public static async Task ValidateAsync(CookieValidatePrincipalContext context)

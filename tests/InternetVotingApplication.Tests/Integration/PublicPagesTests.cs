@@ -43,7 +43,7 @@ public sealed class PublicPagesTests : IClassFixture<VotingWebApplicationFactory
             Assert.DoesNotContain("twojadomena", html, StringComparison.Ordinal);
             Assert.DoesNotContain("000 000 000", html, StringComparison.Ordinal);
             Assert.DoesNotContain("fonts.googleapis", html, StringComparison.Ordinal);
-            Assert.Contains("Głosowanie internetowe", html, StringComparison.Ordinal);
+            Assert.Contains("Wybory Prezydenckie", html, StringComparison.Ordinal);
         }
 
         var contact = WebUtility.HtmlDecode(await client.GetStringAsync(new Uri("/Home/Contact", UriKind.Relative)));

@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
+using InternetVotingApplication.Validation;
 
-namespace InternetVotingApplication.Models;
+namespace InternetVotingApplication.ViewModels;
 
 /// <summary>Sign-in form.</summary>
 public class Logowanie

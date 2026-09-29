@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
 
-namespace InternetVotingApplication;
+namespace InternetVotingApplication.Validation;
 
 /// <summary>
 /// Polish replacements for the validation messages the framework would otherwise produce in English.

@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using InternetVotingApplication.Security;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

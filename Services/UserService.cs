@@ -1,9 +1,10 @@
 using System.Security.Cryptography;
 using System.Text;
 using InternetVotingApplication.Configuration;
-using InternetVotingApplication.ExtensionMethods;
 using InternetVotingApplication.Interfaces;
 using InternetVotingApplication.Models;
+using InternetVotingApplication.Services.Mail;
+using InternetVotingApplication.Validation;
 using InternetVotingApplication.ViewModels;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;

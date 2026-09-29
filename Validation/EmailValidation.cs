@@ -1,6 +1,6 @@
 using System.Net.Mail;
 
-namespace InternetVotingApplication.ExtensionMethods;
+namespace InternetVotingApplication.Validation;
 
 public static class EmailValidation
 {

@@ -1,5 +1,5 @@
-using InternetVotingApplication.ExtensionMethods;
 using InternetVotingApplication.Models;
+using InternetVotingApplication.Services.Mail;
 
 namespace InternetVotingApplication.Tests.Unit;
 

@@ -1,5 +1,6 @@
 using InternetVotingApplication.Data;
 using InternetVotingApplication.Models;
+using InternetVotingApplication.Validation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -35,7 +36,8 @@ public sealed class DbInitializerTests : IDisposable
 
         var elections = await context.DataWyborows.Include(e => e.Kandydats).ToListAsync();
         Assert.Equal(3, elections.Count);
-        Assert.Contains(elections, e => e.GetStatus(TestData.Now) == ElectionStatus.Ongoing && e.Kandydats.Count == 3);
+        Assert.All(elections, e => Assert.StartsWith("Wybory Prezydenckie", e.Opis, StringComparison.Ordinal));
+        Assert.Contains(elections, e => e.GetStatus(TestData.Now) == ElectionStatus.Ongoing && e.Kandydats.Count == 2);
         Assert.Contains(elections, e => e.GetStatus(TestData.Now) == ElectionStatus.Upcoming);
         Assert.Contains(elections, e => e.GetStatus(TestData.Now) == ElectionStatus.Ended);
     }
@@ -70,7 +72,7 @@ public sealed class DbInitializerTests : IDisposable
         var users = await context.Uzytkowniks.Include(u => u.Administrators).ToListAsync();
         Assert.Equal(TestAccounts.All.Count, users.Count);
         Assert.All(users, u => Assert.True(u.JestAktywne));
-        Assert.All(users, u => Assert.True(InternetVotingApplication.ExtensionMethods.PeselValidation.IsValidPESEL(u.Pesel)));
+        Assert.All(users, u => Assert.True(PeselValidation.IsValidPESEL(u.Pesel)));
         var admin = Assert.Single(users, u => u.Administrators.Count > 0);
         Assert.Equal("admin@test.local", admin.Email);
         Assert.True(BCrypt.Net.BCrypt.Verify(TestAccounts.AdminPassword, admin.Haslo));

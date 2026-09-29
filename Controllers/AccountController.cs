@@ -3,6 +3,7 @@ using InternetVotingApplication.Configuration;
 using InternetVotingApplication.ExtensionMethods;
 using InternetVotingApplication.Interfaces;
 using InternetVotingApplication.Models;
+using InternetVotingApplication.Security;
 using InternetVotingApplication.Services;
 using InternetVotingApplication.ViewModels;
 using Microsoft.AspNetCore.Authentication;

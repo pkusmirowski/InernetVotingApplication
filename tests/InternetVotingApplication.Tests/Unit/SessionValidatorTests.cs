@@ -1,6 +1,6 @@
 using System.Security.Claims;
 using InternetVotingApplication.Interfaces;
-using InternetVotingApplication.Services;
+using InternetVotingApplication.Security;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;

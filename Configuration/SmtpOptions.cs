@@ -36,5 +36,5 @@ public sealed class SmtpOptions
     [EmailAddress]
     public string FromAddress { get; set; } = "no-reply@localhost";
 
-    public string FromName { get; set; } = "Głosowanie internetowe";
+    public string FromName { get; set; } = "Wybory Prezydenckie";
 }

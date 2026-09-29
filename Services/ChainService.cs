@@ -5,6 +5,7 @@ using InternetVotingApplication.Blockchain;
 using InternetVotingApplication.Configuration;
 using InternetVotingApplication.Interfaces;
 using InternetVotingApplication.Models;
+using InternetVotingApplication.Services.Mail;
 using InternetVotingApplication.ViewModels;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -158,7 +159,7 @@ public class ChainService(
 
         foreach (var recipient in recipients)
         {
-            await emailSender.SendAsync(ExtensionMethods.Email.ChainAnchor(recipient, election.Opis, electionId, anchor, signer.KeyId));
+            await emailSender.SendAsync(Email.ChainAnchor(recipient, election.Opis, electionId, anchor, signer.KeyId));
         }
 
         await auditLog.LogAsync(AuditLog.Actions.AnchorPublished,

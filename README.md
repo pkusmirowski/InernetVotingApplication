@@ -1,6 +1,6 @@
 # InternetVotingApplication
 
-Aplikacja webowa do głosowań internetowych (praca inżynierska). Każdy oddany głos jest blokiem
+Aplikacja webowa do głosowania w wyborach prezydenckich przez internet (praca inżynierska). Każdy oddany głos jest blokiem
 w podpisanym łańcuchu hashy. Wyborca dostaje hash swojego głosu i może w każdej chwili sprawdzić,
 czy głos znajduje się w nienaruszonym łańcuchu.
 
@@ -13,6 +13,9 @@ Technologie: .NET 10, ASP.NET Core MVC, Entity Framework Core, SQL Server, Boots
 - łańcuch głosów podpisany kluczem ECDSA, weryfikacja w tle, publiczna strona łańcucha i eksport JSON,
 - panel administratora: wybory (dodawanie, edycja, usuwanie), kandydaci, użytkownicy i role, weryfikacja łańcucha,
   dziennik audytu.
+
+Aplikacja powstała do głosowania w wyborach prezydenckich. Mechanizm wyborów jest ogólny, więc w rozwiniętej wersji
+można nim przeprowadzić także inne głosowania, np. kolejną turę wyborów albo referendum.
 
 ## Uruchomienie
 

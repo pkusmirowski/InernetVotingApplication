@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace InternetVotingApplication.Models;
+namespace InternetVotingApplication.ViewModels;
 
 /// <summary>Change-password form for a signed-in user.</summary>
 public class ChangePassword

@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
+using InternetVotingApplication.Validation;
 
-namespace InternetVotingApplication.Models;
+namespace InternetVotingApplication.ViewModels;
 
 /// <summary>Request a password-reset link.</summary>
 public class PasswordRecovery

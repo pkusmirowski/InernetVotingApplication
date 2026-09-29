@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using InternetVotingApplication.ExtensionMethods;
-using InternetVotingApplication.Models;
+using InternetVotingApplication.Validation;
 
 namespace InternetVotingApplication.ViewModels;
 

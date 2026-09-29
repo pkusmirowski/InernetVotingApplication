@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using InternetVotingApplication.Models;
+using InternetVotingApplication.Validation;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace InternetVotingApplication.ViewModels;

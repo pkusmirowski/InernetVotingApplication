@@ -3,6 +3,7 @@ using InternetVotingApplication.Configuration;
 using InternetVotingApplication.Controllers;
 using InternetVotingApplication.Interfaces;
 using InternetVotingApplication.Models;
+using InternetVotingApplication.Security;
 using InternetVotingApplication.ViewModels;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
@@ -306,7 +307,7 @@ public class AccountControllerTests
         await _authentication.Received(1).SignInAsync(
             Arg.Any<HttpContext>(),
             Arg.Any<string>(),
-            Arg.Is<ClaimsPrincipal>(p => p.FindFirstValue(InternetVotingApplication.Services.SessionValidator.PasswordStampClaim) == "NEWSTAMP" && p.IsInRole(Roles.Voter)),
+            Arg.Is<ClaimsPrincipal>(p => p.FindFirstValue(SessionValidator.PasswordStampClaim) == "NEWSTAMP" && p.IsInRole(Roles.Voter)),
             Arg.Any<AuthenticationProperties>());
     }
 

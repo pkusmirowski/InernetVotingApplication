@@ -1,4 +1,4 @@
-using InternetVotingApplication.ExtensionMethods;
+using InternetVotingApplication.Validation;
 
 namespace InternetVotingApplication.Tests.Unit;
 

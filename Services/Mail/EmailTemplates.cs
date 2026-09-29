@@ -1,7 +1,6 @@
 using System.Net;
-using InternetVotingApplication.Services.Mail;
 
-namespace InternetVotingApplication.ExtensionMethods;
+namespace InternetVotingApplication.Services.Mail;
 
 /// <summary>
 /// Builds the e-mail messages sent by the application. Sending is done by <see cref="Interfaces.IEmailSender"/>.

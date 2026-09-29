@@ -53,6 +53,10 @@ Odnośniki wskazują pliki w commicie `7266c79`.
 
 ## 4. Co doszło ponad oryginał i czy to ma sens
 
+Aplikacja pozostaje systemem do głosowania w wyborach prezydenckich. Rozwinięciem jest to, że mechanizm wyborów jest
+ogólny: administrator może utworzyć dowolne wybory z własną listą kandydatów, więc da się nią przeprowadzić także
+drugą turę albo inne głosowanie, np. referendum.
+
 | Dodatek | Ocena |
 | --- | --- |
 | Podpisy ECDSA, stan głowy, kotwice wysyłane poza system, niezależny weryfikator `tools/ChainVerifier` | wzmacnia główną tezę (wykrywalność manipulacji); rozbudowane, ale spójne z ideą |

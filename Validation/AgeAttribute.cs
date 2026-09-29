@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace InternetVotingApplication.ExtensionMethods;
+namespace InternetVotingApplication.Validation;
 
 /// <summary>
 /// Validates that a date of birth corresponds to an age between <c>minimumAge</c> and 120 years.

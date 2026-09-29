@@ -1,4 +1,4 @@
-namespace InternetVotingApplication;
+namespace InternetVotingApplication.Security;
 
 public static class SecurityHeadersExtensions
 {

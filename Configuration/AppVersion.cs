@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace InternetVotingApplication;
+namespace InternetVotingApplication.Configuration;
 
 /// <summary>Application version taken from the assembly metadata (<c>Version</c> in Directory.Build.props).</summary>
 public static class AppVersion

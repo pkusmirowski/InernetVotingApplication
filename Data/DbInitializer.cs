@@ -234,34 +234,34 @@ public static class DbInitializer
 
         var now = timeProvider.GetLocalNow().DateTime;
 
-        var ongoing = new DataWyborow
+        var firstRound = new DataWyborow
         {
-            Opis = "Wybory Prezydenckie 2026 (przykładowe, trwające)",
+            Opis = "Wybory Prezydenckie 2025, I tura (przykładowe, zakończone)",
+            DataRozpoczecia = now.AddDays(-15),
+            DataZakonczenia = now.AddDays(-14),
+        };
+        var secondRound = new DataWyborow
+        {
+            Opis = "Wybory Prezydenckie 2025, II tura (przykładowe, trwające)",
             DataRozpoczecia = now.AddDays(-1),
             DataZakonczenia = now.AddDays(14),
         };
-        var upcoming = new DataWyborow
+        var nextElection = new DataWyborow
         {
-            Opis = "Wybory Samorządowe (przykładowe, nadchodzące)",
+            Opis = "Wybory Prezydenckie 2030 (przykładowe, nadchodzące)",
             DataRozpoczecia = now.AddDays(30),
             DataZakonczenia = now.AddDays(31),
         };
-        var ended = new DataWyborow
-        {
-            Opis = "Referendum (przykładowe, zakończone)",
-            DataRozpoczecia = now.AddDays(-30),
-            DataZakonczenia = now.AddDays(-29),
-        };
 
-        context.DataWyborows.AddRange(ongoing, upcoming, ended);
+        context.DataWyborows.AddRange(firstRound, secondRound, nextElection);
         context.Kandydats.AddRange(
-            new Kandydat { Imie = "Anna", Nazwisko = "Kowalska", IdWyboryNavigation = ongoing },
-            new Kandydat { Imie = "Jan", Nazwisko = "Nowak", IdWyboryNavigation = ongoing },
-            new Kandydat { Imie = "Piotr", Nazwisko = "Wiśniewski", IdWyboryNavigation = ongoing },
-            new Kandydat { Imie = "Maria", Nazwisko = "Wójcik", IdWyboryNavigation = upcoming },
-            new Kandydat { Imie = "Tomasz", Nazwisko = "Kamiński", IdWyboryNavigation = upcoming },
-            new Kandydat { Imie = "Za", Nazwisko = "Propozycją", IdWyboryNavigation = ended },
-            new Kandydat { Imie = "Przeciw", Nazwisko = "Propozycji", IdWyboryNavigation = ended });
+            new Kandydat { Imie = "Anna", Nazwisko = "Kowalska", IdWyboryNavigation = firstRound },
+            new Kandydat { Imie = "Jan", Nazwisko = "Nowak", IdWyboryNavigation = firstRound },
+            new Kandydat { Imie = "Piotr", Nazwisko = "Wiśniewski", IdWyboryNavigation = firstRound },
+            new Kandydat { Imie = "Anna", Nazwisko = "Kowalska", IdWyboryNavigation = secondRound },
+            new Kandydat { Imie = "Jan", Nazwisko = "Nowak", IdWyboryNavigation = secondRound },
+            new Kandydat { Imie = "Maria", Nazwisko = "Wójcik", IdWyboryNavigation = nextElection },
+            new Kandydat { Imie = "Tomasz", Nazwisko = "Kamiński", IdWyboryNavigation = nextElection });
 
         await context.SaveChangesAsync();
         logger.LogInformation("Sample elections created");
