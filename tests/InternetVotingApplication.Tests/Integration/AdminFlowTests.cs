@@ -155,5 +155,9 @@ public sealed partial class AdminFlowTests : IClassFixture<VotingWebApplicationF
         Assert.Equal(HttpStatusCode.OK, first.StatusCode);
         Assert.Equal(HttpStatusCode.OK, second.StatusCode);
         Assert.Equal(HttpStatusCode.TooManyRequests, third.StatusCode);
+
+        // A limited POST without an antiforgery token still reports 429, not the token error of the error page.
+        using var bare = await client.PostAsync(new Uri("/Account/Login", UriKind.Relative), null);
+        Assert.Equal(HttpStatusCode.TooManyRequests, bare.StatusCode);
     }
 }
