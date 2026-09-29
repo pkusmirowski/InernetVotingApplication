@@ -186,14 +186,14 @@ public class ElectionControllerTests
     }
 
     [Fact]
-    public async Task Export_of_a_running_election_is_only_for_admins()
+    public async Task Export_of_a_running_election_is_hidden_from_everyone()
     {
         var export = new ChainExport("internet-voting-chain/v2", DateTime.Now, new ChainExportElection(3, "W", DateTime.Now, DateTime.Now, 0, null), "k", "pem", [], [], []);
         _chain.ExportAsync(3).Returns(export);
         _elections.GetElectionStatusAsync(3).Returns(ElectionStatus.Ongoing);
 
         Assert.IsType<NotFoundResult>(await Create().Export(3));
-        Assert.IsType<JsonResult>(await Create(admin: true).Export(3));
+        Assert.IsType<NotFoundResult>(await Create(admin: true).Export(3));
 
         _elections.GetElectionStatusAsync(3).Returns(ElectionStatus.Upcoming);
         Assert.IsType<NotFoundResult>(await Create().Export(3));

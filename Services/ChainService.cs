@@ -1,3 +1,4 @@
+using System.Data;
 using System.Globalization;
 using System.Text;
 using InternetVotingApplication.Blockchain;
@@ -49,14 +50,24 @@ public class ChainService(
 
     public async Task<ChainVerificationResult> VerifyAndStoreAsync(int electionId, string trigger, int? actorUserId = null)
     {
-        var election = await context.DataWyborows.AsNoTracking().SingleOrDefaultAsync(e => e.Id == electionId)
-            ?? throw new InvalidOperationException($"Election {electionId} does not exist.");
+        DataWyborow election;
+        List<GlosowanieWyborcze> blocks;
 
-        var blocks = await context.GlosowanieWyborczes
-            .AsNoTracking()
-            .Where(g => g.IdWybory == electionId)
-            .OrderBy(g => g.Indeks)
-            .ToListAsync();
+        // The head and the blocks are read in one serializable transaction: a vote committed between two separate
+        // reads would leave one block more than the head counts and be reported as tampering.
+        await using (var transaction = await context.Database.BeginTransactionAsync(IsolationLevel.Serializable))
+        {
+            election = await context.DataWyborows.AsNoTracking().SingleOrDefaultAsync(e => e.Id == electionId)
+                ?? throw new InvalidOperationException($"Election {electionId} does not exist.");
+
+            blocks = await context.GlosowanieWyborczes
+                .AsNoTracking()
+                .Where(g => g.IdWybory == electionId)
+                .OrderBy(g => g.Indeks)
+                .ToListAsync();
+
+            await transaction.CommitAsync();
+        }
 
         var result = BlockChainHelper.VerifyBlockChain(blocks, signer);
         var headMatches = BlockChainHelper.HeadMatches(election, blocks.Count == 0 ? null : blocks[^1]);

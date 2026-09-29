@@ -44,7 +44,17 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
                 }
             });
         services.AddOptions<SecurityOptions>().Bind(Configuration.GetSection(SecurityOptions.SectionName));
-        services.AddOptions<SigningOptions>().Bind(Configuration.GetSection(SigningOptions.SectionName));
+        services.AddOptions<SigningOptions>()
+            .Bind(Configuration.GetSection(SigningOptions.SectionName))
+            .PostConfigure(options =>
+            {
+                // A silently generated key would make every existing chain fail verification and block voting;
+                // outside development a missing key must stop the start-up instead.
+                if (!Environment.IsDevelopment())
+                {
+                    options.AutoGenerateKey = false;
+                }
+            });
         services.AddOptions<ChainOptions>().Bind(Configuration.GetSection(ChainOptions.SectionName));
 
         services.AddOptions<DatabaseOptions>().Bind(Configuration.GetSection(DatabaseOptions.SectionName));

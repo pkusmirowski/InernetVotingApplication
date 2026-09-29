@@ -124,6 +124,9 @@ public class AdminControllerTests
         Assert.IsType<NotFoundResult>(await Create().EditElection(5));
 
         var model = new ElectionFormViewModel { Opis = "W", DataRozpoczecia = DateTime.Now, DataZakonczenia = DateTime.Now.AddDays(1) };
+        Assert.IsType<NotFoundResult>(await Create().EditElection(5, model));
+
+        _admin.GetElectionAsync(5).Returns(new ElectionFormViewModel { Opis = "W", Status = ElectionStatus.Ongoing });
         _admin.UpdateElectionAsync(5, model, 9).Returns(UpdateElectionStatus.Success);
         var controller = Create();
         AssertRedirect(await controller.EditElection(5, model), "Elections");
@@ -133,6 +136,22 @@ public class AdminControllerTests
         controller = Create();
         AssertView(await controller.EditElection(5, model));
         Assert.NotEmpty(controller.ModelState["Opis"]!.Errors);
+
+        _admin.UpdateElectionAsync(5, model, 9).Returns(UpdateElectionStatus.StartLocked);
+        controller = Create();
+        AssertView(await controller.EditElection(5, model));
+        Assert.NotEmpty(controller.ModelState["DataRozpoczecia"]!.Errors);
+        Assert.Equal(ElectionStatus.Ongoing, model.Status);
+
+        _admin.UpdateElectionAsync(5, model, 9).Returns(UpdateElectionStatus.EndBeforeLastVote);
+        controller = Create();
+        AssertView(await controller.EditElection(5, model));
+        Assert.NotEmpty(controller.ModelState["DataZakonczenia"]!.Errors);
+
+        _admin.UpdateElectionAsync(5, model, 9).Returns(UpdateElectionStatus.ElectionEnded);
+        controller = Create();
+        AssertView(await controller.EditElection(5, model));
+        Assert.NotEmpty(controller.ModelState[string.Empty]!.Errors);
 
         _admin.UpdateElectionAsync(5, model, 9).Returns(UpdateElectionStatus.NotFound);
         Assert.IsType<NotFoundResult>(await Create().EditElection(5, model));

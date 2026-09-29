@@ -57,8 +57,14 @@ public sealed class EmailDispatcher(
             }
             catch (Exception ex)
             {
-                queue.MarkFailed(row, ex.Message);
-                logger.LogWarning(ex, "E-mail {Id} to {To} failed (attempt {Attempt})", row.Id, row.Odbiorca, row.Proby);
+                if (queue.MarkFailed(row, ex.Message, options.Value.MaxAttempts))
+                {
+                    logger.LogError(ex, "E-mail {Id} '{Subject}' to {To} given up after {Attempts} attempts and removed", row.Id, row.Temat, row.Odbiorca, row.Proby);
+                }
+                else
+                {
+                    logger.LogWarning(ex, "E-mail {Id} to {To} failed (attempt {Attempt})", row.Id, row.Odbiorca, row.Proby);
+                }
             }
         }
 

@@ -34,6 +34,7 @@ public sealed class AuditLog(InternetVotingContext context, TimeProvider timePro
             AdminRevoked => "Odebrano uprawnienia administratora",
             UserActivated => "Aktywowano konto",
             "TestAccountsSeeded" => "Utworzono konta testowe",
+            "TestAccountsDisabled" => "Wyłączono konta testowe poza środowiskiem Development",
             _ => action ?? string.Empty,
         };
     }

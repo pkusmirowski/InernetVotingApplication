@@ -57,6 +57,56 @@ public static class DbInitializer
         {
             await SeedTestAccountsAsync(context, timeProvider, logger);
         }
+        else if (!scope.ServiceProvider.GetRequiredService<IHostEnvironment>().IsDevelopment())
+        {
+            // A database first used in development may still hold the well-known test accounts. An unreachable
+            // database must not stop the start-up here; every request would report it anyway.
+            try
+            {
+                await DisableTestAccountsAsync(context, timeProvider, logger);
+            }
+            catch (Exception ex) when (ex is System.Data.Common.DbException or InvalidOperationException)
+            {
+                logger.LogWarning(ex, "Could not check the database for development test accounts");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Deactivates the accounts from <see cref="TestAccounts.All"/> and removes their administrator role: their
+    /// passwords are public, so they must not work outside development. Returns how many accounts were changed.
+    /// </summary>
+    public static async Task<int> DisableTestAccountsAsync(InternetVotingContext context, TimeProvider timeProvider, ILogger logger)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(timeProvider);
+        ArgumentNullException.ThrowIfNull(logger);
+
+        var emails = TestAccounts.All.Select(a => a.Email).ToList();
+        var users = await context.Uzytkowniks
+            .Include(u => u.Administrators)
+            .Where(u => emails.Contains(u.Email) && (u.JestAktywne || u.Administrators.Any()))
+            .ToListAsync();
+        if (users.Count == 0)
+        {
+            return 0;
+        }
+
+        foreach (var user in users)
+        {
+            user.JestAktywne = false;
+            context.Administrators.RemoveRange(user.Administrators);
+        }
+
+        context.DziennikAudytu.Add(new DziennikAudytu
+        {
+            Data = timeProvider.GetLocalNow().DateTime,
+            Akcja = "TestAccountsDisabled",
+            Szczegoly = $"Wyłączono {users.Count} kont testowych poza środowiskiem Development",
+        });
+        await context.SaveChangesAsync();
+        logger.LogWarning("Disabled {Count} development test accounts found outside the Development environment", users.Count);
+        return users.Count;
     }
 
     /// <summary>

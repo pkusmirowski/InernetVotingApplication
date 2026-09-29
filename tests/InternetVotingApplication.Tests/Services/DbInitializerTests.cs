@@ -41,6 +41,25 @@ public sealed class DbInitializerTests : IDisposable
     }
 
     [Fact]
+    public async Task Test_accounts_are_disabled_outside_development()
+    {
+        using var context = _db.CreateContext();
+        await DbInitializer.SeedTestAccountsAsync(context, TestData.Clock(), NullLogger.Instance);
+        var real = TestData.User("prawdziwy@example.com", "90010112349");
+        context.Uzytkowniks.Add(real);
+        await context.SaveChangesAsync();
+
+        Assert.Equal(TestAccounts.All.Count, await DbInitializer.DisableTestAccountsAsync(context, TestData.Clock(), NullLogger.Instance));
+        Assert.Equal(0, await DbInitializer.DisableTestAccountsAsync(context, TestData.Clock(), NullLogger.Instance));
+
+        using var check = _db.CreateContext();
+        Assert.All(check.Uzytkowniks.Where(u => u.Email.EndsWith("@test.local")), u => Assert.False(u.JestAktywne));
+        Assert.Empty(check.Administrators);
+        Assert.True(check.Uzytkowniks.Single(u => u.Email == "prawdziwy@example.com").JestAktywne);
+        Assert.Single(check.DziennikAudytu, a => a.Akcja == "TestAccountsDisabled");
+    }
+
+    [Fact]
     public async Task Test_accounts_are_created_once_activated_and_with_one_administrator()
     {
         using var context = _db.CreateContext();

@@ -101,6 +101,13 @@ public class AdminController(IAdminService adminService, IChainService chainServ
     public async Task<IActionResult> EditElection(int id, ElectionFormViewModel model)
     {
         ViewBag.ElectionId = id;
+        var current = await adminService.GetElectionAsync(id);
+        if (current == null)
+        {
+            return NotFound();
+        }
+
+        model.Status = current.Status;
         if (!ModelState.IsValid)
         {
             return View(model);
@@ -115,6 +122,18 @@ public class AdminController(IAdminService adminService, IChainService chainServ
                 return NotFound();
             case UpdateElectionStatus.Duplicate:
                 ModelState.AddModelError(nameof(model.Opis), "Wybory o tej nazwie już istnieją.");
+                break;
+            case UpdateElectionStatus.StartLocked:
+                ModelState.AddModelError(nameof(model.DataRozpoczecia), "Głosowanie już trwa, więc daty rozpoczęcia nie można zmienić.");
+                break;
+            case UpdateElectionStatus.ElectionEnded:
+                ModelState.AddModelError(string.Empty, "Głosowanie się zakończyło, więc dat nie można zmienić. Można poprawić tylko nazwę.");
+                break;
+            case UpdateElectionStatus.EndBeforeLastVote:
+                ModelState.AddModelError(nameof(model.DataZakonczenia), "Data zakończenia nie może być wcześniejsza niż ostatni oddany głos ani niż rozpoczęcie.");
+                break;
+            case UpdateElectionStatus.Conflict:
+                ModelState.AddModelError(string.Empty, "W tym czasie ktoś oddał głos. Sprawdź dane i zapisz jeszcze raz.");
                 break;
             default:
                 ModelState.AddModelError(nameof(model.DataZakonczenia), "Data zakończenia musi być późniejsza niż data rozpoczęcia.");
@@ -203,6 +222,9 @@ public class AdminController(IAdminService adminService, IChainService chainServ
             case AddCandidateStatus.Duplicate:
                 ModelState.AddModelError(nameof(model.Nazwisko), "Ten kandydat już bierze udział w wybranych wyborach.");
                 break;
+            case AddCandidateStatus.ElectionStarted:
+                ModelState.AddModelError(nameof(model.IdWybory), "Głosowanie w tych wyborach już się rozpoczęło, więc listy kandydatów nie można zmienić.");
+                break;
             default:
                 ModelState.AddModelError(nameof(model.IdWybory), "Wybrane wybory nie istnieją.");
                 break;
@@ -228,6 +250,7 @@ public class AdminController(IAdminService adminService, IChainService chainServ
             {
                 DeleteCandidateStatus.Success => "Kandydat został usunięty.",
                 DeleteCandidateStatus.HasVotes => "Nie można usunąć kandydata, na którego oddano już głosy.",
+                DeleteCandidateStatus.ElectionStarted => "Głosowanie w tych wyborach już się rozpoczęło, więc listy kandydatów nie można zmienić.",
                 _ => "Kandydat nie istnieje.",
             },
             isError: status != DeleteCandidateStatus.Success);

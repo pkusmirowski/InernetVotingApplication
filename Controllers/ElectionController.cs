@@ -132,7 +132,8 @@ public class ElectionController(IElectionService electionService, IResultsServic
     public async Task<IActionResult> Export(int id)
     {
         var status = await electionService.GetElectionStatusAsync(id);
-        if (status == null || (status != ElectionStatus.Ended && !User.IsInRole(Roles.Admin)))
+        // The export lists the candidate of every block, so before the end it would be a partial result: hidden from everyone.
+        if (status != ElectionStatus.Ended)
         {
             return NotFound();
         }

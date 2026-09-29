@@ -61,7 +61,7 @@ else
 }
 
 <h4 class="mt-4">Sprawdź samodzielnie</h4>
-@if (Model.Status == ElectionStatus.Ended || User.IsInRole(Roles.Admin))
+@if (Model.Status == ElectionStatus.Ended)
 {
     <p>Nie musisz wierzyć nam na słowo. Cały rejestr można pobrać i sprawdzić własnym, niezależnym programem.</p>
     <a class="btn btn-outline-primary btn-sm" asp-action="Export" asp-route-id="@Model.ElectionId">Pobierz rejestr głosów (plik JSON)</a>

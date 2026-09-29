@@ -48,9 +48,15 @@ public class AdminService(InternetVotingContext context, IAuditLog auditLog, Tim
     {
         ArgumentNullException.ThrowIfNull(model);
 
-        if (model.IdWybory is null || !await context.DataWyborows.AnyAsync(e => e.Id == model.IdWybory))
+        var election = model.IdWybory is null ? null : await context.DataWyborows.AsNoTracking().SingleOrDefaultAsync(e => e.Id == model.IdWybory);
+        if (election == null)
         {
             return AddCandidateStatus.ElectionNotFound;
+        }
+
+        if (election.GetStatus(Now()) != ElectionStatus.Upcoming)
+        {
+            return AddCandidateStatus.ElectionStarted;
         }
 
         var firstName = model.Imie.Trim();
@@ -62,7 +68,7 @@ public class AdminService(InternetVotingContext context, IAuditLog auditLog, Tim
             return AddCandidateStatus.Duplicate;
         }
 
-        context.Kandydats.Add(new Kandydat { Imie = firstName, Nazwisko = lastName, IdWybory = model.IdWybory.Value });
+        context.Kandydats.Add(new Kandydat { Imie = firstName, Nazwisko = lastName, IdWybory = election.Id });
 
         try
         {
@@ -94,6 +100,7 @@ public class AdminService(InternetVotingContext context, IAuditLog auditLog, Tim
             query = query.Where(k => k.IdWybory == electionId);
         }
 
+        var now = Now();
         var candidates = await query
             .OrderBy(k => k.IdWyboryNavigation.DataRozpoczecia)
             .ThenBy(k => k.Nazwisko)
@@ -105,7 +112,9 @@ public class AdminService(InternetVotingContext context, IAuditLog auditLog, Tim
                 Nazwisko = k.Nazwisko,
                 ElectionId = k.IdWybory,
                 ElectionName = k.IdWyboryNavigation.Opis,
-                VoteCount = k.GlosowanieWyborczes.Count,
+                // Partial results stay hidden from administrators too, until voting ends.
+                VoteCount = k.IdWyboryNavigation.DataZakonczenia < now ? k.GlosowanieWyborczes.Count : null,
+                CanDelete = k.IdWyboryNavigation.DataRozpoczecia > now,
             })
             .ToListAsync();
 
@@ -136,27 +145,53 @@ public class AdminService(InternetVotingContext context, IAuditLog auditLog, Tim
             return DeleteCandidateStatus.NotFound;
         }
 
+        var election = await context.DataWyborows.AsNoTracking().SingleAsync(e => e.Id == candidate.IdWybory);
+        if (election.GetStatus(Now()) != ElectionStatus.Upcoming)
+        {
+            return DeleteCandidateStatus.ElectionStarted;
+        }
+
         if (await context.GlosowanieWyborczes.AnyAsync(g => g.IdKandydat == candidateId))
         {
             return DeleteCandidateStatus.HasVotes;
         }
 
         context.Kandydats.Remove(candidate);
-        await context.SaveChangesAsync();
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex)
+        {
+            // A vote committed between the check and the delete; the foreign key refused it.
+            logger.LogWarning(ex, "Candidate {CandidateId} not deleted: referenced by a vote", candidateId);
+            return DeleteCandidateStatus.HasVotes;
+        }
+
         logger.LogInformation("Candidate {CandidateId} deleted", candidateId);
         await auditLog.LogAsync(AuditLog.Actions.CandidateDeleted, $"{candidate.Imie} {candidate.Nazwisko} (id {candidateId}), wybory {candidate.IdWybory}", actorUserId);
         return DeleteCandidateStatus.Success;
     }
 
-    public Task<ElectionFormViewModel?> GetElectionAsync(int electionId)
+    public async Task<ElectionFormViewModel?> GetElectionAsync(int electionId)
     {
-        return context.DataWyborows
-            .AsNoTracking()
-            .Where(e => e.Id == electionId)
-            .Select(e => new ElectionFormViewModel { Opis = e.Opis, DataRozpoczecia = e.DataRozpoczecia, DataZakonczenia = e.DataZakonczenia })
-            .SingleOrDefaultAsync();
+        var election = await context.DataWyborows.AsNoTracking().SingleOrDefaultAsync(e => e.Id == electionId);
+        return election == null
+            ? null
+            : new ElectionFormViewModel
+            {
+                Opis = election.Opis,
+                DataRozpoczecia = election.DataRozpoczecia,
+                DataZakonczenia = election.DataZakonczenia,
+                Status = election.GetStatus(Now()),
+            };
     }
 
+    /// <summary>
+    /// Before voting starts everything can change. Once it has started the start date is fixed and the end can
+    /// only move to a time not earlier than the last vote (closing early is allowed). An ended election keeps its
+    /// dates, so it cannot be reopened after its final anchor was sent. The name can always be corrected.
+    /// </summary>
     public async Task<UpdateElectionStatus> UpdateElectionAsync(int electionId, ElectionFormViewModel model, int? actorUserId = null)
     {
         ArgumentNullException.ThrowIfNull(model);
@@ -178,15 +213,46 @@ public class AdminService(InternetVotingContext context, IAuditLog auditLog, Tim
             return UpdateElectionStatus.Duplicate;
         }
 
+        // The form works in whole minutes; an unchanged field keeps the stored value with its seconds.
+        var startChanged = ToMinute(model.DataRozpoczecia.Value) != ToMinute(election.DataRozpoczecia);
+        var endChanged = ToMinute(model.DataZakonczenia.Value) != ToMinute(election.DataZakonczenia);
+        var newStart = startChanged ? model.DataRozpoczecia.Value : election.DataRozpoczecia;
+        var newEnd = endChanged ? model.DataZakonczenia.Value : election.DataZakonczenia;
+
+        switch (election.GetStatus(Now()))
+        {
+            case ElectionStatus.Ended when startChanged || endChanged:
+                return UpdateElectionStatus.ElectionEnded;
+            case ElectionStatus.Ongoing when startChanged:
+                return UpdateElectionStatus.StartLocked;
+            case ElectionStatus.Ongoing when endChanged:
+                var lastVote = await context.GlosowanieWyborczes
+                    .Where(g => g.IdWybory == electionId)
+                    .MaxAsync(g => (DateTime?)g.ZnacznikCzasu);
+                if (newEnd <= newStart || (lastVote.HasValue && newEnd < lastVote.Value))
+                {
+                    return UpdateElectionStatus.EndBeforeLastVote;
+                }
+
+                break;
+            default:
+                break;
+        }
+
         var before = $"{election.Opis} ({election.DataRozpoczecia:g} - {election.DataZakonczenia:g})";
         election.Opis = name;
-        election.DataRozpoczecia = model.DataRozpoczecia.Value;
-        election.DataZakonczenia = model.DataZakonczenia.Value;
+        election.DataRozpoczecia = newStart;
+        election.DataZakonczenia = newEnd;
         election.Wersja++;
 
         try
         {
             await context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException ex)
+        {
+            logger.LogWarning(ex, "Election {ElectionId} changed by a vote while being edited", electionId);
+            return UpdateElectionStatus.Conflict;
         }
         catch (DbUpdateException ex)
         {
@@ -195,7 +261,7 @@ public class AdminService(InternetVotingContext context, IAuditLog auditLog, Tim
         }
 
         logger.LogInformation("Election {ElectionId} updated", electionId);
-        await auditLog.LogAsync(AuditLog.Actions.ElectionUpdated, $"{before} -> {name} ({model.DataRozpoczecia:g} - {model.DataZakonczenia:g})", actorUserId);
+        await auditLog.LogAsync(AuditLog.Actions.ElectionUpdated, $"{before} -> {name} ({newStart:g} - {newEnd:g})", actorUserId);
         return UpdateElectionStatus.Success;
     }
 
@@ -217,7 +283,16 @@ public class AdminService(InternetVotingContext context, IAuditLog auditLog, Tim
         context.Kotwice.RemoveRange(context.Kotwice.Where(k => k.IdWybory == electionId));
         context.Weryfikacje.RemoveRange(context.Weryfikacje.Where(w => w.IdWybory == electionId));
         context.DataWyborows.Remove(election);
-        await context.SaveChangesAsync();
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex)
+        {
+            // A vote committed between the check and the delete; the foreign key refused it.
+            logger.LogWarning(ex, "Election {ElectionId} not deleted: referenced by a vote", electionId);
+            return DeleteElectionStatus.HasVotes;
+        }
 
         logger.LogInformation("Election {ElectionId} deleted", electionId);
         await auditLog.LogAsync(AuditLog.Actions.ElectionDeleted, $"{election.Opis} (id {electionId})", actorUserId);
@@ -226,7 +301,7 @@ public class AdminService(InternetVotingContext context, IAuditLog auditLog, Tim
 
     public async Task<IReadOnlyList<UserListItemViewModel>> GetUsersAsync()
     {
-        var now = timeProvider.GetLocalNow().DateTime;
+        var now = Now();
         return await context.Uzytkowniks
             .AsNoTracking()
             .OrderBy(u => u.Id)
@@ -299,4 +374,8 @@ public class AdminService(InternetVotingContext context, IAuditLog auditLog, Tim
         await auditLog.LogAsync(isAdmin ? AuditLog.Actions.AdminPromoted : AuditLog.Actions.AdminRevoked, $"{user.Email} (id {userId}, panel administratora)", actorUserId);
         return UserActionStatus.Success;
     }
+
+    private static DateTime ToMinute(DateTime value) => new(value.Ticks - (value.Ticks % TimeSpan.TicksPerMinute), value.Kind);
+
+    private DateTime Now() => timeProvider.GetLocalNow().DateTime;
 }

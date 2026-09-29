@@ -47,7 +47,10 @@ public enum AddCandidateStatus
 {
     Success,
     ElectionNotFound,
-    Duplicate
+    Duplicate,
+
+    /// <summary>The ballot is closed once voting starts: a candidate added later would be missing for earlier voters.</summary>
+    ElectionStarted
 }
 
 public enum AddElectionStatus
@@ -61,7 +64,10 @@ public enum DeleteCandidateStatus
 {
     Success,
     NotFound,
-    HasVotes
+    HasVotes,
+
+    /// <summary>The ballot is closed once voting starts.</summary>
+    ElectionStarted
 }
 
 public enum UpdateElectionStatus
@@ -69,7 +75,19 @@ public enum UpdateElectionStatus
     Success,
     NotFound,
     Duplicate,
-    InvalidDates
+    InvalidDates,
+
+    /// <summary>Voting has started: the start date can no longer move.</summary>
+    StartLocked,
+
+    /// <summary>Voting has ended: the dates can no longer change, so an ended election cannot be reopened.</summary>
+    ElectionEnded,
+
+    /// <summary>The new end would fall before a vote that has already been cast.</summary>
+    EndBeforeLastVote,
+
+    /// <summary>A vote changed the election row while the form was being saved.</summary>
+    Conflict
 }
 
 public enum DeleteElectionStatus
