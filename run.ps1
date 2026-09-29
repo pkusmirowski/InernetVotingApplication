@@ -66,7 +66,7 @@ else {
         }
         if (-not $instances.ContainsKey('MSSQLSERVER')) {
             $named = ($instances.Keys | Select-Object -First 1)
-            $connection = "Server=localhost\$named;Database=InternetVoting;Trusted_Connection=True;MultipleActiveResultSets=True;TrustServerCertificate=True;"
+            $connection = "Server=localhost\$named;Database=InternetVotingV2;Trusted_Connection=True;MultipleActiveResultSets=True;TrustServerCertificate=True;"
             $answer = Read-Host "Brak domyślnej instancji. Zapisać w user secrets połączenie do localhost\$named? [t/N]"
             if ($answer -match '^[tTyY]') {
                 & dotnet user-secrets set 'ConnectionStrings:InternetVotingDBConnection' $connection --project InternetVotingApplication.csproj | Out-Null

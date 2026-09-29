@@ -34,10 +34,10 @@
 </table>
 
 <h4 class="mt-4">Kopie kontrolne</h4>
-<p class="small text-muted">Co pewien czas podpisany stan rejestru jest wysyłany e-mailem do komisji wyborczej. Dzięki tym kopiom można wykryć podmianę głosów nawet wtedy, gdyby dokonała jej osoba z dostępem do serwera.</p>
+<p class="small text-muted">Co pewien czas zapisywany jest podpisany stan rejestru, a jeśli skonfigurowano odbiorców, także wysyłany e-mailem do komisji wyborczej. Dzięki tym kopiom można wykryć podmianę głosów nawet wtedy, gdyby dokonała jej osoba z dostępem do serwera.</p>
 @if (Model.Anchors.Count == 0)
 {
-    <p>Nie wysłano jeszcze żadnej kopii kontrolnej.</p>
+    <p>Nie ma jeszcze żadnej kopii kontrolnej.</p>
 }
 else
 {

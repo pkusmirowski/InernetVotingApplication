@@ -75,7 +75,7 @@ else
                             <a class="btn btn-sm btn-outline-secondary" asp-action="EditElection" asp-route-id="@e.Id">Edytuj</a>
                             @if (e.BlockCount == 0)
                             {
-                                <form asp-action="DeleteElection" asp-route-id="@e.Id" method="post" class="d-inline" data-confirm="Usunąć wybory „@e.Opis" razem z kandydatami?">
+                                <form asp-action="DeleteElection" asp-route-id="@e.Id" method="post" class="d-inline" data-confirm="Usunąć wybory „@e.Opis” razem z kandydatami?">
                                     <button type="submit" class="btn btn-sm btn-outline-danger">Usuń</button>
                                 </form>
                             }

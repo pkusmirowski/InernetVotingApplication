@@ -19,13 +19,18 @@ public static class Email
         return new EmailMessage(to, "Aktywacja konta w aplikacji do głosowania", body);
     }
 
-    public static EmailMessage VoteReceipt(string to, string electionName, string hash)
+    /// <summary>Confirmation of a cast vote with the receipt code the voter can look up later.</summary>
+    /// <param name="searchLink">Absolute link to the vote search with the code filled in; omitted when no public address is configured.</param>
+    public static EmailMessage VoteReceipt(string to, string electionName, string hash, string? searchLink = null)
     {
+        var check = string.IsNullOrEmpty(searchLink)
+            ? "<p>Zachowaj tę wiadomość. Żeby sprawdzić, czy Twój głos jest zapisany i czy nikt go nie zmienił, otwórz w aplikacji zakładkę „Sprawdź głos” i wklej powyższy kod.</p>"
+            : $"<p>Zachowaj tę wiadomość. Żeby sprawdzić, czy Twój głos jest zapisany i czy nikt go nie zmienił, otwórz <a href=\"{Enc(searchLink)}\">sprawdzenie głosu</a> albo wklej powyższy kod w zakładce „Sprawdź głos”.</p>";
         var body =
             "<h2>Dziękujemy, Twój głos został zapisany</h2>" +
             $"<p>Wybory: <b>{Enc(electionName)}</b></p>" +
             $"<p>Twój kod potwierdzenia:<br><b>{Enc(hash)}</b></p>" +
-            "<p>Zachowaj tę wiadomość. Żeby sprawdzić, czy Twój głos jest zapisany i czy nikt go nie zmienił, otwórz w aplikacji zakładkę „Sprawdź głos” i wklej powyższy kod.</p>" +
+            check +
             "<p>Nie przekazuj kodu innym osobom. Każdy, kto go zna, może sprawdzić, na kogo oddano ten głos.</p>";
         return new EmailMessage(to, "Potwierdzenie oddania głosu", body);
     }

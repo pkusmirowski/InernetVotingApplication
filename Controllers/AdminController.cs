@@ -30,8 +30,8 @@ public class AdminController(IAdminService adminService, IChainService chainServ
         var result = await chainService.VerifyAndStoreAsync(id, "Manual", User.GetUserId());
         SetStatus(
             result.IsValid
-                ? $"Kontrola rejestru głosów wyborów {id} zakończona bez zastrzeżeń. Sprawdzono głosów: {result.BlockCount}."
-                : $"Kontrola rejestru głosów wyborów {id} wykryła nieprawidłowości. Numery błędnych wpisów: {string.Join(", ", result.InvalidBlockIds.Concat(result.InvalidSignatureBlockIds).Distinct())}.",
+                ? $"Kontrola rejestru głosów zakończona bez zastrzeżeń. Sprawdzono głosów: {result.BlockCount}."
+                : $"Kontrola rejestru głosów wykryła nieprawidłowości. Numery błędnych wpisów: {string.Join(", ", result.InvalidBlockIds.Concat(result.InvalidSignatureBlockIds).Distinct())}.",
             isError: !result.IsValid);
         return RedirectToAction(nameof(Elections));
     }
@@ -41,9 +41,12 @@ public class AdminController(IAdminService adminService, IChainService chainServ
     {
         var anchor = await chainService.PublishAnchorAsync(id, ChainService.ReasonManual, User.GetUserId());
         SetStatus(
-            anchor == null
-                ? "Wybory nie istnieją."
-                : $"Kopia kontrolna została wysłana do komisji. Liczba głosów w rejestrze: {anchor.BlockCount}.",
+            anchor switch
+            {
+                null => "Wybory nie istnieją.",
+                { Recipients: { Length: > 0 } } => $"Kopia kontrolna została zapisana i wysłana do komisji. Liczba głosów w rejestrze: {anchor.BlockCount}.",
+                _ => $"Kopia kontrolna została zapisana. Nie wysłano jej e-mailem, bo nie skonfigurowano odbiorców (Chain:AnchorRecipients). Liczba głosów w rejestrze: {anchor.BlockCount}.",
+            },
             isError: anchor == null);
         return RedirectToAction(nameof(Elections));
     }

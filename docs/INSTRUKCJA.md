@@ -98,7 +98,7 @@ SQL Serverze (tryb projektowy pomija sondę).
 Inna instancja SQL Server (Express, LocalDB) bez zmieniania plików w repozytorium:
 
 ```bash
-dotnet user-secrets set "ConnectionStrings:InternetVotingDBConnection" "Server=localhost\SQLEXPRESS;Database=InternetVoting;Trusted_Connection=True;TrustServerCertificate=True;"
+dotnet user-secrets set "ConnectionStrings:InternetVotingDBConnection" "Server=localhost\SQLEXPRESS;Database=InternetVotingV2;Trusted_Connection=True;TrustServerCertificate=True;"
 ```
 
 ### Rozwiązywanie problemów

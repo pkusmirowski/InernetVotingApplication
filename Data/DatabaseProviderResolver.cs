@@ -154,6 +154,16 @@ public sealed partial class DatabaseProviderResolver(
             // Malformed connection string: the generic advice below still applies.
         }
 
+        if (errorNumber == 2714)
+        {
+            return
+                $"Baza '{database}' na serwerze '{server}' zawiera już tabele z innej wersji aplikacji (np. baza z pierwotnej wersji pracy), " +
+                "więc nie można utworzyć w niej nowego schematu." + Environment.NewLine +
+                $"Szczegóły: {error ?? "brak"} (kod 2714)." + Environment.NewLine +
+                "Co zrobić: wskaż nową, pustą bazę w ConnectionStrings:" + ConnectionStringName + " (domyślnie InternetVotingV2) " +
+                "albo zrób kopię starej bazy i ją usuń. Aplikacja sama utworzy nową bazę przy starcie.";
+        }
+
         var cause = errorNumber switch
         {
             -1 or 2 or 53 or 26 or 40 or 10061 or 233 =>
@@ -172,7 +182,7 @@ public sealed partial class DatabaseProviderResolver(
             $"Szczegóły: {error ?? "brak"}{(errorNumber.HasValue ? $" (kod {errorNumber})" : string.Empty)}." + Environment.NewLine +
             $"Najbardziej prawdopodobna przyczyna: {cause}." + Environment.NewLine +
             "Jak sprawdzić: w konsoli 'sqlcmd -S " + server + " -E -Q \"SELECT @@VERSION\"'." + Environment.NewLine +
-            "Jak zmienić połączenie: dotnet user-secrets set \"ConnectionStrings:" + ConnectionStringName + "\" \"Server=...;Database=InternetVoting;Trusted_Connection=True;TrustServerCertificate=True;\"." + Environment.NewLine +
+            "Jak zmienić połączenie: dotnet user-secrets set \"ConnectionStrings:" + ConnectionStringName + "\" \"Server=...;Database=InternetVotingV2;Trusted_Connection=True;TrustServerCertificate=True;\"." + Environment.NewLine +
             "Jak pracować bez SQL Servera: profil startowy 'https (SQLite)' albo zmienna środowiskowa Database__Provider=Sqlite.";
     }
 

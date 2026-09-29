@@ -259,6 +259,19 @@ public sealed class ElectionServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Receipt_links_to_the_vote_search_when_a_public_address_is_configured()
+    {
+        using var context = _db.CreateContext();
+        var (user, election, a, _) = await SeedAsync(context);
+        var appOptions = Microsoft.Extensions.Options.Options.Create(new InternetVotingApplication.Configuration.AppOptions { PublicBaseUrl = "https://glosowanie.pl/" });
+        var service = new ElectionService(context, TestData.Signer, CreateChain(context), _email, TestData.ChainOptions(), _clock, TestData.Logger<ElectionService>(), appOptions);
+
+        var outcome = await service.CastVoteAsync(user.Id, election.Id, a.Id);
+
+        Assert.Contains($"https://glosowanie.pl/Account/Search?hash={outcome.Hash}", Assert.Single(_email.Sent).HtmlBody, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task Participation_row_does_not_carry_the_block_time()
     {
         _clock.Advance(TimeSpan.FromMinutes(37));

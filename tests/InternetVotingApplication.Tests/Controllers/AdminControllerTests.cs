@@ -160,11 +160,21 @@ public class AdminControllerTests
         Assert.Contains("bez zastrzeżeń", Assert.IsType<string>(controller.TempData["StatusMessage"]), StringComparison.Ordinal);
         Assert.False(controller.TempData.ContainsKey("StatusIsError"));
 
+        _chain.PublishAnchorAsync(3, ChainService.ReasonManual, 9).Returns(new ChainAnchorViewModel { BlockCount = 5, Recipients = "komisja@example.pl" });
+        controller = Create();
+        AssertRedirect(await controller.PublishAnchor(3), "Elections");
+        var sent = Assert.IsType<string>(controller.TempData["StatusMessage"]);
+        Assert.Contains("wysłana do komisji", sent, StringComparison.Ordinal);
+        Assert.Contains("Liczba głosów w rejestrze: 5", sent, StringComparison.Ordinal);
+        Assert.False(controller.TempData.ContainsKey("StatusIsError"));
+
+        // Without configured recipients nothing is mailed, and the message must not claim otherwise.
         _chain.PublishAnchorAsync(3, ChainService.ReasonManual, 9).Returns(new ChainAnchorViewModel { BlockCount = 5 });
         controller = Create();
         AssertRedirect(await controller.PublishAnchor(3), "Elections");
-        Assert.Contains("Liczba głosów w rejestrze: 5", Assert.IsType<string>(controller.TempData["StatusMessage"]), StringComparison.Ordinal);
-        Assert.False(controller.TempData.ContainsKey("StatusIsError"));
+        var saved = Assert.IsType<string>(controller.TempData["StatusMessage"]);
+        Assert.DoesNotContain("wysłana do komisji", saved, StringComparison.Ordinal);
+        Assert.Contains("nie skonfigurowano odbiorców", saved, StringComparison.Ordinal);
     }
 
     [Fact]

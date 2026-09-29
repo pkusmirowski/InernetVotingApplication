@@ -20,7 +20,8 @@ public class ElectionService(
     IEmailSender emailSender,
     IOptions<ChainOptions> chainOptions,
     TimeProvider timeProvider,
-    ILogger<ElectionService> logger) : IElectionService
+    ILogger<ElectionService> logger,
+    IOptions<AppOptions>? appOptions = null) : IElectionService
 {
     private const int MaxAttempts = 3;
 
@@ -192,7 +193,7 @@ public class ElectionService(
             // The outbox sender saves the context, so the block, the participation row and the receipt are
             // written by this call; it must sit inside the try for a lost race to be retried.
             var email = await context.Uzytkowniks.Where(u => u.Id == userId).Select(u => u.Email).SingleAsync();
-            await emailSender.SendAsync(Email.VoteReceipt(email, election.Opis, block.Hash));
+            await emailSender.SendAsync(Email.VoteReceipt(email, election.Opis, block.Hash, SearchLink(block.Hash)));
             await context.SaveChangesAsync();
             await transaction.CommitAsync();
         }
@@ -280,6 +281,13 @@ public class ElectionService(
         {
             await chainService.PublishAnchorAsync(electionId, ChainService.ReasonPeriodic);
         }
+    }
+
+    /// <summary>Link to the public vote search, built only from the configured public address (never from the request).</summary>
+    private string? SearchLink(string hash)
+    {
+        var baseUrl = appOptions?.Value.PublicBaseUrl;
+        return string.IsNullOrWhiteSpace(baseUrl) ? null : $"{baseUrl.TrimEnd('/')}/Account/Search?hash={hash}";
     }
 
     private DateTime Now() => timeProvider.GetLocalNow().DateTime;
