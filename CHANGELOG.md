@@ -47,6 +47,11 @@ w `docs/`.
   zamiast błędu 500.
 - Brak wyników cząstkowych także dla administratora: liczba głosów na kandydata i eksport rejestru dopiero po
   zakończeniu wyborów.
+- Sesje: każde żądanie zalogowanego użytkownika jest sprawdzane z bazą. Nadanie lub odebranie roli administratora
+  działa od razu, a zmiana hasła i dezaktywacja konta kończą inne sesje (bieżąca sesja po zmianie hasła zostaje).
+- Tokeny resetu hasła są zapisywane w bazie jako hash; link w wiadomości działa jak wcześniej.
+- Strona błędu zwraca 429 także dla zablokowanego przez limit żądania POST bez tokenu (wcześniej 400) i przyjmuje
+  tylko kody 400–599.
 - Poza Development `Signing:AutoGenerateKey` jest wymuszone na wyłączone (brak klucza zatrzymuje start zamiast
   po cichu tworzyć nowy, z którym stare głosy się nie weryfikują). Obraz Dockera działa w strefie `Europe/Warsaw`.
 

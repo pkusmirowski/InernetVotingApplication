@@ -319,16 +319,17 @@ Porównanie z pierwotną wersją autora (commit `7266c79`) i przegląd poprawno�
 - fałszywy alarm o naruszeniu łańcucha, gdy głos wpadł między odczytem wyborów i bloków,
 - zmiany w trwających i zakończonych wyborach (daty, kandydaci) oraz wyniki cząstkowe widoczne dla
   administratora,
-- konta testowe i automatyczne generowanie klucza poza Development, strefa czasowa w obrazie Dockera.
+- konta testowe i automatyczne generowanie klucza poza Development, strefa czasowa w obrazie Dockera,
+- sesje: każde żądanie zalogowanego użytkownika jest sprawdzane z bazą (`SessionValidator`), więc zmiana roli
+  działa od razu, a zmiana hasła lub dezaktywacja kończy inne sesje,
+- tokeny resetu hasła zapisywane jako hash,
+- strona błędu zwraca 429 także dla zablokowanych żądań POST bez tokenu.
 
-Znane ograniczenia (bez zmian w kodzie):
+Znane ograniczenia (świadomie pozostawione, aplikacja działa lokalnie):
 
-- rola administratora jest zapisana w ciasteczku logowania: odebranie roli działa po wylogowaniu
-  (maksymalnie 30 minut bezczynności), zmiana hasła nie wylogowuje innych sesji;
-- brak `UseForwardedHeaders`: za reverse proxy limit żądań liczy wszystkich jako jeden adres;
+- brak `UseForwardedHeaders`: za reverse proxy limit żądań liczyłby wszystkich jako jeden adres;
 - jeden klucz podpisu: pole `IdKlucza` jest zapisywane, ale weryfikacja używa bieżącego klucza, więc wymiana
   klucza wymaga ponownego podpisania łańcuchów;
-- tokeny resetu hasła są przechowywane jawnie (jednorazowe i z terminem ważności, ale nie haszowane);
 - czas lokalny serwera zamiast UTC (3.6).
 
 ## 5. Podsumowanie

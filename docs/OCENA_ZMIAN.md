@@ -56,7 +56,7 @@ Odnośniki wskazują pliki w commicie `7266c79`.
 | Dodatek | Ocena |
 | --- | --- |
 | Podpisy ECDSA, stan głowy, kotwice wysyłane poza system, niezależny weryfikator `tools/ChainVerifier` | wzmacnia główną tezę (wykrywalność manipulacji); rozbudowane, ale spójne z ideą |
-| 222 testy (jednostkowe, serwisy na SQLite, integracyjne), CI | duża wartość; wcześniej testów nie było |
+| 226 testów (jednostkowe, serwisy na SQLite, integracyjne), CI | duża wartość; wcześniej testów nie było |
 | Panel: edycja i usuwanie wyborów, użytkownicy i role, dziennik audytu | uzupełnia brakujące funkcje |
 | Docker, skrypty uruchomieniowe, konta testowe | wygoda uruchomienia |
 | Kolejka poczty (outbox) i strona diagnostyczna `/setup` | przerośnięte jak na skalę projektu, ale działają i są przetestowane; zostawione |
@@ -81,23 +81,51 @@ Przegląd 2026-09-29 znalazł błędy, które pojawiły się dopiero w przebudow
 6. **Konfiguracja produkcyjna.** Konta testowe o jawnych hasłach działały, jeśli baza z Development trafiła do
    produkcji; klucz podpisu mógł się po cichu wygenerować na nowo, blokując głosowanie. Obraz Dockera działał
    w UTC, a daty wyborów są w czasie polskim.
+7. **Sesje nie widziały zmian konta.** Odebrana rola administratora działała do wylogowania, a zmiana hasła nie
+   kończyła innych sesji. Teraz każde żądanie zalogowanego użytkownika jest sprawdzane z bazą
+   (`Services/SessionValidator.cs`).
+8. **Tokeny resetu hasła w bazie jawnie.** Teraz zapisywany jest tylko ich hash.
+9. **Strona błędu przy limicie żądań.** Zablokowane przez limit żądanie POST bez tokenu pokazywało błąd 400 zamiast
+   429; adres strony błędu przyjmował też dowolny kod (np. 0 lub 999).
 
 ## 6. Znane ograniczenia
 
-Opisane w `docs/ARCHITEKTURA.md` (sekcje 3.2 i 4b):
+Świadomie pozostawione, bo aplikacja działa lokalnie (opis w `docs/ARCHITEKTURA.md`, sekcje 3.2 i 4b):
 
-- **Tajność głosu.** Kolejność identyfikatorów bloku i wpisu o udziale nadal pozwala je powiązać. To ograniczenie
-  istniało już w wersji pierwotnej. Pełne rozwiązanie wymaga osobnego tokenu urny albo mieszania.
-- Odebranie roli administratora działa dopiero po ponownym zalogowaniu; zmiana hasła nie wylogowuje innych sesji.
-- Za reverse proxy potrzebne jest `UseForwardedHeaders`, inaczej limit żądań liczy wszystkich jako jeden adres.
+- **Tajność głosu.** Kolejność identyfikatorów bloku i wpisu o udziale nadal pozwala je powiązać osobie z dostępem
+  do bazy. To ograniczenie istniało już w wersji pierwotnej. Pełne rozwiązanie wymaga osobnego tokenu urny albo
+  mieszania, czyli zmiany samego sposobu głosowania.
+- Za reverse proxy potrzebne byłoby `UseForwardedHeaders`; lokalnie nie ma proxy.
 - Wymiana klucza podpisu wymaga ponownego podpisania łańcuchów.
-- Tokeny resetu hasła są przechowywane jawnie (jednorazowe i z terminem ważności).
 - Czas lokalny serwera zamiast UTC.
 
-## 7. Wniosek
+## 7. Jak to sprawdzono (2026-09-29)
+
+- `dotnet build -c Release`: 0 ostrzeżeń i 0 błędów; `dotnet format --verify-no-changes`: bez zmian.
+- `dotnet test`: 226 z 226. Testy dla błędów z punktu 5 najpierw uruchomiono na kodzie sprzed poprawki: nie
+  przechodziły. Po poprawce przechodzą.
+- Pełny przebieg na nowej, pustej bazie SQLite (aplikacja w trybie Development, żądania HTTP), 48 z 48 kroków:
+  - rejestracja: zły PESEL, wiek poniżej 18 lat i zajęty e-mail odrzucone; logowanie przed aktywacją odrzucone;
+  - konto: aktywacja linkiem z e-maila, zmiana hasła (bieżąca sesja zostaje), stare hasło odrzucone, odzyskanie
+    hasła linkiem (link działa raz), blokada konta po 5 błędnych hasłach;
+  - wybory: administrator tworzy wybory i dodaje kandydatów przed startem; po starcie dodanie kandydata i zmiana
+    daty rozpoczęcia są odrzucone;
+  - głosowanie: 4 głosy dają 4 różne kody, drugi głos tego samego wyborcy odrzucony, kod odnajduje się
+    w wyszukiwarce (wielkość liter bez znaczenia), eksport i liczby głosów ukryte przed końcem, także przed
+    administratorem;
+  - role: nadanie i odebranie roli administratora działa od razu w otwartej sesji;
+  - koniec wyborów: zakończenie przed ostatnim głosem odrzucone; po zamknięciu wyniki 50 / 25 / 25 %, eksport
+    dostępny, niezależny `tools/ChainVerifier` potwierdza łańcuch i kopię kontrolną; ponowne otwarcie odrzucone,
+    ręczna kontrola rejestru bez zastrzeżeń;
+  - limit żądań: po 20 próbach logowania w minucie odpowiedź 429;
+  - dziennik aplikacji bez błędów.
+- Nie sprawdzono tutaj: uruchomienia na SQL Serverze (na maszynie testowej nie ma SQL Servera; ta ścieżka ma testy,
+  ale nie była uruchomiona) i obrazu Dockera (brak Dockera).
+
+## 8. Wniosek
 
 Przebudowa jest rozwinięciem pracy, a nie inną aplikacją: ta sama idea łańcucha głosów z kodem dla wyborcy, te same
 encje, kontrolery, walidacja i wygląd. Naprawia wszystkie poważne błędy bezpieczeństwa i poprawności oryginału,
 a sam łańcuch wzmacnia podpisami, kotwicami i niezależnym weryfikatorem. W przebudowie pojawiło się kilka nowych
-błędów; ten przegląd je usunął. Aplikacja nie jest „w 100% poprawna” w sensie absolutnym: ograniczenia z punktu 6
-są znane i opisane. Jako projekt pokazowy jest spójna, przetestowana i działa.
+błędów; ten przegląd je usunął. Wszystkie funkcje przeszły testy i pełny przebieg opisany w punkcie 7.
+Ograniczenia z punktu 6 są znane, opisane i świadomie pozostawione dla aplikacji uruchamianej lokalnie.
