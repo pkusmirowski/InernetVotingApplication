@@ -111,6 +111,29 @@ public sealed partial class AdminFlowTests : IClassFixture<VotingWebApplicationF
         var denied = await voterClient.GetAsync(new Uri("/Admin/Elections", UriKind.Relative));
         Assert.Equal(HttpStatusCode.Redirect, denied.StatusCode);
         Assert.StartsWith("/Account/AccessDenied", denied.LocationPath(), StringComparison.Ordinal);
+
+        // Role changes reach a session that is already open, without logging in again.
+        var usersHtml = await (await client.GetAsync(new Uri("/Admin/Users", UriKind.Relative))).Content.ReadAsStringAsync();
+        var voterId = Regex.Match(usersHtml, "ewa\\.wyborca@example\\.com[\\s\\S]*?/Admin/SetAdministrator/(\\d+)").Groups[1].Value;
+        Assert.NotEmpty(voterId);
+        await client.PostFormAsync("/Admin/Users", new Dictionary<string, string> { ["isAdmin"] = "true" }, postUrl: $"/Admin/SetAdministrator/{voterId}");
+        Assert.Equal(HttpStatusCode.OK, (await voterClient.GetAsync(new Uri("/Admin/Elections", UriKind.Relative))).StatusCode);
+        await client.PostFormAsync("/Admin/Users", new Dictionary<string, string> { ["isAdmin"] = "false" }, postUrl: $"/Admin/SetAdministrator/{voterId}");
+        Assert.StartsWith("/Account/AccessDenied", (await voterClient.GetAsync(new Uri("/Admin/Elections", UriKind.Relative))).LocationPath(), StringComparison.Ordinal);
+
+        // A password change keeps the current session and ends the others.
+        var secondSession = factory.CreateClient(new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactoryClientOptions { BaseAddress = new Uri("https://localhost"), AllowAutoRedirect = false });
+        await secondSession.PostFormAsync("/Account/Login", new Dictionary<string, string> { ["Email"] = "ewa.wyborca@example.com", ["Haslo"] = "Secret#Pass1" });
+        Assert.Equal(HttpStatusCode.OK, (await secondSession.GetAsync(new Uri("/Election/Dashboard", UriKind.Relative))).StatusCode);
+        var change = await voterClient.PostFormAsync("/Account/ChangePassword", new Dictionary<string, string>
+        {
+            ["Password"] = "Secret#Pass1",
+            ["NewPassword"] = "Other#Pass2",
+            ["ConfirmNewPassword"] = "Other#Pass2",
+        });
+        Assert.Equal("/Account/ChangePassword", change.LocationPath());
+        Assert.Equal(HttpStatusCode.OK, (await voterClient.GetAsync(new Uri("/Election/Dashboard", UriKind.Relative))).StatusCode);
+        Assert.StartsWith("/Account/Login", (await secondSession.GetAsync(new Uri("/Election/Dashboard", UriKind.Relative))).LocationPath(), StringComparison.Ordinal);
     }
 
     [Fact]

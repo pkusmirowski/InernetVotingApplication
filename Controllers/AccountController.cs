@@ -3,6 +3,7 @@ using InternetVotingApplication.Configuration;
 using InternetVotingApplication.ExtensionMethods;
 using InternetVotingApplication.Interfaces;
 using InternetVotingApplication.Models;
+using InternetVotingApplication.Services;
 using InternetVotingApplication.ViewModels;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -139,6 +140,19 @@ public class AccountController(
 
         if (await userService.ChangePasswordAsync(User.GetUserId(), model))
         {
+            // The new password changes the session stamp: other sessions end, this one gets a fresh cookie.
+            var state = await userService.GetSessionStateAsync(User.GetUserId());
+            if (state != null)
+            {
+                var claims = User.Claims
+                    .Where(c => c.Type != SessionValidator.PasswordStampClaim)
+                    .Append(new Claim(SessionValidator.PasswordStampClaim, state.PasswordStamp));
+                await HttpContext.SignInAsync(
+                    CookieAuthenticationDefaults.AuthenticationScheme,
+                    new ClaimsPrincipal(new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme)),
+                    new AuthenticationProperties { IsPersistent = false });
+            }
+
             TempData["StatusMessage"] = "Hasło zostało zmienione.";
             return RedirectToAction(nameof(ChangePassword));
         }
@@ -236,6 +250,7 @@ public class AccountController(
             new(ClaimTypes.Email, user.Email),
             new(ClaimTypes.Name, $"{user.Imie} {user.Nazwisko}"),
             new(ClaimTypes.Role, isAdmin ? Roles.Admin : Roles.Voter),
+            new(SessionValidator.PasswordStampClaim, UserService.PasswordStamp(user.Haslo)),
         };
 
         var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);

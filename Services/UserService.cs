@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using InternetVotingApplication.Configuration;
 using InternetVotingApplication.ExtensionMethods;
 using InternetVotingApplication.Interfaces;
@@ -187,11 +189,13 @@ public class UserService(
             return;
         }
 
-        user.TokenResetuHasla = Guid.NewGuid();
+        // Only a hash is stored: whoever can read the database must not be able to use a pending reset link.
+        var token = Guid.NewGuid();
+        user.TokenResetuHasla = HashToken(token);
         user.TokenResetuWygasa = Now().Add(_security.PasswordResetTokenLifetime);
         await context.SaveChangesAsync();
 
-        await emailSender.SendAsync(Email.PasswordReset(user.Email, resetLinkFactory(user.TokenResetuHasla.Value), _security.PasswordResetTokenLifetime));
+        await emailSender.SendAsync(Email.PasswordReset(user.Email, resetLinkFactory(token), _security.PasswordResetTokenLifetime));
     }
 
     public async Task<bool> IsPasswordResetTokenValidAsync(Guid token)
@@ -202,7 +206,8 @@ public class UserService(
         }
 
         var now = Now();
-        return await context.Uzytkowniks.AnyAsync(u => u.TokenResetuHasla == token && u.TokenResetuWygasa > now);
+        var hash = HashToken(token);
+        return await context.Uzytkowniks.AnyAsync(u => u.TokenResetuHasla == hash && u.TokenResetuWygasa > now);
     }
 
     public async Task<bool> ResetPasswordAsync(Guid token, string newPassword)
@@ -214,7 +219,8 @@ public class UserService(
         }
 
         var now = Now();
-        var user = await context.Uzytkowniks.SingleOrDefaultAsync(u => u.TokenResetuHasla == token && u.TokenResetuWygasa > now);
+        var hash = HashToken(token);
+        var user = await context.Uzytkowniks.SingleOrDefaultAsync(u => u.TokenResetuHasla == hash && u.TokenResetuWygasa > now);
         if (user == null)
         {
             return false;
@@ -231,6 +237,29 @@ public class UserService(
         logger.LogInformation("Password reset completed for user {UserId}", user.Id);
         return true;
     }
+
+    public async Task<SessionState?> GetSessionStateAsync(int userId)
+    {
+        var user = await context.Uzytkowniks
+            .AsNoTracking()
+            .Where(u => u.Id == userId)
+            .Select(u => new { u.JestAktywne, u.Haslo, IsAdmin = u.Administrators.Any() })
+            .SingleOrDefaultAsync();
+        return user == null ? null : new SessionState(user.JestAktywne, user.IsAdmin, PasswordStamp(user.Haslo));
+    }
+
+    /// <summary>
+    /// Short fingerprint of the stored password hash. BCrypt salts every new hash, so the stamp changes with each
+    /// password change and sessions opened with the old password stop validating.
+    /// </summary>
+    public static string PasswordStamp(string passwordHash)
+    {
+        ArgumentNullException.ThrowIfNull(passwordHash);
+        return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(passwordHash)), 0, 8);
+    }
+
+    /// <summary>Value stored for a password reset token; the column keeps its GUID type.</summary>
+    public static Guid HashToken(Guid token) => new(SHA256.HashData(token.ToByteArray()).AsSpan(0, 16));
 
     private DateTime Now() => timeProvider.GetLocalNow().DateTime;
 
